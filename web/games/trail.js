@@ -66,7 +66,7 @@
       NE.text(ctx, String(this.score), 20, 14, { size: 40 });
       NE.text(ctx, "LEN " + this.snake.length, this.W - 110, 20, { size: 16, color: P.dim });
       if (this.state === "over")
-        NE.banner(ctx, this.W, this.H, "CRASHED", `score ${this.score}   -   ENTER retry   ESC menu`);
+        NE.banner(ctx, this.W, this.H, "CRASHED", `score ${this.score}   -   ENTER / tap to retry   ESC menu`);
     }
   }
   NE.register("trail",

@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ECHO 3D</title>
 <style>
-  :root{--cyan:#40f0ff;--mag:#ff46c8;--violet:#aa78ff;--amber:#ffbe3c;--ink:#e0e8ff;--dim:#78829a;}
-  html,body{margin:0;height:100%;background:#05060f;overflow:hidden;
+  :root{--cyan:#22e4ff;--mag:#ff3ea5;--violet:#a07bff;--amber:#ffb23f;--ink:#f1f3ff;--dim:#8d92bd;}
+  html,body{margin:0;height:100%;background:#06051a;overflow:hidden;
     font-family:Consolas,"SF Mono",ui-monospace,monospace;color:var(--ink);}
   #c{display:block;width:100%;height:100%;touch-action:none;}
   .hud{position:fixed;inset:0;pointer-events:none;}
@@ -24,7 +24,7 @@
   .rwbar span{font-size:11px;color:var(--dim);}
   .back{position:absolute;top:12px;left:50%;transform:translateX(-50%);pointer-events:auto;
     cursor:pointer;color:var(--cyan);border:1px solid var(--cyan);border-radius:10px;
-    padding:6px 14px;font-weight:700;background:rgba(64,240,255,.07);font-family:inherit;font-size:12px;}
+    padding:6px 14px;font-weight:700;background:rgba(34,228,255,.07);font-family:inherit;font-size:12px;}
   .touch{position:absolute;inset:0;pointer-events:none;display:none;}
   body.touchon .touch{display:block;}
   .pad{position:absolute;bottom:22px;left:18px;display:grid;
@@ -34,7 +34,7 @@
   .tb{pointer-events:auto;user-select:none;touch-action:none;display:flex;align-items:center;
     justify-content:center;border-radius:14px;background:rgba(20,24,46,.72);
     border:1px solid rgba(120,130,170,.5);color:var(--ink);font-size:20px;font-weight:800;}
-  .tb:active{background:rgba(64,240,255,.25);border-color:var(--cyan);}
+  .tb:active{background:rgba(34,228,255,.25);border-color:var(--cyan);}
   .pad .tb{width:52px;height:52px;} .u{grid-column:2;grid-row:1;}.l{grid-column:1;grid-row:2;}
   .r{grid-column:3;grid-row:2;}.dn{grid-column:2;grid-row:3;}
   .jb{width:84px;height:84px;font-size:14px;border-color:var(--cyan);color:var(--cyan);}
@@ -80,7 +80,7 @@
     return;
   }
 
-  const C = { cyan:0x40f0ff, mag:0xff46c8, violet:0xaa78ff, amber:0xffbe3c, dim:0x1a1d33 };
+  const C = { cyan:0x22e4ff, mag:0xff3ea5, violet:0xa07bff, amber:0xffb23f, dim:0x1a1d33 };
   const canvas = document.getElementById("c");
   const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
   renderer.setPixelRatio(Math.min(2, devicePixelRatio));
@@ -177,11 +177,14 @@
   }
 
   // ---- input ----
+  let doneAt = 0;
+  // phones: tap anywhere (or JUMP) on the result screen to play again
+  addEventListener("pointerdown", () => { if (state.done && performance.now() - doneAt > 600) reset(); });
   const keys = Object.create(null);
   addEventListener("keydown", e => {
     keys[e.code] = true;
     if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Space"].includes(e.code)) e.preventDefault();
-    if (e.code === "Enter" && state.done) reset();
+    if ((e.code === "Enter" || e.code === "Space") && state.done && performance.now() - doneAt > 600) reset();
     if (e.code === "Escape") backOut();
   });
   addEventListener("keyup", e => { keys[e.code] = false; });
@@ -278,18 +281,19 @@
   }
 
   function finish(win) {
-    state.done = true; state.win = win;
+    state.done = true; state.win = win; doneAt = performance.now();
     const total = coins.length;
     let scoreVal = state.score * 10 + (win ? 100 : 0);
     let nb = false;
     if (scoreVal > best) { best = scoreVal; nb = true;
       try { localStorage.setItem("neon-best-echo3d", String(best)); } catch (_) {}
       document.getElementById("best").textContent = best; }
+    try { parent !== window && parent.postMessage({ t: "forkade-score", id: "echo3d", score: scoreVal, best: nb }, "*"); } catch (_) {}
     bannerEl.style.display = "flex";
     document.getElementById("bt").textContent = win ? "COURSE CLEAR!" : "YOU FELL";
     document.getElementById("bs").innerHTML =
       `cores ${state.score}/${total} &nbsp; score ${scoreVal}` +
-      (nb ? " &nbsp; ★ NEW BEST" : "") + "<br>ENTER retry · Esc back";
+      (nb ? " &nbsp; ★ NEW BEST" : "") + "<br>ENTER / tap to retry · Esc back";
   }
 
   function render(dt, now) {

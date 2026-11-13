@@ -6,8 +6,8 @@
     reset() {
       this.px = this.W / 2; this.py = this.H / 2; this.vx = 0; this.vy = 0;
       this.ang = -Math.PI / 2; this.hp = 3; this.score = 0;
-      this.bullets = []; this.rocks = []; this.cool = 0; this.inv = 0; this.state = "play";
-      for (let i = 0; i < 5; i++) this.spawnRock();
+      this.bullets = []; this.rocks = []; this.cool = 0; this.inv = 0; this.state = "play"; this.wave = 1;
+      for (let i = 0; i < 4; i++) this.spawnRock();
     }
     spawnRock(x, y, size = 3) {
       if (x == null) {
@@ -65,17 +65,22 @@
             break;
           }
         }
-      if (!this.rocks.length) { for (let i = 0; i < 5; i++) this.spawnRock(); this.score += 50; }
+      if (!this.rocks.length) {   // next wave: more rocks, +1 hull every 3 waves
+        this.wave++; this.score += 100 * this.wave;
+        if (this.wave % 3 === 0) this.hp = Math.min(5, this.hp + 1);
+        for (let i = 0; i < Math.min(10, 3 + this.wave); i++) this.spawnRock();
+        NE.sfx.win(); this.reward(2 + 2 * this.wave, `wave ${this.wave}`, "wave" + this.wave);
+      }
     }
     snapshot() {
       if (this.state !== "play") return null;
       return { px: this.px, py: this.py, vx: this.vx, vy: this.vy, ang: this.ang,
-               hp: this.hp, score: this.score, inv: this.inv,
+               hp: this.hp, score: this.score, inv: this.inv, wave: this.wave,
                b: this.bullets.map(o => ({ ...o })), r: this.rocks.map(o => ({ ...o })) };
     }
     restore(s) {
       this.px = s.px; this.py = s.py; this.vx = s.vx; this.vy = s.vy; this.ang = s.ang;
-      this.hp = s.hp; this.score = s.score; this.inv = s.inv;
+      this.hp = s.hp; this.score = s.score; this.inv = s.inv; this.wave = s.wave;
       this.bullets = s.b.map(o => ({ ...o })); this.rocks = s.r.map(o => ({ ...o }));
     }
     render(ctx) {
@@ -102,13 +107,14 @@
         NE.drawEcho(ctx, x, y, 9, P.cyan, 1, this.t);
       }
       NE.text(ctx, String(this.score), 20, 16, { size: 40 });
+      NE.text(ctx, `WAVE ${this.wave}`, 22, 60, { size: 15, color: P.dim });
       for (let i = 0; i < this.hp; i++) NE.glowCircle(ctx, P.cyan, this.W - 30 - i * 26, 28, 7);
       if (this.state === "over")
-        NE.banner(ctx, this.W, this.H, "LOST IN THE STORM", `score ${this.score}   -   ENTER retry   ESC menu`);
+        NE.banner(ctx, this.W, this.H, "LOST IN THE STORM", `score ${this.score}   -   ENTER / tap to retry   ESC menu`);
     }
   }
   NE.register("drift",
-    { title: "DRIFTSTORM", genre: "Asteroids", color: P.red,
+    { title: "DRIFTSTORM", genre: "Space rocks", color: P.red,
       desc: "Spin, thrust and blast neon rocks to dust. Clipped one? Rewind the drift." },
     Drift);
 })();

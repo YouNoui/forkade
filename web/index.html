@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>FORKADE - open-source neon arcade</title>
-<meta name="theme-color" content="#080a14">
+<meta name="theme-color" content="#06051a">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -14,26 +14,26 @@
 <meta name="apple-mobile-web-app-title" content="Forkade">
 <style>
   :root{
-    --bg:#080a14; --bg2:#0e1022; --ink:#e0e8ff; --dim:#78829a;
-    --cyan:#40f0ff; --magenta:#ff46c8; --lime:#8cff5a; --amber:#ffbe3c;
-    --violet:#aa78ff; --red:#ff505a;
+    --bg:#06051a; --bg2:#16113d; --ink:#f1f3ff; --dim:#8d92bd;
+    --cyan:#22e4ff; --magenta:#ff3ea5; --lime:#9dff57; --amber:#ffb23f;
+    --violet:#a07bff; --red:#ff4f6e;
   }
   *{box-sizing:border-box;}
   body{
     margin:0; font-family:"Consolas","SF Mono",ui-monospace,monospace;
-    background:radial-gradient(1200px 600px at 50% -10%,#141634 0%,var(--bg) 60%);
+    background:radial-gradient(1200px 600px at 50% -10%,#2a1650 0%,var(--bg) 60%);
     color:var(--ink); min-height:100vh;
   }
   .wrap{padding:48px 20px 64px;}
   .head{text-align:center; max-width:760px; margin:0 auto 38px;}
   .title{
     font-size:clamp(34px,7vw,64px); font-weight:800; letter-spacing:4px; margin:0; color:var(--cyan);
-    text-shadow:0 0 12px rgba(64,240,255,.7),0 0 34px rgba(64,240,255,.35);
+    text-shadow:0 0 12px rgba(34,228,255,.7),0 0 34px rgba(34,228,255,.35);
   }
   .sub{color:var(--dim); font-size:15px; margin-top:12px; letter-spacing:1px;}
   .chip{display:inline-block; margin-top:16px; padding:7px 16px; border-radius:20px;
     border:1px solid var(--violet); color:var(--violet); font-size:13px;
-    box-shadow:0 0 14px rgba(170,120,255,.35) inset;}
+    box-shadow:0 0 14px rgba(160,123,255,.35) inset;}
   .grid{display:grid; gap:18px; max-width:1040px; margin:0 auto;
     grid-template-columns:repeat(auto-fit,minmax(280px,1fr));}
   .card{position:relative; border-radius:16px; padding:22px 20px 20px;
@@ -59,6 +59,39 @@
   .foot{text-align:center; color:var(--dim); font-size:13px; margin-top:34px; line-height:1.7;}
   .foot a{color:var(--cyan);}
   .foot b{color:var(--violet);}
+  .chip.oss{margin-top:8px; border-color:var(--magenta);}
+  .chip.oss a{color:var(--magenta); text-decoration:none;}
+  a.card{display:block; text-decoration:none; color:inherit;}
+  .card.make{border-style:dashed;}
+  .wallet{display:flex; flex-wrap:wrap; justify-content:center; gap:10px 16px; margin-top:14px; font-size:13px; color:var(--dim);}
+  .wallet b{color:var(--lime);}
+  .wallet .locker{cursor:pointer; font-family:inherit; font-weight:800; font-size:13px; color:var(--amber);
+    border:1px solid var(--amber); border-radius:10px; padding:5px 12px; background:rgba(255,178,63,.06);}
+  .stars{position:absolute; right:20px; bottom:42px; font-size:14px; letter-spacing:2px;}
+  .stars .on{color:#ffd84a; text-shadow:0 0 8px #ffd84a;} .stars .off{color:rgba(141,146,189,.35);}
+  .modal{position:fixed; inset:0; z-index:200; background:rgba(3,2,14,.78); display:flex; align-items:flex-start;
+    justify-content:center; overflow:auto; padding:30px 14px;}
+  .modal[hidden]{display:none;}
+  .sheet{position:relative; width:min(760px,100%); background:#0d0a2a; border:1px solid var(--violet);
+    border-radius:18px; padding:22px; box-shadow:0 0 60px -10px var(--violet);}
+  .sheet h2{margin:6px 0 10px; letter-spacing:3px; color:var(--cyan); font-size:18px;}
+  .sheet .hint{color:var(--dim); font-size:13px; line-height:1.6; margin:0 0 14px;}
+  .sheet .x{position:absolute; right:14px; top:10px; font-size:28px; background:none; border:0; color:var(--dim); cursor:pointer;}
+  .skins{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin-bottom:18px;}
+  .skin{border:1px solid rgba(141,146,189,.3); border-radius:12px; padding:12px; text-align:center; font-size:13px;}
+  .skin .sw{width:34px; height:34px; border-radius:10px; margin:0 auto 8px; box-shadow:0 0 14px currentColor;}
+  .skin button{margin-top:8px; width:100%; font-family:inherit; font-weight:800; font-size:12px; cursor:pointer;
+    border-radius:8px; padding:6px; background:transparent; color:var(--lime); border:1px solid var(--lime);}
+  .skin button[disabled]{color:var(--dim); border-color:rgba(141,146,189,.4); cursor:default;}
+  .skin.eq{border-color:var(--lime); box-shadow:0 0 16px -6px var(--lime);}
+  .badges{display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:8px; font-size:13px;}
+  .badge{display:flex; justify-content:space-between; gap:8px; border:1px solid rgba(141,146,189,.25); border-radius:10px; padding:9px 12px;}
+  .badge small{display:block; color:var(--dim); font-size:11px; margin-top:2px;}
+  .toasts{position:fixed; left:50%; top:16px; transform:translateX(-50%); z-index:300; display:flex; flex-direction:column; gap:8px; pointer-events:none;}
+  .toast{background:rgba(6,5,26,.92); border:1px solid var(--lime); color:var(--lime); border-radius:12px;
+    padding:10px 16px; font-size:14px; font-weight:800; box-shadow:0 0 24px -8px var(--lime); animation:tin .25s ease-out;}
+  @keyframes tin{from{opacity:0; transform:translateY(-8px);} to{opacity:1; transform:none;}}
+  .nodata{display:inline-block; margin-top:10px; color:var(--lime); opacity:.85;}
 
   /* ---- in-game stage ---- */
   .stage{position:fixed; inset:0; background:rgba(4,6,14,.96); display:none;
@@ -67,25 +100,28 @@
   #game{width:min(94vw,900px); aspect-ratio:900/560; border-radius:14px;
     border:1px solid rgba(120,130,160,.3); box-shadow:0 0 50px -10px var(--cyan); background:var(--bg); touch-action:none;}
   #gframe{width:min(100vw,1100px); height:min(86vh,720px); border:0; border-radius:14px;
-    box-shadow:0 0 50px -10px var(--cyan); background:#05060f; display:none;}
+    box-shadow:0 0 50px -10px var(--cyan); background:#06051a; display:none;}
   .stage.d3 #game{display:none;} .stage.d3 .stagebar{display:none;}
   .stage.d3 #gframe{display:block;}
-  body.touch .stage.d3 .touchctl{display:none;}
+  body.touch .stage.on.d3 .touchctl{display:none;}
   .pname{margin-top:14px;}
   .pname input{font-family:inherit; font-size:13px; color:var(--ink); background:rgba(20,24,46,.5);
     border:1px solid rgba(120,130,170,.5); border-radius:10px; padding:8px 12px; width:170px; text-align:center;}
   .pname label{color:var(--dim); font-size:12px; margin-right:8px;}
   .stagebar{display:flex; gap:18px; align-items:center; color:var(--dim); font-size:13px; flex-wrap:wrap; justify-content:center;}
   .back{cursor:pointer; color:var(--cyan); border:1px solid var(--cyan); border-radius:10px;
-    padding:8px 16px; font-weight:700; background:rgba(64,240,255,.05);}
+    padding:8px 16px; font-weight:700; background:rgba(34,228,255,.05);}
   kbd{background:#1a1d33; border:1px solid #2d3252; border-radius:5px; padding:1px 7px; color:var(--ink);}
 
   /* ---- install button ---- */
   .install{display:none; margin:18px auto 0; cursor:pointer; color:var(--cyan);
     border:1px solid var(--cyan); border-radius:12px; padding:10px 20px; font-weight:800;
-    letter-spacing:1px; background:rgba(64,240,255,.06); box-shadow:0 0 20px -6px var(--cyan);
+    letter-spacing:1px; background:rgba(34,228,255,.06); box-shadow:0 0 20px -6px var(--cyan);
     font-family:inherit; font-size:14px;}
   .install.show{display:inline-block;}
+  .dlbox{max-width:520px; margin:12px auto 0; padding:14px 16px; border:1px solid var(--cyan); border-radius:14px;
+    background:rgba(34,228,255,.05); font-size:13px; line-height:1.6; color:var(--ink); text-align:left;}
+  .dlbox .dlfile{display:inline-block; margin-top:10px; color:var(--lime); font-weight:700; text-decoration:none;}
 
   /* ---- touch controls (phones only) ---- */
   .touchctl{position:absolute; inset:0; display:none; pointer-events:none; z-index:60;}
@@ -99,9 +135,10 @@
     display:flex; align-items:center; justify-content:center; border-radius:14px;
     background:rgba(20,24,46,.72); border:1px solid rgba(120,130,170,.5); color:var(--ink);
     font-size:22px; font-weight:800; backdrop-filter:blur(2px);}
-  .tbtn:active{background:rgba(64,240,255,.25); border-color:var(--cyan);}
+  .tbtn:active{background:rgba(34,228,255,.25); border-color:var(--cyan);}
   .pad .tbtn{width:56px; height:56px;}
   .big{width:82px; height:82px; font-size:16px; border-color:var(--cyan); color:var(--cyan);}
+  .ps{width:48px; height:48px; font-size:14px; border-color:var(--dim); color:var(--dim);}
   .rw{width:64px; height:64px; font-size:15px; border-color:var(--violet); color:var(--violet);}
   .u{grid-column:2; grid-row:1;} .l{grid-column:1; grid-row:2;}
   .r{grid-column:3; grid-row:2;} .dn{grid-column:2; grid-row:3;}
@@ -111,9 +148,20 @@
   <div class="wrap">
     <div class="head">
       <h1 class="title">FORKADE</h1>
-      <div class="sub">play it, rewind it, fork it &middot; 9 games (incl. 3D) &middot; one hero &middot; open source &middot; no sign-ups &middot; plays in your browser</div>
+      <div class="sub">play it, rewind it, fork it &middot; 10 games (incl. 3D) &middot; one hero &middot; open source &middot; no sign-ups &middot; plays in your browser</div>
       <div class="chip">&#9199; one twist: hold R or Shift to rewind time whenever you mess up</div>
-      <br><button class="install" id="install">&#11015; Install to your phone</button>
+      <div class="chip oss"><a href="playground.html" id="osslink">&#9998; open source &mdash; build your own game in the Playground</a> &middot; <a href="https://github.com/YouNoui/forkade" target="_blank" rel="noopener noreferrer">GitHub</a></div>
+      <div class="wallet" id="wallet">
+        <span>&#9670; <b id="w-cores">0</b> cores</span>
+        <span>RANK <b id="w-rank">1</b></span>
+        <span>&#128293; <b id="w-streak">0</b>-day streak</span>
+        <button class="locker" id="open-locker">&#127942; Locker &amp; badges</button>
+      </div>
+      <br><button class="install show" id="install">&#11015; Download / install</button>
+      <div class="dlbox" id="dlbox" hidden>
+        <div id="dlmsg"></div>
+        <a class="dlfile" href="download/forkade.html" download="forkade.html">&#11015; Download as one file (plays offline, double-click to open)</a>
+      </div>
       <button class="mute" id="mute">&#128266; Sound: on</button>
       <div class="pname"><label>Player</label><input id="playername" maxlength="14" placeholder="ECHO"></div>
     </div>
@@ -122,8 +170,21 @@
       <a href="https://github.com/YouNoui/forkade" target="_blank" rel="noopener noreferrer">Fork it on GitHub</a><br>
       Built with HTML5 Canvas + JavaScript &middot; MIT licensed &middot; fork it, extend it, add your own.<br>
       In every game: hold <b>R</b> or <b>Shift</b> to rewind &middot; <b>P</b> pause &middot; <b>Esc</b> back to menu.
+      <span class="nodata">&#128274; We collect none of your data. No accounts, no tracking, no ads &mdash; your name and scores stay on this device only.</span>
     </div>
   </div>
+
+  <div class="modal" id="locker" hidden>
+    <div class="sheet">
+      <button class="x" id="close-locker" aria-label="Close">&times;</button>
+      <h2>LOCKER</h2>
+      <p class="hint">Earn cores in every game: finish rounds, clear levels, beat your best and win badges. Spend them on ECHO skins that show up in every game.</p>
+      <div class="skins" id="skins"></div>
+      <h2>BADGES <span id="badge-count"></span></h2>
+      <div class="badges" id="badges"></div>
+    </div>
+  </div>
+  <div class="toasts" id="toasts"></div>
 
   <div class="stage" id="stage">
     <canvas id="game" width="900" height="560" tabindex="0"></canvas>
@@ -136,8 +197,9 @@
         <div class="tbtn dn" data-code="ArrowDown">&#9660;</div>
       </div>
       <div class="side">
+        <div class="tbtn ps"  data-code="KeyP" title="Pause">II</div>
         <div class="tbtn rw"  data-code="KeyR">REW</div>
-        <div class="tbtn big" data-code="Space">FIRE</div>
+        <div class="tbtn big" data-code="Space">ACT</div>
       </div>
     </div>
     <div class="stagebar">
@@ -156,7 +218,8 @@
   <script src="games/breaker.js"></script>
   <script src="games/trail.js"></script>
   <script src="games/drift.js"></script>
-  <script src="games/stacks.js"></script>
+  <script src="games/prism.js"></script>
+  <script src="games/wrecker.js"></script>
   <script src="games/match.js"></script>
   <script>
     const grid = document.getElementById("grid");
@@ -170,10 +233,58 @@
     });
 
     function refreshBest() {
-      document.querySelectorAll(".best").forEach(el => {
+      document.querySelectorAll(".best[data-id]").forEach(el => {
         el.innerHTML = "BEST <b>" + Forkade.scores.get(el.dataset.id) + "</b>";
       });
+      refreshRewards();
     }
+    /* ---------- rewards: wallet, stars, locker ---------- */
+    const R = Forkade.rewards;
+    const GAME_NAMES = () => Object.fromEntries([...Forkade.registry.map(g => [g.id, g.meta.title]), ["echo3d", "ECHO 3D"]]);
+    function refreshRewards() {
+      document.getElementById("w-cores").textContent = R.cores();
+      document.getElementById("w-rank").textContent = R.rank();
+      document.getElementById("w-streak").textContent = R.streak();
+      document.querySelectorAll(".stars[data-id]").forEach(el => {
+        const t = R.tierOf(el.dataset.id);
+        el.innerHTML = [0, 1, 2].map(k => `<span class="${k < t ? "on" : "off"}">&#9733;</span>`).join("");
+        el.title = t ? R.TIERS[t - 1].name + " badge" : "no badge yet";
+      });
+      if (!document.getElementById("locker").hidden) renderLocker();
+    }
+    function renderLocker() {
+      const own = R.owned(), eq = R.skin().id, cores = R.cores();
+      document.getElementById("skins").innerHTML = R.SKINS.map(sk => {
+        const has = own.includes(sk.id), bg = sk.color === "rainbow"
+          ? "linear-gradient(135deg,#ff3ea5,#ffb23f,#9dff57,#22e4ff,#a07bff)" : sk.color;
+        const btn = sk.id === eq ? `<button disabled>Equipped</button>`
+          : has ? `<button data-skin="${sk.id}">Equip</button>`
+          : `<button data-skin="${sk.id}" ${cores < sk.cost ? "disabled" : ""}>&#9670; ${sk.cost}</button>`;
+        return `<div class="skin ${sk.id === eq ? "eq" : ""}"><div class="sw" style="background:${bg};color:${sk.color === "rainbow" ? "#a07bff" : sk.color}"></div>${sk.name}${btn}</div>`;
+      }).join("");
+      const names = GAME_NAMES(); let total = 0;
+      document.getElementById("badges").innerHTML = Object.keys(names).map(id => {
+        const t = R.tierOf(id), g = R.goals(id, (Forkade.registry.find(x => x.id === id) || {}).meta); total += t;
+        const next = t < 3 ? `next: ${R.TIERS[t].name.toLowerCase()} at ${g[t]} pts (+${R.TIERS[t].cores} cores)` : "all badges won";
+        const stars = [0, 1, 2].map(k => `<span style="color:${k < t ? "#ffd84a" : "rgba(141,146,189,.35)"}">&#9733;</span>`).join("");
+        return `<div class="badge"><div>${names[id]}<small>${next}</small></div><div>${stars}</div></div>`;
+      }).join("");
+      document.getElementById("badge-count").textContent = `${total} / ${Object.keys(names).length * 3}`;
+    }
+    function toast(text) {
+      const t = document.createElement("div"); t.className = "toast"; t.textContent = text;
+      document.getElementById("toasts").appendChild(t); setTimeout(() => t.remove(), 3200);
+    }
+    document.getElementById("open-locker").addEventListener("click", () => {
+      document.getElementById("locker").hidden = false; renderLocker();
+    });
+    document.getElementById("close-locker").addEventListener("click", () => { document.getElementById("locker").hidden = true; });
+    document.getElementById("locker").addEventListener("click", e => {
+      if (e.target.id === "locker") e.currentTarget.hidden = true;
+      const id = e.target.dataset && e.target.dataset.skin; if (!id) return;
+      if (R.buy(id)) { Forkade.sfx.pickup(); toast("ECHO is now " + R.SKINS.find(s => s.id === id).name + "!"); }
+      refreshRewards(); renderLocker();
+    });
 
     const gframe = document.getElementById("gframe");
 
@@ -200,7 +311,14 @@
     }
     document.getElementById("back").addEventListener("click", () => Forkade.stop());
     // the 3D game lives in an iframe and asks to close via postMessage
-    window.addEventListener("message", e => { if (e.data === "neon-3d-back") closeStage(); });
+    window.addEventListener("message", e => {
+      if (e.data === "neon-3d-back") closeStage();
+      if (e.data && e.data.t === "forkade-score" && e.data.id === "echo3d" && e.source === gframe.contentWindow) {
+        const got = R.roundEnd("echo3d", e.data.score | 0, !!e.data.best);
+        if (got) toast(`+${got} cores from ECHO 3D`);
+        refreshRewards();
+      }
+    });
 
     Forkade.registry.forEach((g, i) => {
       const m = g.meta;
@@ -214,7 +332,8 @@
         <div class="genre">${m.genre}</div>
         <p class="desc">${m.desc}</p>
         <span class="play">&#9654; Play now</span>
-        <div class="best" data-id="${g.id}">BEST <b>${Forkade.scores.get(g.id)}</b></div>`;
+        <div class="best" data-id="${g.id}">BEST <b>${Forkade.scores.get(g.id)}</b></div>
+        <div class="stars" data-id="${g.id}"></div>`;
       card.addEventListener("click", () => openGame(g.id));
       grid.appendChild(card);
     });
@@ -224,16 +343,34 @@
       const i = Forkade.registry.length;
       const card = document.createElement("div");
       card.className = "card";
-      card.style.setProperty("--c", "#8cff5a");
+      card.style.setProperty("--c", "#9dff57");
       card.innerHTML = `
         <div class="num">${String(i + 1).padStart(2, "0")}</div>
         <div class="dot"><span></span></div>
-        <h3 class="name">ECHO 3D <span style="font-size:12px;color:#8cff5a">· 3D</span></h3>
+        <h3 class="name">ECHO 3D <span style="font-size:12px;color:#9dff57">· 3D</span></h3>
         <div class="genre">3D platformer</div>
-        <p class="desc">Run and jump ECHO across a floating neon course, Roblox-style. Collect cores, reach the goal. Rewind your falls.</p>
+        <p class="desc">Run and jump ECHO across a floating neon obstacle course. Collect cores, reach the goal. Rewind your falls.</p>
         <span class="play">&#9654; Play now</span>
-        <div class="best" data-id="echo3d">BEST <b>${Forkade.scores.get("echo3d")}</b></div>`;
+        <div class="best" data-id="echo3d">BEST <b>${Forkade.scores.get("echo3d")}</b></div>
+        <div class="stars" data-id="echo3d"></div>`;
       card.addEventListener("click", open3D);
+      grid.appendChild(card);
+    })();
+
+    /* ---------- build-your-own card -> Playground ---------- */
+    (function addMake() {
+      const href = "playground.html";   // build_dist.py points this at the live site
+      const card = document.createElement("a");
+      card.className = "card make"; card.href = href;
+      card.style.setProperty("--c", "#ff3ea5");
+      card.innerHTML = `
+        <div class="num">+</div>
+        <div class="dot"><span></span></div>
+        <h3 class="name">MAKE YOUR OWN</h3>
+        <div class="genre">Open source &middot; MIT</div>
+        <p class="desc">Every game here is open source. Write your own in the Playground, play it instantly with rewind built in, then submit it to join the arcade.</p>
+        <span class="play">&#9998; Open Playground</span>
+        <div class="best">no install needed</div>`;
       grid.appendChild(card);
     })();
 
@@ -265,19 +402,41 @@
     paintMute();
     muteBtn.addEventListener("click", () => { Forkade.sfx.toggleMute(); Forkade.sfx.ensure(); paintMute(); });
 
+    // badge toasts raised outside a canvas game (3D, menu) show as DOM toasts
+    R.listeners.push((text) => {
+      const st = document.getElementById("stage").classList;
+      if (text && (!st.contains("on") || st.contains("d3"))) toast(text);   // 2D games draw their own toasts
+    });
+    { const d = R.daily(); if (d && d.cores) setTimeout(() => toast(`Day ${d.streak} streak! +${d.cores} cores`), 600); }
+    refreshRewards();
+
     /* ---------- PWA: install button + service worker ---------- */
     let deferredPrompt = null;
     const installBtn = document.getElementById("install");
     window.addEventListener("beforeinstallprompt", e => {
       e.preventDefault(); deferredPrompt = e; installBtn.classList.add("show");
     });
+    // one button for everyone: real install prompt where the browser offers it,
+    // clear steps where it doesn't (iPhone/iPad, Firefox...), plus a one-file download
+    const dlbox = document.getElementById("dlbox"), dlmsg = document.getElementById("dlmsg");
+    const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+    if (standalone) installBtn.classList.remove("show");
     installBtn.addEventListener("click", async () => {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      deferredPrompt = null; installBtn.classList.remove("show");
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const r = await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        if (r && r.outcome === "accepted") { installBtn.classList.remove("show"); return; }
+      }
+      const ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua) || (ua.includes("Mac") && "ontouchend" in document);
+      dlmsg.innerHTML = ios
+        ? "<b>iPhone / iPad:</b> tap the <b>Share</b> button (square with an arrow) in Safari, then <b>Add to Home Screen</b>. FORKADE then opens full-screen and works offline."
+        : /Android/.test(ua)
+        ? "<b>Android:</b> open the browser menu <b>&#8942;</b> and tap <b>Install app</b> (or <b>Add to Home screen</b>). It then works offline."
+        : "<b>Computer:</b> in Chrome or Edge, click the <b>install</b> icon at the right of the address bar (or menu &rarr; <b>Install FORKADE</b>). Or grab the single file below.";
+      dlbox.hidden = !dlbox.hidden;
     });
-    window.addEventListener("appinstalled", () => installBtn.classList.remove("show"));
+    window.addEventListener("appinstalled", () => { installBtn.classList.remove("show"); dlbox.hidden = true; });
 
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () =>
