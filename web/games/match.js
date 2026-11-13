@@ -143,7 +143,7 @@
     }
   }
   NE.register("match",
-    { title: "CORE MATCH", genre: "Match-3 puzzle", color: P.magenta,
+    { touch: "tap", title: "CORE MATCH", genre: "Match-3 puzzle", color: P.magenta,
       desc: "Swap neon cores to line up 3+, chain cascades, climb endless levels. Misfire? Rewind the move." },
     Match);
 })();

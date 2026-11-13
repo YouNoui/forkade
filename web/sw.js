@@ -1,6 +1,6 @@
 /* FORKADE service worker - caches everything so it runs offline once installed.
    Bump CACHE when you change files to push an update to installed users. */
-const CACHE = "forkade-v10";
+const CACHE = "forkade-v12";
 const ASSETS = [
   "./",
   "./index.html",
@@ -36,6 +36,9 @@ self.addEventListener("activate", e => {
 
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
+  const u = new URL(e.request.url);
+  // live data and other sites: always straight to the network, never cached
+  if (u.origin !== location.origin || u.pathname.startsWith("/api/")) return;
   // cache-first: instant loads and full offline play
   e.respondWith(
     caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {

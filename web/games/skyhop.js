@@ -98,7 +98,7 @@
     }
   }
   NE.register("skyhop",
-    { title: "SKY HOP", genre: "Platformer", color: P.cyan,
+    { touch: "lr", title: "SKY HOP", genre: "Platformer", color: P.cyan,
       desc: "Bounce ECHO up an endless neon tower. Miss a jump? Rewind and retry." },
     SkyHop);
 })();

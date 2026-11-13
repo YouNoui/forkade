@@ -267,7 +267,7 @@
     }
   }
   NE.register("wrecker",
-    { title: "TOWER WRECKER", genre: "Destruction physics", color: P.magenta,
+    { touch: "tap", title: "TOWER WRECKER", genre: "Destruction physics", color: P.magenta,
       desc: "Fling a wrecking ball at neon towers. Glass shatters, TNT chains. Then rewind and watch it rebuild." },
     Wrecker);
 })();

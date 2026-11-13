@@ -4,6 +4,7 @@
 - Games must be original takes on a genre: no copied names, art, piece sets or layouts of existing games (e.g. no Tetris-style 7-tetromino 10x20 well).
 - `web/playground.html` lets anyone build a game in the browser; keep its starter game running whenever engine.js changes.
 - Rewards (cores, badges, skins, streak) live in `Forkade.rewards` in engine.js and stay in localStorage only. New games get them automatically; add score tiers to `GOALS` (or `meta.goals`).
+- Rankings: `api/leaderboard.js` + Upstash Redis (env `KV_REST_API_URL`/`KV_REST_API_TOKEN`). Opt-in only: nothing is sent unless the player taps Post. Store nickname, game and score only; add a cap in `CAPS` for every new game.
 - Keep MIT licensing and third-party license notices. Never commit secrets.
 - Use feature branches and PRs for future changes; do not merge without owner approval.
 - Verify the grid and both 2D and 3D games at phone and desktop widths before shipping UI changes.
