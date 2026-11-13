@@ -1,0 +1,135 @@
+# FORKADE
+
+Open-source neon arcade. Play it, rewind it, fork it.
+
+The browser edition has **nine games**, including ECHO 3D. Serve `web/` with any static host (no build step), or run `python -m http.server --directory web 8080`. Open http://localhost:8080.
+
+Fork: https://github.com/YouNoui/forkade. MIT licensed; bundled third-party notices are retained.
+
+To regenerate the single-file download: `python -X utf8 web/build_dist.py`. Bump the cache version in `web/sw.js` when changing web assets.
+
+## Original Python edition
+
+
+A collection of **6 small Python games** that share one hero, one neon look,
+and one unusual twist. No sign-ups, no accounts, no internet — download, run,
+play. Fully open source (MIT) and built to be extended.
+
+> **The unique idea:** every game stars the same little neon droid, **ECHO**,
+> and every game lets you **rewind time**. Mess up a jump, get swarmed, clip a
+> rock — hold **R** (or **Shift**) and the game runs *backwards* on your own
+> energy meter so you can retry the moment. One mechanic, six genres.
+
+This answers all four of the things you asked to tie them together:
+
+| You asked for… | How FORKADE does it |
+|---|---|
+| One shared world / hero | Every game stars **ECHO**, drawn by one function |
+| A shared engine others can extend | One `neonkit.py` toolkit under all six games |
+| One unusual mechanic across genres | **Rewind time** works in all six |
+| Procedural neon theme + juice | Shared starfield, glow, particles, screen-shake |
+
+---
+
+## The six games
+
+1. **Sky Hop** — a bouncy platformer climb (the Roblox-obby vibe)
+2. **Neon Swarm** — a top-down survival shooter (the "shoot the zombies" one)
+3. **Sky Striker** — a vertical airplane shmup (the "airplane that shoots" one)
+4. **Pulse Breaker** — a neon brick-breaker
+5. **Echo Trail** — a glowing neon snake
+6. **Driftstorm** — spin-and-blast asteroids
+
+---
+
+## Run it
+
+You need Python 3.9+ and pygame.
+
+```bash
+pip install pygame
+python launcher.py
+```
+
+Pick a game with the arrow keys (or the mouse) and press **ENTER**. Each game
+opens in its own window; press **ESC** to return to the menu.
+
+You can also run any game on its own:
+
+```bash
+python games/game2_swarm.py
+```
+
+### Controls (shared across all games)
+
+- Move / aim: **WASD** or **Arrow keys** (+ **mouse** in the shooters)
+- Shoot / jump / launch: **SPACE** (or **mouse click**)
+- **Rewind time: hold R or SHIFT**
+- Pause: **P**   ·   Back to menu: **ESC**
+
+---
+
+## How it's built (and how to extend it)
+
+```
+Forkade/
+├── launcher.py          # the arcade menu
+├── engine/
+│   └── neonkit.py       # shared toolkit: palette, glow, ECHO, particles,
+│                        # screen-shake, starfield, HUD, and the Rewind twist
+├── games/
+│   ├── game1_skyhop.py
+│   ├── game2_swarm.py
+│   ├── game3_striker.py
+│   ├── game4_breaker.py
+│   ├── game5_trail.py
+│   └── game6_drift.py
+├── README.md
+├── LICENSE              # MIT
+└── requirements.txt
+```
+
+Each game subclasses `neonkit.GameBase` and only has to write four methods:
+
+```python
+import neonkit as nk
+
+class MyGame(nk.GameBase):
+    title = "MY GAME"
+
+    def step(self, dt, keys, events):   # your game logic for one frame
+        ...
+    def render(self, surf):             # draw your frame
+        ...
+    def snapshot(self):                 # return a copy of your state (for rewind)
+        return (...)
+    def restore(self, snap):            # put that state back (for rewind)
+        ...
+```
+
+`GameBase` gives you the window, the 60fps loop, the gradient background, the
+starfield, particles, screen-shake, pause, and the rewind overlay for free —
+and because every game reports a `snapshot`, **the rewind mechanic works in
+any new game automatically**.
+
+### Add a 7th game
+
+1. Copy any file in `games/` as a starting point.
+2. Change the class, `title`, and the four methods.
+3. Add one line to the `GAMES` list in `launcher.py`.
+
+That's it — it inherits the shared look and the rewind twist.
+
+### Ideas to build on
+
+- New heroes / skins (edit `draw_echo` or pass a `color`)
+- Combo scoring and a shared high-score file
+- Sound effects (pygame.mixer) and a music track
+- A "ghost" that replays your rewound moves
+- Co-op: a second ECHO on the arrow keys
+
+---
+
+## License
+
+MIT — do anything you like, including commercial use. See `LICENSE`.

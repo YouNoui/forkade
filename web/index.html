@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FORKADE - open-source neon arcade</title>
+<meta name="theme-color" content="#080a14">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Forkade">
+<style>
+  :root{
+    --bg:#080a14; --bg2:#0e1022; --ink:#e0e8ff; --dim:#78829a;
+    --cyan:#40f0ff; --magenta:#ff46c8; --lime:#8cff5a; --amber:#ffbe3c;
+    --violet:#aa78ff; --red:#ff505a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:"Consolas","SF Mono",ui-monospace,monospace;
+    background:radial-gradient(1200px 600px at 50% -10%,#141634 0%,var(--bg) 60%);
+    color:var(--ink); min-height:100vh;
+  }
+  .wrap{padding:48px 20px 64px;}
+  .head{text-align:center; max-width:760px; margin:0 auto 38px;}
+  .title{
+    font-size:clamp(34px,7vw,64px); font-weight:800; letter-spacing:4px; margin:0; color:var(--cyan);
+    text-shadow:0 0 12px rgba(64,240,255,.7),0 0 34px rgba(64,240,255,.35);
+  }
+  .sub{color:var(--dim); font-size:15px; margin-top:12px; letter-spacing:1px;}
+  .chip{display:inline-block; margin-top:16px; padding:7px 16px; border-radius:20px;
+    border:1px solid var(--violet); color:var(--violet); font-size:13px;
+    box-shadow:0 0 14px rgba(170,120,255,.35) inset;}
+  .grid{display:grid; gap:18px; max-width:1040px; margin:0 auto;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));}
+  .card{position:relative; border-radius:16px; padding:22px 20px 20px;
+    background:linear-gradient(160deg,var(--bg2),#0a0c1a);
+    border:1px solid rgba(120,130,160,.25); overflow:hidden; cursor:pointer;
+    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;}
+  .card:hover{transform:translateY(-6px); box-shadow:0 0 28px -4px var(--c); border-color:var(--c);}
+  .num{position:absolute; top:14px; right:18px; font-size:34px; font-weight:800; color:var(--c); opacity:.22;}
+  .dot{width:46px; height:46px; border-radius:12px; margin-bottom:14px;
+    background:var(--c); box-shadow:0 0 18px var(--c); display:flex; align-items:center; justify-content:center;}
+  .dot span{width:16px; height:9px; border-radius:5px; background:var(--bg); display:block;}
+  .name{font-size:21px; font-weight:800; letter-spacing:1px; margin:0 0 4px;}
+  .genre{color:var(--c); font-size:13px; letter-spacing:1px; margin-bottom:10px;}
+  .desc{color:var(--dim); font-size:13.5px; line-height:1.5; margin:0 0 16px;}
+  .play{display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:700;
+    color:var(--ink); padding:8px 14px; border-radius:10px; border:1px solid var(--c);
+    background:rgba(255,255,255,.03);}
+  .best{position:absolute; bottom:22px; right:20px; font-size:12px; color:var(--dim); letter-spacing:1px;}
+  .best b{color:var(--c);}
+  .mute{cursor:pointer; color:var(--dim); border:1px solid rgba(120,130,170,.5);
+    border-radius:10px; padding:8px 14px; font-weight:700; background:rgba(20,24,46,.4);
+    font-family:inherit; font-size:13px;}
+  .foot{text-align:center; color:var(--dim); font-size:13px; margin-top:34px; line-height:1.7;}
+  .foot a{color:var(--cyan);}
+  .foot b{color:var(--violet);}
+
+  /* ---- in-game stage ---- */
+  .stage{position:fixed; inset:0; background:rgba(4,6,14,.96); display:none;
+    flex-direction:column; align-items:center; justify-content:center; z-index:50; gap:14px; padding:16px;}
+  .stage.on{display:flex;}
+  #game{width:min(94vw,900px); aspect-ratio:900/560; border-radius:14px;
+    border:1px solid rgba(120,130,160,.3); box-shadow:0 0 50px -10px var(--cyan); background:var(--bg); touch-action:none;}
+  #gframe{width:min(100vw,1100px); height:min(86vh,720px); border:0; border-radius:14px;
+    box-shadow:0 0 50px -10px var(--cyan); background:#05060f; display:none;}
+  .stage.d3 #game{display:none;} .stage.d3 .stagebar{display:none;}
+  .stage.d3 #gframe{display:block;}
+  body.touch .stage.d3 .touchctl{display:none;}
+  .pname{margin-top:14px;}
+  .pname input{font-family:inherit; font-size:13px; color:var(--ink); background:rgba(20,24,46,.5);
+    border:1px solid rgba(120,130,170,.5); border-radius:10px; padding:8px 12px; width:170px; text-align:center;}
+  .pname label{color:var(--dim); font-size:12px; margin-right:8px;}
+  .stagebar{display:flex; gap:18px; align-items:center; color:var(--dim); font-size:13px; flex-wrap:wrap; justify-content:center;}
+  .back{cursor:pointer; color:var(--cyan); border:1px solid var(--cyan); border-radius:10px;
+    padding:8px 16px; font-weight:700; background:rgba(64,240,255,.05);}
+  kbd{background:#1a1d33; border:1px solid #2d3252; border-radius:5px; padding:1px 7px; color:var(--ink);}
+
+  /* ---- install button ---- */
+  .install{display:none; margin:18px auto 0; cursor:pointer; color:var(--cyan);
+    border:1px solid var(--cyan); border-radius:12px; padding:10px 20px; font-weight:800;
+    letter-spacing:1px; background:rgba(64,240,255,.06); box-shadow:0 0 20px -6px var(--cyan);
+    font-family:inherit; font-size:14px;}
+  .install.show{display:inline-block;}
+
+  /* ---- touch controls (phones only) ---- */
+  .touchctl{position:absolute; inset:0; display:none; pointer-events:none; z-index:60;}
+  body.touch .stage.on .touchctl{display:block;}
+  .touchctl .pad{position:absolute; bottom:max(22px,env(safe-area-inset-bottom)); display:grid;
+    grid-template-columns:repeat(3,56px); grid-template-rows:repeat(3,56px); gap:6px;}
+  .touchctl .pad.left{left:18px;}
+  .touchctl .side{position:absolute; right:18px; bottom:max(22px,env(safe-area-inset-bottom));
+    display:flex; flex-direction:column; gap:12px; align-items:center;}
+  .tbtn{pointer-events:auto; user-select:none; -webkit-user-select:none; touch-action:none;
+    display:flex; align-items:center; justify-content:center; border-radius:14px;
+    background:rgba(20,24,46,.72); border:1px solid rgba(120,130,170,.5); color:var(--ink);
+    font-size:22px; font-weight:800; backdrop-filter:blur(2px);}
+  .tbtn:active{background:rgba(64,240,255,.25); border-color:var(--cyan);}
+  .pad .tbtn{width:56px; height:56px;}
+  .big{width:82px; height:82px; font-size:16px; border-color:var(--cyan); color:var(--cyan);}
+  .rw{width:64px; height:64px; font-size:15px; border-color:var(--violet); color:var(--violet);}
+  .u{grid-column:2; grid-row:1;} .l{grid-column:1; grid-row:2;}
+  .r{grid-column:3; grid-row:2;} .dn{grid-column:2; grid-row:3;}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="head">
+      <h1 class="title">FORKADE</h1>
+      <div class="sub">play it, rewind it, fork it &middot; 9 games (incl. 3D) &middot; one hero &middot; open source &middot; no sign-ups &middot; plays in your browser</div>
+      <div class="chip">&#9199; one twist: hold R or Shift to rewind time whenever you mess up</div>
+      <br><button class="install" id="install">&#11015; Install to your phone</button>
+      <button class="mute" id="mute">&#128266; Sound: on</button>
+      <div class="pname"><label>Player</label><input id="playername" maxlength="14" placeholder="ECHO"></div>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="foot">
+      <a href="https://github.com/YouNoui/forkade" target="_blank" rel="noopener noreferrer">Fork it on GitHub</a><br>
+      Built with HTML5 Canvas + JavaScript &middot; MIT licensed &middot; fork it, extend it, add your own.<br>
+      In every game: hold <b>R</b> or <b>Shift</b> to rewind &middot; <b>P</b> pause &middot; <b>Esc</b> back to menu.
+    </div>
+  </div>
+
+  <div class="stage" id="stage">
+    <canvas id="game" width="900" height="560" tabindex="0"></canvas>
+    <iframe id="gframe" title="ECHO 3D" allow="fullscreen; autoplay"></iframe>
+    <div class="touchctl" id="touchctl">
+      <div class="pad left">
+        <div class="tbtn u"  data-code="ArrowUp">&#9650;</div>
+        <div class="tbtn l"  data-code="ArrowLeft">&#9664;</div>
+        <div class="tbtn r"  data-code="ArrowRight">&#9654;</div>
+        <div class="tbtn dn" data-code="ArrowDown">&#9660;</div>
+      </div>
+      <div class="side">
+        <div class="tbtn rw"  data-code="KeyR">REW</div>
+        <div class="tbtn big" data-code="Space">FIRE</div>
+      </div>
+    </div>
+    <div class="stagebar">
+      <span class="back" id="back">&larr; Back to menu (Esc)</span>
+      <span>Move <kbd>WASD</kbd>/<kbd>&larr;&uarr;&darr;&rarr;</kbd></span>
+      <span>Act <kbd>Space</kbd>/<kbd>Click</kbd></span>
+      <span>Rewind <kbd>R</kbd>/<kbd>Shift</kbd></span>
+      <span>Pause <kbd>P</kbd></span>
+    </div>
+  </div>
+
+  <script src="engine.js"></script>
+  <script src="games/skyhop.js"></script>
+  <script src="games/swarm.js"></script>
+  <script src="games/striker.js"></script>
+  <script src="games/breaker.js"></script>
+  <script src="games/trail.js"></script>
+  <script src="games/drift.js"></script>
+  <script src="games/stacks.js"></script>
+  <script src="games/match.js"></script>
+  <script>
+    const grid = document.getElementById("grid");
+    const stage = document.getElementById("stage");
+    const canvas = document.getElementById("game");
+
+    Forkade.boot(canvas, () => {
+      stage.classList.remove("on", "d3");
+      const gf = document.getElementById("gframe"); if (gf) { gf.removeAttribute("srcdoc"); gf.src = "about:blank"; }
+      refreshBest();
+    });
+
+    function refreshBest() {
+      document.querySelectorAll(".best").forEach(el => {
+        el.innerHTML = "BEST <b>" + Forkade.scores.get(el.dataset.id) + "</b>";
+      });
+    }
+
+    const gframe = document.getElementById("gframe");
+
+    function openGame(id) {
+      stage.classList.remove("d3");
+      gframe.src = "about:blank";
+      stage.classList.add("on");
+      canvas.focus();
+      Forkade.play(id);
+    }
+    function open3D() {
+      Forkade.sfx.ensure();
+      stage.classList.add("on", "d3");
+      // If the 3D page was inlined (single-file build), run it from srcdoc so it
+      // works with no separate file. Otherwise load the file (folder version).
+      if (window.__ECHO3D_HTML__) { gframe.removeAttribute("src"); gframe.srcdoc = window.__ECHO3D_HTML__; }
+      else { gframe.removeAttribute("srcdoc"); gframe.src = "games3d/echo3d.html"; }
+      gframe.focus();
+    }
+    function closeStage() {
+      stage.classList.remove("on", "d3");
+      gframe.removeAttribute("srcdoc"); gframe.src = "about:blank";
+      refreshBest();
+    }
+    document.getElementById("back").addEventListener("click", () => Forkade.stop());
+    // the 3D game lives in an iframe and asks to close via postMessage
+    window.addEventListener("message", e => { if (e.data === "neon-3d-back") closeStage(); });
+
+    Forkade.registry.forEach((g, i) => {
+      const m = g.meta;
+      const card = document.createElement("div");
+      card.className = "card";
+      card.style.setProperty("--c", m.color);
+      card.innerHTML = `
+        <div class="num">${String(i + 1).padStart(2, "0")}</div>
+        <div class="dot"><span></span></div>
+        <h3 class="name">${m.title}</h3>
+        <div class="genre">${m.genre}</div>
+        <p class="desc">${m.desc}</p>
+        <span class="play">&#9654; Play now</span>
+        <div class="best" data-id="${g.id}">BEST <b>${Forkade.scores.get(g.id)}</b></div>`;
+      card.addEventListener("click", () => openGame(g.id));
+      grid.appendChild(card);
+    });
+
+    /* ---------- 3D bonus game (three.js, in an iframe) ---------- */
+    (function add3D() {
+      const i = Forkade.registry.length;
+      const card = document.createElement("div");
+      card.className = "card";
+      card.style.setProperty("--c", "#8cff5a");
+      card.innerHTML = `
+        <div class="num">${String(i + 1).padStart(2, "0")}</div>
+        <div class="dot"><span></span></div>
+        <h3 class="name">ECHO 3D <span style="font-size:12px;color:#8cff5a">· 3D</span></h3>
+        <div class="genre">3D platformer</div>
+        <p class="desc">Run and jump ECHO across a floating neon course, Roblox-style. Collect cores, reach the goal. Rewind your falls.</p>
+        <span class="play">&#9654; Play now</span>
+        <div class="best" data-id="echo3d">BEST <b>${Forkade.scores.get("echo3d")}</b></div>`;
+      card.addEventListener("click", open3D);
+      grid.appendChild(card);
+    })();
+
+    /* ---------- player name ---------- */
+    const nameInput = document.getElementById("playername");
+    try { nameInput.value = localStorage.getItem("neon-player") || ""; } catch (_) {}
+    nameInput.addEventListener("input", () => {
+      try { localStorage.setItem("neon-player", nameInput.value.trim() || "ECHO"); } catch (_) {}
+    });
+
+    /* ---------- touch controls ---------- */
+    const isTouch = matchMedia("(pointer:coarse)").matches || "ontouchstart" in window;
+    if (isTouch) document.body.classList.add("touch");
+    document.querySelectorAll("#touchctl .tbtn").forEach(btn => {
+      const code = btn.dataset.code;
+      const down = e => { e.preventDefault(); Forkade.Input.hold(code, true); };
+      const up   = e => { e.preventDefault(); Forkade.Input.hold(code, false); };
+      btn.addEventListener("pointerdown", down);
+      btn.addEventListener("pointerup", up);
+      btn.addEventListener("pointerleave", up);
+      btn.addEventListener("pointercancel", up);
+    });
+
+    /* ---------- mute toggle ---------- */
+    const muteBtn = document.getElementById("mute");
+    function paintMute() {
+      muteBtn.innerHTML = Forkade.sfx.muted ? "🔇 Sound: off" : "🔊 Sound: on";
+    }
+    paintMute();
+    muteBtn.addEventListener("click", () => { Forkade.sfx.toggleMute(); Forkade.sfx.ensure(); paintMute(); });
+
+    /* ---------- PWA: install button + service worker ---------- */
+    let deferredPrompt = null;
+    const installBtn = document.getElementById("install");
+    window.addEventListener("beforeinstallprompt", e => {
+      e.preventDefault(); deferredPrompt = e; installBtn.classList.add("show");
+    });
+    installBtn.addEventListener("click", async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null; installBtn.classList.remove("show");
+    });
+    window.addEventListener("appinstalled", () => installBtn.classList.remove("show"));
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () =>
+        navigator.serviceWorker.register("sw.js").catch(() => {}));
+    }
+  </script>
+</body>
+</html>
