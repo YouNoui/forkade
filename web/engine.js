@@ -50,6 +50,7 @@
   }
 
   function drawEcho(ctx, cx, cy, size = 16, color = ECHO_COLOR, face = 1, t = 0) {
+    if (color === ECHO_COLOR && typeof rewards !== "undefined") color = rewards.echoColor(t);
     cy += Math.sin(t * 4) * size * 0.08;
     const s = size;
     glowRect(ctx, color, cx - s * 0.7, cy - s * 0.7, s * 1.4, s * 1.4, s * 0.45);
@@ -191,7 +192,7 @@
   /* ------------------------------------------------------------- input --- */
   const Input = {
     keys: Object.create(null), pressed: Object.create(null),
-    mouse: { x: 0, y: 0, down: false },
+    mouse: { x: 0, y: 0, down: false }, tapped: false,
     _bind(canvas) {
       if (this._bound) return; this._bound = true;
       addEventListener("keydown", e => {
@@ -209,7 +210,7 @@
       // pointer events cover mouse AND touch, so touch-drag aims the shooters
       canvas.addEventListener("pointermove", upd);
       canvas.addEventListener("pointerdown", e => {
-        this.mouse.down = true; upd(e);
+        this.mouse.down = true; this.tapped = true; upd(e);
         if (canvas.setPointerCapture) try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
       });
       addEventListener("pointerup", () => { this.mouse.down = false; });
@@ -224,7 +225,7 @@
     up()    { return this.keys.KeyW || this.keys.ArrowUp; },
     down()  { return this.keys.KeyS || this.keys.ArrowDown; },
     rewind(){ return this.keys.KeyR || this.keys.ShiftLeft || this.keys.ShiftRight; },
-    clearPressed() { this.pressed = Object.create(null); },
+    clearPressed() { this.pressed = Object.create(null); this.tapped = false; },
   };
 
   /* ------------------------------------------------------------- sound ---- */
@@ -288,6 +289,81 @@
     },
   };
 
+
+  /* ---------------------------------------------------------- rewards ----- */
+  // Cores (currency), badges (bronze/silver/gold per game), ECHO skins, rank and a
+  // daily streak. Everything lives in localStorage on this device - nothing is sent anywhere.
+  const GOALS = {               // score needed for bronze / silver / gold
+    skyhop: [150, 500, 1200], swarm: [150, 500, 1200], striker: [300, 1000, 2500],
+    breaker: [1000, 4000, 10000], trail: [100, 300, 600], drift: [500, 2000, 5000],
+    prism: [500, 2000, 6000], match: [2000, 6000, 12000], wrecker: [1500, 5000, 12000],
+    echo3d: [50, 120, 200],
+  };
+  const TIERS = [{ name: "BRONZE", color: "#e0a060", cores: 20 },
+                 { name: "SILVER", color: "#d8dcf0", cores: 50 },
+                 { name: "GOLD",   color: "#ffd84a", cores: 120 }];
+  const SKINS = [
+    { id: "classic", name: "Classic",   color: "#22e4ff", cost: 0 },
+    { id: "pink",    name: "Hot Pink",  color: "#ff3ea5", cost: 100 },
+    { id: "lime",    name: "Acid Lime", color: "#9dff57", cost: 150 },
+    { id: "sunset",  name: "Sunset",    color: "#ffb23f", cost: 250 },
+    { id: "violet",  name: "Ultraviolet", color: "#a07bff", cost: 350 },
+    { id: "ghost",   name: "Ghost",     color: "#f4f6ff", cost: 500 },
+    { id: "rainbow", name: "Rainbow",   color: "rainbow", cost: 1000 },
+  ];
+  const load = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (_) { return d; } };
+  const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} };
+  const rewards = {
+    enabled: true, GOALS, TIERS, SKINS, toasts: [], listeners: [],
+    cores() { return load("forkade-cores", 0); },
+    lifetime() { return load("forkade-lifetime", 0); },
+    rank() { return 1 + Math.floor(Math.sqrt(this.lifetime() / 25)); },
+    add(n) {
+      n = Math.max(0, Math.round(n)); if (!n || !this.enabled) return 0;
+      save("forkade-cores", this.cores() + n); save("forkade-lifetime", this.lifetime() + n);
+      this.listeners.forEach(f => f()); return n;
+    },
+    toast(text, color) { this.toasts.push({ text, color: color || palette.amber, t: 0 }); this.listeners.forEach(f => f(text, color)); },
+    badges() { return load("forkade-badges", {}); },          // { gameId: highestTier (0..3) }
+    tierOf(id) { return this.badges()[id] || 0; },
+    goals(id, meta) { return (meta && meta.goals) || GOALS[id] || [500, 2000, 6000]; },
+    // called once when a round ends; returns cores earned
+    roundEnd(id, score, newBest, meta) {
+      if (!this.enabled || !id) return 0;
+      let got = this.add(Math.max(1, Math.sqrt(Math.max(0, score)) * 0.6));
+      if (newBest && score > 0) got += this.add(10);
+      const g = this.goals(id, meta), b = this.badges(), had = b[id] || 0;
+      let tier = had; while (tier < 3 && score >= g[tier]) tier++;
+      for (let k = had; k < tier; k++) {
+        got += this.add(TIERS[k].cores);
+        this.toast(`${TIERS[k].name} BADGE  +${TIERS[k].cores} cores`, TIERS[k].color);
+        sfx.win();
+      }
+      if (tier > had) { b[id] = tier; save("forkade-badges", b); }
+      return got;
+    },
+    owned() { return load("forkade-skins", ["classic"]); },
+    skin() { const id = load("forkade-skin", "classic"); return SKINS.find(s => s.id === id) || SKINS[0]; },
+    buy(id) {
+      const sk = SKINS.find(s => s.id === id); if (!sk) return false;
+      const own = this.owned(); if (own.includes(id)) { save("forkade-skin", id); this.listeners.forEach(f => f()); return true; }
+      if (this.cores() < sk.cost) return false;
+      save("forkade-cores", this.cores() - sk.cost); own.push(id); save("forkade-skins", own); save("forkade-skin", id);
+      this.listeners.forEach(f => f()); return true;
+    },
+    // daily streak: call once when the arcade opens
+    daily() {
+      const day = d => d.toISOString().slice(0, 10), now = new Date();
+      const st = load("forkade-streak", { last: null, n: 0 }), today = day(now);
+      if (st.last === today) return null;
+      const y = new Date(now); y.setDate(y.getDate() - 1);
+      st.n = st.last === day(y) ? st.n + 1 : 1; st.last = today; save("forkade-streak", st);
+      return { streak: st.n, cores: this.add(10 * Math.min(7, st.n)) };
+    },
+    streak() { return load("forkade-streak", { n: 0 }).n || 0; },
+    echoColor(t) { const c = this.skin().color; return c === "rainbow" ? `hsl(${(t * 90) % 360},95%,62%)` : c; },
+  };
+
   /* --------------------------------------------------------- game base --- */
   class GameBase {
     constructor() {
@@ -302,6 +378,13 @@
       this.score = 0; this.best = this.best || 0; this.newBest = false;
       this._prevState = "play"; this._prevRw = false;
     }
+    // mid-round reward (level clears etc). key makes it count once per round, even with rewind.
+    reward(n, label, key) {
+      this._keys = this._keys || new Set();
+      if (key && this._keys.has(key)) return;
+      if (key) this._keys.add(key);
+      const got = rewards.add(n); if (got) rewards.toast(`+${got} cores  ${label || ""}`, palette.lime);
+    }
     step(dt) {}
     render(ctx) {}
     snapshot() { return null; }
@@ -312,6 +395,17 @@
       this.t += dt;
       if (this.input.pressed.KeyP && (this.state === "play" || this.state === "pause"))
         this.state = this.state === "play" ? "pause" : "play";
+
+      // round over: ENTER / SPACE / tap (or the touch FIRE button) restarts. The short
+      // delay stops a held fire button from skipping straight past the score.
+      if (this.state === "over" || this.state === "win") {
+        this._overT = (this._overT || 0) + dt;
+        const I = this.input;
+        if (this._overT > 0.6 && (I.pressed.Enter || I.pressed.NumpadEnter || I.pressed.Space || I.tapped)) {
+          this._overT = 0; this.particles.p = []; this.rewind.frames = []; this.rewind.energy = 1;
+          this.reset(); this.state = "play";
+        }
+      } else this._overT = 0;
 
       if (this.state === "play") {
         const snap = this.rewind.step(this.input.rewind(), dt);
@@ -328,10 +422,12 @@
       if (this.state !== this._prevState) {
         if (this.state === "over" && this._prevState === "play") {
           sfx.die(); this.newBest = this.id ? scores.submit(this.id, this.score) : false;
+          this.earned = rewards.roundEnd(this.id, this.score, this.newBest, this.meta);
         } else if (this.state === "win" && this._prevState === "play") {
           sfx.win(); this.newBest = this.id ? scores.submit(this.id, this.score) : false;
+          this.earned = rewards.roundEnd(this.id, this.score, this.newBest, this.meta);
         } else if (this.state === "play") {
-          this.newBest = false;   // restarted
+          this.newBest = false; this.earned = 0; this._keys = new Set();   // restarted
         }
         this._prevState = this.state;
       }
@@ -351,7 +447,22 @@
         text(ctx, (this.newBest ? "★ NEW BEST  " : "BEST  ") + b,
              this.W / 2, this.H / 2 + 52, { size: 16,
              color: this.newBest ? palette.amber : palette.dim, align: "center" });
+        if (this.earned) text(ctx, `+${this.earned} cores   (total ${rewards.cores()})`, this.W / 2, this.H / 2 + 76,
+             { size: 16, color: palette.lime, align: "center" });
       }
+      // reward toasts, top centre
+      let ty = 70;
+      for (const q of rewards.toasts) {
+        q.t += dt; const a = q.t < 0.25 ? q.t / 0.25 : q.t > 2.4 ? Math.max(0, (2.9 - q.t) / 0.5) : 1;
+        ctx.save(); ctx.globalAlpha = a;
+        ctx.fillStyle = "rgba(6,5,26,0.8)"; const w = 30 + q.text.length * 10;
+        ctx.fillRect(this.W / 2 - w / 2, ty - 6, w, 32); ctx.restore();
+        ctx.save(); ctx.globalAlpha = a; text(ctx, q.text, this.W / 2, ty, { size: 17, color: q.color, align: "center" }); ctx.restore();
+        ty += 38;
+      }
+      rewards.toasts = rewards.toasts.filter(q => q.t < 2.9);
+      // HUD corner: equipped skin + wallet
+      text(ctx, `${rewards.cores()} cores`, this.W - 16, this.H - 24, { size: 13, color: palette.lime, align: "right", glow: false });
     }
   }
 
@@ -370,7 +481,7 @@
   function play(id) {
     const entry = registry.find(g => g.id === id); if (!entry) return;
     sfx.ensure();                       // unlock audio on this user gesture
-    current = new entry.cls(); current.id = id; current.reset();
+    current = new entry.cls(); current.id = id; current.meta = entry.meta; current.reset(); rewards.toasts = [];
     if (!running) { running = true; last = performance.now(); requestAnimationFrame(loop); }
   }
   function stop() {
@@ -388,8 +499,9 @@
   global.Forkade = {
     palette, ECHO_COLOR, rand, TAU,
     glowRect, glowCircle, glowLine, drawEcho, fillBg, text, bar, banner,
-    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores,
+    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards,
     register, boot, play, stop, registry,
+    current: () => current,          // the running game (handy for tests and the Playground)
   };
   global.NeonEcho = global.Forkade;   // old name kept so older forks still work
 })(typeof window !== "undefined" ? window : globalThis);

@@ -4,6 +4,8 @@ Open-source neon arcade. Play it, rewind it, fork it.
 
 The browser edition has **ten games**, including ECHO 3D and the destruction game Tower Wrecker.
 
+**Rewards:** every game pays out *cores* (finish rounds, clear levels, beat your best), plus bronze/silver/gold badges per game, a rank and a daily streak. Spend cores on ECHO skins in the Locker. All of it stays on the device.
+
 **Make your own:** open `playground.html` (live at https://playforkade.com/playground.html), edit the starter game, press Run, then submit it. See [CONTRIBUTING.md](CONTRIBUTING.md). Serve `web/` with any static host (no build step), or run `python -m http.server --directory web 8080`. Open http://localhost:8080.
 
 Fork: https://github.com/YouNoui/forkade. MIT licensed; bundled third-party notices are retained.

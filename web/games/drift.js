@@ -69,7 +69,7 @@
         this.wave++; this.score += 100 * this.wave;
         if (this.wave % 3 === 0) this.hp = Math.min(5, this.hp + 1);
         for (let i = 0; i < Math.min(10, 3 + this.wave); i++) this.spawnRock();
-        NE.sfx.win();
+        NE.sfx.win(); this.reward(2 + 2 * this.wave, `wave ${this.wave}`, "wave" + this.wave);
       }
     }
     snapshot() {
@@ -110,7 +110,7 @@
       NE.text(ctx, `WAVE ${this.wave}`, 22, 60, { size: 15, color: P.dim });
       for (let i = 0; i < this.hp; i++) NE.glowCircle(ctx, P.cyan, this.W - 30 - i * 26, 28, 7);
       if (this.state === "over")
-        NE.banner(ctx, this.W, this.H, "LOST IN THE STORM", `score ${this.score}   -   ENTER retry   ESC menu`);
+        NE.banner(ctx, this.W, this.H, "LOST IN THE STORM", `score ${this.score}   -   ENTER / tap to retry   ESC menu`);
     }
   }
   NE.register("drift",

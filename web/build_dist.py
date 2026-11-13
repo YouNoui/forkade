@@ -24,3 +24,9 @@ out = here.parent / "dist" / "forkade.html"
 out.parent.mkdir(exist_ok=True)
 out.write_text(html)
 print("wrote", out, len(html), "bytes")
+
+# also publish it on the site so the Download button can hand it out
+dl = here / "download" / "forkade.html"
+dl.parent.mkdir(exist_ok=True)
+dl.write_text(html)
+print("wrote", dl)

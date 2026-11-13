@@ -74,6 +74,7 @@
       if (!this.bricks.length) {
         this.bonus = 250 * this.level; this.score += this.bonus;
         this.lives = Math.min(5, this.lives + 1); this.phase = "clear"; NE.sfx.win();
+        this.reward(5 + 5 * this.level, `wall ${this.level} cleared`, "wall" + this.level);
       }
     }
     snapshot() {
@@ -104,7 +105,7 @@
       if (this.stuck && this.state === "play")
         NE.text(ctx, "SPACE or click to launch", this.W / 2, this.H - 110, { size: 16, color: P.dim, align: "center" });
       if (this.state === "over")
-        NE.banner(ctx, this.W, this.H, "GAME OVER", `score ${this.score}   -   ENTER retry   ESC menu`);
+        NE.banner(ctx, this.W, this.H, "GAME OVER", `score ${this.score}   -   ENTER / tap to retry   ESC menu`);
       if (this.phase === "clear" && this.state === "play")
         NE.banner(ctx, this.W, this.H, `WALL ${this.level} CLEARED!`, `+${this.bonus} and +1 life   -   SPACE / click for wall ${this.level + 1}`);
     }

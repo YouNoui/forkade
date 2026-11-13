@@ -50,7 +50,7 @@
         this.particles.emit(e.x, e.y, P.lime, { n: 14, speed: 4 });
       }
       this.enemies = this.enemies.filter(e => e.hp > 0);
-      if (!this.enemies.length) { this.wave++; this.spawnWave(); }
+      if (!this.enemies.length) { this.wave++; this.spawnWave(); this.reward(2 + 2 * this.wave, `wave ${this.wave}`, "wave" + this.wave); }
       this.spawnT -= dt;
       if (this.spawnT <= 0) { this.spawnT = Math.max(0.6, 2.2 - this.wave * 0.1); this.spawnEnemy(); }
       if (this.hp <= 0) { this.state = "over"; this.shake.add(18); }
@@ -77,7 +77,7 @@
       NE.text(ctx, String(this.score), this.W - 120, 16, { size: 40 });
       NE.text(ctx, "WAVE " + this.wave, this.W - 120, 60, { size: 16, color: P.dim });
       if (this.state === "over")
-        NE.banner(ctx, this.W, this.H, "OVERRUN", `score ${this.score}   -   ENTER retry   ESC menu`);
+        NE.banner(ctx, this.W, this.H, "OVERRUN", `score ${this.score}   -   ENTER / tap to retry   ESC menu`);
     }
   }
   NE.register("swarm",

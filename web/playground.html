@@ -149,6 +149,7 @@ const code = document.getElementById("code"), log = document.getElementById("log
 const canvas = document.getElementById("game");
 try { code.value = localStorage.getItem(KEY) || TEMPLATE; } catch (_) { code.value = TEMPLATE; }
 
+Forkade.rewards.enabled = false;   // test games don't earn arcade cores
 Forkade.boot(canvas, () => {});
 function say(msg, err) { log.textContent = msg; log.className = err ? "err" : ""; }
 window.addEventListener("error", e => say("Error: " + e.message + (e.lineno ? "  (line " + e.lineno + ")" : ""), true));

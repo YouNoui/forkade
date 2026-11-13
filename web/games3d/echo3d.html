@@ -177,11 +177,14 @@
   }
 
   // ---- input ----
+  let doneAt = 0;
+  // phones: tap anywhere (or JUMP) on the result screen to play again
+  addEventListener("pointerdown", () => { if (state.done && performance.now() - doneAt > 600) reset(); });
   const keys = Object.create(null);
   addEventListener("keydown", e => {
     keys[e.code] = true;
     if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Space"].includes(e.code)) e.preventDefault();
-    if (e.code === "Enter" && state.done) reset();
+    if ((e.code === "Enter" || e.code === "Space") && state.done && performance.now() - doneAt > 600) reset();
     if (e.code === "Escape") backOut();
   });
   addEventListener("keyup", e => { keys[e.code] = false; });
@@ -278,18 +281,19 @@
   }
 
   function finish(win) {
-    state.done = true; state.win = win;
+    state.done = true; state.win = win; doneAt = performance.now();
     const total = coins.length;
     let scoreVal = state.score * 10 + (win ? 100 : 0);
     let nb = false;
     if (scoreVal > best) { best = scoreVal; nb = true;
       try { localStorage.setItem("neon-best-echo3d", String(best)); } catch (_) {}
       document.getElementById("best").textContent = best; }
+    try { parent !== window && parent.postMessage({ t: "forkade-score", id: "echo3d", score: scoreVal, best: nb }, "*"); } catch (_) {}
     bannerEl.style.display = "flex";
     document.getElementById("bt").textContent = win ? "COURSE CLEAR!" : "YOU FELL";
     document.getElementById("bs").innerHTML =
       `cores ${state.score}/${total} &nbsp; score ${scoreVal}` +
-      (nb ? " &nbsp; ★ NEW BEST" : "") + "<br>ENTER retry · Esc back";
+      (nb ? " &nbsp; ★ NEW BEST" : "") + "<br>ENTER / tap to retry · Esc back";
   }
 
   function render(dt, now) {

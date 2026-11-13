@@ -102,6 +102,7 @@
       if (this.got >= this.need) {
         this.bonus = this.moves * 40 * this.level; this.score += this.bonus;
         this.phase = "clear"; NE.sfx.win(); this.shake.add(6);
+        this.reward(5 + 5 * this.level, `level ${this.level} cleared`, "lvl" + this.level);
       }
     }
     snapshot() {
@@ -136,7 +137,7 @@
       NE.drawEcho(ctx, hx + 50, 330, 16, P.cyan, 1, this.t);
       NE.text(ctx, "click a core, then a neighbour to swap", this.W / 2, this.H - 20, { size: 13, color: P.dim, align: "center" });
       if (this.state === "over")
-        NE.banner(ctx, this.W, this.H, "OUT OF MOVES", `score ${this.score}   -   ENTER retry   ESC menu`);
+        NE.banner(ctx, this.W, this.H, "OUT OF MOVES", `score ${this.score}   -   ENTER / tap to retry   ESC menu`);
       if (this.phase === "clear" && this.state === "play")
         NE.banner(ctx, this.W, this.H, `LEVEL ${this.level} CLEARED!`, `+${this.bonus} for spare moves   -   click / SPACE for level ${this.level + 1}`);
     }

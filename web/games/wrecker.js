@@ -155,6 +155,7 @@
         if (this.idleT > 0.5) {
           if (this.destroyed / this.initial >= this.target) {
             this.phase = "clear"; this.score += this.shots * 150; NE.sfx.win();
+            this.reward(8 + 6 * this.level, `tower ${this.level} flattened`, "tower" + this.level);
           } else if (this.shots <= 0) this.state = "over";
           else this.phase = "aim";
         }
@@ -262,7 +263,7 @@
       if (this.phase === "clear")
         NE.banner(ctx, this.W, this.H, "LEVEL FLATTENED!", `+${this.shots * 150} for spare balls   -   click / SPACE next tower`);
       if (this.state === "over")
-        NE.banner(ctx, this.W, this.H, "STILL STANDING", `score ${this.score}   -   ENTER retry   ESC menu`);
+        NE.banner(ctx, this.W, this.H, "STILL STANDING", `score ${this.score}   -   ENTER / tap to retry   ESC menu`);
     }
   }
   NE.register("wrecker",

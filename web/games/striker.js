@@ -87,7 +87,7 @@
       NE.text(ctx, String(this.score), 20, 16, { size: 40 });
       for (let i = 0; i < this.hp; i++) NE.glowCircle(ctx, P.red, this.W - 30 - i * 26, 28, 8);
       if (this.state === "over")
-        NE.banner(ctx, this.W, this.H, "SHOT DOWN", `score ${this.score}   -   ENTER retry   ESC menu`);
+        NE.banner(ctx, this.W, this.H, "SHOT DOWN", `score ${this.score}   -   ENTER / tap to retry   ESC menu`);
     }
   }
   NE.register("striker",

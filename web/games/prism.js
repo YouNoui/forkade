@@ -173,7 +173,7 @@
       NE.text(ctx, "fill a row  or  touch 4+ of one colour", hx, gy + 420, { size: 12, color: P.dim });
       NE.text(ctx, "←→ move  ↑ turn  ↓ soft  SPACE drop", this.W / 2, this.H - 22, { size: 13, color: P.dim, align: "center" });
       if (this.state === "over")
-        NE.banner(ctx, this.W, this.H, "WELL OVERFLOWED", `score ${this.score}   -   ENTER retry   ESC menu`);
+        NE.banner(ctx, this.W, this.H, "WELL OVERFLOWED", `score ${this.score}   -   ENTER / tap to retry   ESC menu`);
     }
   }
   NE.register("prism",

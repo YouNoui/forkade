@@ -6,7 +6,7 @@
     reset() {
       this.px = this.W / 2; this.py = this.H - 80;
       this.vx = 0; this.vy = 0; this.onGround = false;
-      this.cam = 0; this.best = 0; this.score = 0;
+      this.cam = 0; this.best = 0; this.score = 0; this.orbPts = 0;
       this.plats = [{ x: 0, y: this.H - 40, w: this.W, h: 40 }];
       this.orbs = []; this.lastX = this.W / 2; this.coyote = 0; this.buffer = 0;
       let y = this.H - 130;
@@ -55,7 +55,7 @@
       const screenY = this.py + this.cam;
       if (screenY < this.H * 0.42) {
         const d = this.H * 0.42 - screenY;
-        this.cam += d; this.best += d; this.score = (this.best / 10) | 0;
+        this.cam += d; this.best += d;
       }
       let top = Infinity; for (const p of this.plats) top = Math.min(top, p.y);
       if (top + this.cam > -40) this.addPlat(top - this.gap());
@@ -63,20 +63,21 @@
 
       for (const o of this.orbs)
         if (o.on && Math.abs(o.x - this.px) < 22 && Math.abs(o.y + this.cam - this.py) < 22) {
-          o.on = false; this.score += 25; this.shake.add(3); NE.sfx.pickup();
+          o.on = false; this.orbPts += 25; this.shake.add(3); NE.sfx.pickup();
           this.particles.emit(o.x, o.y + this.cam, P.amber, { n: 16, speed: 4 });
         }
       this.orbs = this.orbs.filter(o => o.y + this.cam < this.H + 40);
+      this.score = ((this.best / 10) | 0) + this.orbPts;
 
       if (this.py > this.H + 40) { this.state = "over"; this.shake.add(16); }
     }
     snapshot() {
       if (this.state !== "play") return null;
-      return { v: [this.px, this.py, this.vx, this.vy, this.cam, this.best, this.score, this.onGround, this.lastX, this.coyote, this.buffer],
+      return { v: [this.px, this.py, this.vx, this.vy, this.cam, this.best, this.score, this.onGround, this.lastX, this.coyote, this.buffer, this.orbPts],
                plats: this.plats.map(p => ({ ...p })), orbs: this.orbs.map(o => ({ ...o })) };
     }
     restore(s) {
-      [this.px, this.py, this.vx, this.vy, this.cam, this.best, this.score, this.onGround, this.lastX, this.coyote, this.buffer] = s.v;
+      [this.px, this.py, this.vx, this.vy, this.cam, this.best, this.score, this.onGround, this.lastX, this.coyote, this.buffer, this.orbPts] = s.v;
       this.plats = s.plats.map(p => ({ ...p })); this.orbs = s.orbs.map(o => ({ ...o }));
     }
     render(ctx) {
@@ -92,7 +93,7 @@
       NE.text(ctx, String(this.score), 20, 16, { size: 40 });
       NE.text(ctx, "HEIGHT", 20, 60, { size: 16, color: P.dim });
       if (this.state === "over")
-        NE.banner(ctx, this.W, this.H, "YOU FELL", `score ${this.score}   -   ENTER retry   ESC menu`);
+        NE.banner(ctx, this.W, this.H, "YOU FELL", `score ${this.score}   -   ENTER / tap to retry   ESC menu`);
     }
   }
   NE.register("skyhop",
