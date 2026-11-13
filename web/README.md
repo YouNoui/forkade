@@ -16,7 +16,10 @@ web/
     ├── striker.js     # 3  airplane shmup
     ├── breaker.js     # 4  brick-breaker
     ├── trail.js       # 5  snake
-    └── drift.js       # 6  asteroids
+    ├── drift.js       # 6  space rocks
+    ├── prism.js       # 7  colour-burst stacker (Prism Stacks)
+    ├── match.js       # 8  match-3
+    └── wrecker.js     # 9  destruction (Tower Wrecker)
 ```
 
 There is also `../dist/forkade.html` — the **entire thing inlined into one

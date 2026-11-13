@@ -1,6 +1,7 @@
 # FORKADE — agent instructions
 
-- Static arcade: deploy `web/`, with no build step. Preserve all nine games and rewind controls.
+- Static arcade: deploy `web/`, with no build step. Preserve all ten games and rewind controls.
+- Games must be original takes on a genre: no copied names, art, piece sets or layouts of existing games (e.g. no Tetris-style 7-tetromino 10x20 well).
 - Keep MIT licensing and third-party license notices. Never commit secrets.
 - Use feature branches and PRs for future changes; do not merge without owner approval.
 - Verify the grid and both 2D and 3D games at phone and desktop widths before shipping UI changes.

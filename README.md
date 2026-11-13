@@ -2,7 +2,7 @@
 
 Open-source neon arcade. Play it, rewind it, fork it.
 
-The browser edition has **nine games**, including ECHO 3D. Serve `web/` with any static host (no build step), or run `python -m http.server --directory web 8080`. Open http://localhost:8080.
+The browser edition has **ten games**, including ECHO 3D and the destruction game Tower Wrecker. Serve `web/` with any static host (no build step), or run `python -m http.server --directory web 8080`. Open http://localhost:8080.
 
 Fork: https://github.com/YouNoui/forkade. MIT licensed; bundled third-party notices are retained.
 
@@ -38,7 +38,7 @@ This answers all four of the things you asked to tie them together:
 3. **Sky Striker** — a vertical airplane shmup (the "airplane that shoots" one)
 4. **Pulse Breaker** — a neon brick-breaker
 5. **Echo Trail** — a glowing neon snake
-6. **Driftstorm** — spin-and-blast asteroids
+6. **Driftstorm** — spin-and-blast space rocks
 
 ---
 

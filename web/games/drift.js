@@ -108,7 +108,7 @@
     }
   }
   NE.register("drift",
-    { title: "DRIFTSTORM", genre: "Asteroids", color: P.red,
+    { title: "DRIFTSTORM", genre: "Space rocks", color: P.red,
       desc: "Spin, thrust and blast neon rocks to dust. Clipped one? Rewind the drift." },
     Drift);
 })();

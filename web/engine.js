@@ -1,7 +1,7 @@
 /* ==========================================================================
    FORKADE  --  engine.js   (shared browser toolkit)
 
-   One small canvas engine behind all six games. One hero (ECHO), one neon
+   One small canvas engine behind every game. One hero (ECHO), one neon
    look, one twist (REWIND). Classic <script> (no modules) so it hosts as
    plain static files and runs from file:// too.
 
@@ -14,9 +14,9 @@
   "use strict";
 
   const palette = {
-    bg: "#080a14", bg2: "#0e1022", ink: "#e0e8ff", dim: "#78829a",
-    cyan: "#40f0ff", magenta: "#ff46c8", lime: "#8cff5a", amber: "#ffbe3c",
-    red: "#ff505a", violet: "#aa78ff", white: "#ffffff",
+    bg: "#06051a", bg2: "#16113d", ink: "#f1f3ff", dim: "#8d92bd",
+    cyan: "#22e4ff", magenta: "#ff3ea5", lime: "#9dff57", amber: "#ffb23f",
+    red: "#ff4f6e", violet: "#a07bff", white: "#ffffff",
   };
   const ECHO_COLOR = palette.cyan;
   const TAU = Math.PI * 2;
@@ -127,8 +127,14 @@
 
   function fillBg(ctx, w, h) {
     const g = ctx.createLinearGradient(0, 0, 0, h);
-    g.addColorStop(0, palette.bg2); g.addColorStop(1, palette.bg);
+    g.addColorStop(0, palette.bg); g.addColorStop(0.55, palette.bg2); g.addColorStop(1, "#24103f");
     ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    const glow = ctx.createRadialGradient(w / 2, h * 1.05, 0, w / 2, h * 1.05, h * 0.9);
+    glow.addColorStop(0, "rgba(255,62,165,0.16)"); glow.addColorStop(1, "rgba(255,62,165,0)");
+    ctx.fillStyle = glow; ctx.fillRect(0, 0, w, h);
+    const vig = ctx.createRadialGradient(w / 2, h / 2, h * 0.35, w / 2, h / 2, h * 0.95);
+    vig.addColorStop(0, "rgba(0,0,0,0)"); vig.addColorStop(1, "rgba(0,0,0,0.45)");
+    ctx.fillStyle = vig; ctx.fillRect(0, 0, w, h);
   }
 
   /* ---------------------------------------------------------------- hud --- */
@@ -172,7 +178,7 @@
     overlay(ctx, w, h) {
       bar(ctx, 16, h - 26, 150, 12, this.energy, palette.violet, "REWIND");
       if (this.active) {
-        ctx.save(); ctx.fillStyle = "rgba(170,120,255,0.16)"; ctx.fillRect(0, 0, w, h);
+        ctx.save(); ctx.fillStyle = "rgba(160,123,255,0.16)"; ctx.fillRect(0, 0, w, h);
         ctx.strokeStyle = "rgba(255,255,255,0.12)";
         for (let i = 0; i < 6; i++) { const y = Math.random() * h;
           ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }

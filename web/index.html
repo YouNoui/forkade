@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>FORKADE - open-source neon arcade</title>
-<meta name="theme-color" content="#080a14">
+<meta name="theme-color" content="#06051a">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -14,26 +14,26 @@
 <meta name="apple-mobile-web-app-title" content="Forkade">
 <style>
   :root{
-    --bg:#080a14; --bg2:#0e1022; --ink:#e0e8ff; --dim:#78829a;
-    --cyan:#40f0ff; --magenta:#ff46c8; --lime:#8cff5a; --amber:#ffbe3c;
-    --violet:#aa78ff; --red:#ff505a;
+    --bg:#06051a; --bg2:#16113d; --ink:#f1f3ff; --dim:#8d92bd;
+    --cyan:#22e4ff; --magenta:#ff3ea5; --lime:#9dff57; --amber:#ffb23f;
+    --violet:#a07bff; --red:#ff4f6e;
   }
   *{box-sizing:border-box;}
   body{
     margin:0; font-family:"Consolas","SF Mono",ui-monospace,monospace;
-    background:radial-gradient(1200px 600px at 50% -10%,#141634 0%,var(--bg) 60%);
+    background:radial-gradient(1200px 600px at 50% -10%,#2a1650 0%,var(--bg) 60%);
     color:var(--ink); min-height:100vh;
   }
   .wrap{padding:48px 20px 64px;}
   .head{text-align:center; max-width:760px; margin:0 auto 38px;}
   .title{
     font-size:clamp(34px,7vw,64px); font-weight:800; letter-spacing:4px; margin:0; color:var(--cyan);
-    text-shadow:0 0 12px rgba(64,240,255,.7),0 0 34px rgba(64,240,255,.35);
+    text-shadow:0 0 12px rgba(34,228,255,.7),0 0 34px rgba(34,228,255,.35);
   }
   .sub{color:var(--dim); font-size:15px; margin-top:12px; letter-spacing:1px;}
   .chip{display:inline-block; margin-top:16px; padding:7px 16px; border-radius:20px;
     border:1px solid var(--violet); color:var(--violet); font-size:13px;
-    box-shadow:0 0 14px rgba(170,120,255,.35) inset;}
+    box-shadow:0 0 14px rgba(160,123,255,.35) inset;}
   .grid{display:grid; gap:18px; max-width:1040px; margin:0 auto;
     grid-template-columns:repeat(auto-fit,minmax(280px,1fr));}
   .card{position:relative; border-radius:16px; padding:22px 20px 20px;
@@ -59,6 +59,7 @@
   .foot{text-align:center; color:var(--dim); font-size:13px; margin-top:34px; line-height:1.7;}
   .foot a{color:var(--cyan);}
   .foot b{color:var(--violet);}
+  .nodata{display:inline-block; margin-top:10px; color:var(--lime); opacity:.85;}
 
   /* ---- in-game stage ---- */
   .stage{position:fixed; inset:0; background:rgba(4,6,14,.96); display:none;
@@ -67,23 +68,23 @@
   #game{width:min(94vw,900px); aspect-ratio:900/560; border-radius:14px;
     border:1px solid rgba(120,130,160,.3); box-shadow:0 0 50px -10px var(--cyan); background:var(--bg); touch-action:none;}
   #gframe{width:min(100vw,1100px); height:min(86vh,720px); border:0; border-radius:14px;
-    box-shadow:0 0 50px -10px var(--cyan); background:#05060f; display:none;}
+    box-shadow:0 0 50px -10px var(--cyan); background:#06051a; display:none;}
   .stage.d3 #game{display:none;} .stage.d3 .stagebar{display:none;}
   .stage.d3 #gframe{display:block;}
-  body.touch .stage.d3 .touchctl{display:none;}
+  body.touch .stage.on.d3 .touchctl{display:none;}
   .pname{margin-top:14px;}
   .pname input{font-family:inherit; font-size:13px; color:var(--ink); background:rgba(20,24,46,.5);
     border:1px solid rgba(120,130,170,.5); border-radius:10px; padding:8px 12px; width:170px; text-align:center;}
   .pname label{color:var(--dim); font-size:12px; margin-right:8px;}
   .stagebar{display:flex; gap:18px; align-items:center; color:var(--dim); font-size:13px; flex-wrap:wrap; justify-content:center;}
   .back{cursor:pointer; color:var(--cyan); border:1px solid var(--cyan); border-radius:10px;
-    padding:8px 16px; font-weight:700; background:rgba(64,240,255,.05);}
+    padding:8px 16px; font-weight:700; background:rgba(34,228,255,.05);}
   kbd{background:#1a1d33; border:1px solid #2d3252; border-radius:5px; padding:1px 7px; color:var(--ink);}
 
   /* ---- install button ---- */
   .install{display:none; margin:18px auto 0; cursor:pointer; color:var(--cyan);
     border:1px solid var(--cyan); border-radius:12px; padding:10px 20px; font-weight:800;
-    letter-spacing:1px; background:rgba(64,240,255,.06); box-shadow:0 0 20px -6px var(--cyan);
+    letter-spacing:1px; background:rgba(34,228,255,.06); box-shadow:0 0 20px -6px var(--cyan);
     font-family:inherit; font-size:14px;}
   .install.show{display:inline-block;}
 
@@ -99,7 +100,7 @@
     display:flex; align-items:center; justify-content:center; border-radius:14px;
     background:rgba(20,24,46,.72); border:1px solid rgba(120,130,170,.5); color:var(--ink);
     font-size:22px; font-weight:800; backdrop-filter:blur(2px);}
-  .tbtn:active{background:rgba(64,240,255,.25); border-color:var(--cyan);}
+  .tbtn:active{background:rgba(34,228,255,.25); border-color:var(--cyan);}
   .pad .tbtn{width:56px; height:56px;}
   .big{width:82px; height:82px; font-size:16px; border-color:var(--cyan); color:var(--cyan);}
   .rw{width:64px; height:64px; font-size:15px; border-color:var(--violet); color:var(--violet);}
@@ -111,7 +112,7 @@
   <div class="wrap">
     <div class="head">
       <h1 class="title">FORKADE</h1>
-      <div class="sub">play it, rewind it, fork it &middot; 9 games (incl. 3D) &middot; one hero &middot; open source &middot; no sign-ups &middot; plays in your browser</div>
+      <div class="sub">play it, rewind it, fork it &middot; 10 games (incl. 3D) &middot; one hero &middot; open source &middot; no sign-ups &middot; plays in your browser</div>
       <div class="chip">&#9199; one twist: hold R or Shift to rewind time whenever you mess up</div>
       <br><button class="install" id="install">&#11015; Install to your phone</button>
       <button class="mute" id="mute">&#128266; Sound: on</button>
@@ -122,6 +123,7 @@
       <a href="https://github.com/YouNoui/forkade" target="_blank" rel="noopener noreferrer">Fork it on GitHub</a><br>
       Built with HTML5 Canvas + JavaScript &middot; MIT licensed &middot; fork it, extend it, add your own.<br>
       In every game: hold <b>R</b> or <b>Shift</b> to rewind &middot; <b>P</b> pause &middot; <b>Esc</b> back to menu.
+      <span class="nodata">&#128274; We collect none of your data. No accounts, no tracking, no ads &mdash; your name and scores stay on this device only.</span>
     </div>
   </div>
 
@@ -156,7 +158,8 @@
   <script src="games/breaker.js"></script>
   <script src="games/trail.js"></script>
   <script src="games/drift.js"></script>
-  <script src="games/stacks.js"></script>
+  <script src="games/prism.js"></script>
+  <script src="games/wrecker.js"></script>
   <script src="games/match.js"></script>
   <script>
     const grid = document.getElementById("grid");
@@ -224,11 +227,11 @@
       const i = Forkade.registry.length;
       const card = document.createElement("div");
       card.className = "card";
-      card.style.setProperty("--c", "#8cff5a");
+      card.style.setProperty("--c", "#9dff57");
       card.innerHTML = `
         <div class="num">${String(i + 1).padStart(2, "0")}</div>
         <div class="dot"><span></span></div>
-        <h3 class="name">ECHO 3D <span style="font-size:12px;color:#8cff5a">· 3D</span></h3>
+        <h3 class="name">ECHO 3D <span style="font-size:12px;color:#9dff57">· 3D</span></h3>
         <div class="genre">3D platformer</div>
         <p class="desc">Run and jump ECHO across a floating neon course, Roblox-style. Collect cores, reach the goal. Rewind your falls.</p>
         <span class="play">&#9654; Play now</span>
