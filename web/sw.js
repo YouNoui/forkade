@@ -1,10 +1,14 @@
 /* FORKADE service worker - caches everything so it runs offline once installed.
    Bump CACHE when you change files to push an update to installed users. */
-const CACHE = "forkade-v12";
+const CACHE = "forkade-v13";
 const ASSETS = [
   "./",
   "./index.html",
   "./playground.html",
+  "./terms.html",
+  "./privacy.html",
+  "./guidelines.html",
+  "./delete.html",
   "./engine.js",
   "./games/skyhop.js",
   "./games/swarm.js",

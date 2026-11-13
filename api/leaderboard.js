@@ -2,6 +2,7 @@
 //
 //   GET  /api/leaderboard?game=skyhop&period=week|all[&pid=...]  -> top 50 (+ your rank)
 //   POST /api/leaderboard  { game, score, name, pid }             -> saves if it beats your best
+//   DELETE /api/leaderboard { pid }                                 -> removes that player completely
 //
 // Players are anonymous: a random id made on their device plus a nickname they pick.
 // Only nickname, game and score are stored. IPs are used for rate limiting only:
@@ -51,9 +52,9 @@ function send(res, code, body) {
   res.statusCode = code;
   res.setHeader("Content-Type", "application/json");
   res.setHeader("Access-Control-Allow-Origin", "*");          // public data; lets the one-file build use it
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.setHeader("Cache-Control", code === 200 && body && body.top ? "public, max-age=10" : "no-store");
+  res.setHeader("Cache-Control", "no-store");   // always fresh: deletes and new posts show at once
   res.end(JSON.stringify(body));
 }
 
@@ -108,6 +109,16 @@ module.exports = async function handler(req, res) {
       ]);
       const [wr, ar, wbest, abest] = await R([["ZREVRANK", wk, pid], ["ZREVRANK", all, pid], ["ZSCORE", wk, pid], ["ZSCORE", all, pid]]);
       return send(res, 200, { ok: true, week: { rank: wr + 1, best: Number(wbest) }, all: { rank: ar + 1, best: Number(abest) } });
+    }
+    if (req.method === "DELETE") {
+      // "Remove my scores": wipes this player's nickname and every score on every board
+      const b = await readBody(req), pid = b.pid || q.get("pid");
+      if (!validPid(pid)) return send(res, 400, { error: "Bad player id." });
+      const weeks = [0, 7, 14, 21].map(n => isoWeek(new Date(Date.now() - n * 864e5)));
+      const cmds = [["HDEL", "lb:names", pid]];
+      for (const g of Object.keys(CAPS)) { cmds.push(["ZREM", `lb:${g}:all`, pid]); for (const w of weeks) cmds.push(["ZREM", `lb:${g}:w:${w}`, pid]); }
+      await R(cmds);
+      return send(res, 200, { ok: true, removed: true });
     }
     return send(res, 405, { error: "Method not allowed." });
   } catch (e) {

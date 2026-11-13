@@ -134,6 +134,10 @@
   .rotate{display:none;}
   @media (orientation:portrait){ body.touch .stage.on:not(.d3) .rotate{display:block; position:fixed; top:calc(50% - 150px - 56px);
     left:0; right:0; text-align:center; font-size:13px; color:var(--amber);} }
+  .forget{font-family:inherit; font-size:12px; cursor:pointer; border-radius:8px; padding:6px 10px; background:transparent;
+    color:var(--red); border:1px solid rgba(255,79,110,.6);}
+  .sheet a, .foot .legal a{color:var(--cyan);}
+  .foot .legal{display:block; margin-top:10px; font-size:12px;}
   .nodata{display:inline-block; margin-top:10px; color:var(--lime); opacity:.85;}
 
   /* ---- in-game stage ---- */
@@ -214,7 +218,8 @@
       <a href="https://github.com/YouNoui/forkade" target="_blank" rel="noopener noreferrer">Fork it on GitHub</a><br>
       Built with HTML5 Canvas + JavaScript &middot; MIT licensed &middot; fork it, extend it, add your own.<br>
       In every game: hold <b>R</b> or <b>Shift</b> to rewind &middot; <b>P</b> pause &middot; <b>Esc</b> back to menu.
-      <span class="nodata">&#128274; No accounts, no tracking, no ads. Your progress stays on this device. The only thing that ever leaves it: if <i>you</i> tap <b>Post</b>, your nickname and score go on the public rankings.</span>
+      <span class="nodata">&#128274; No accounts, no ads, no tracking cookies. Your progress stays on this device. We only count visits and plays anonymously (no IP addresses kept), and if <i>you</i> tap <b>Post</b>, your nickname and score go on the public rankings.</span>
+      <span class="legal"><a href="terms.html">Terms</a> &middot; <a href="privacy.html">Privacy</a> &middot; <a href="guidelines.html">Community rules</a> &middot; <a href="delete.html">Delete my data</a> &middot; <a href="mailto:hello@iamynoui.com">Contact</a> &middot; &copy; 2026 IAMYNOUI</span>
     </div>
   </div>
 
@@ -237,7 +242,9 @@
       <ol class="rlist" id="rlist"></ol>
       <p class="hint" id="rme"></p>
       <p class="hint">No sign-up needed. Your device gets a random hidden ID and you pick a nickname.
-        Scores only appear here if you tap <b>Post</b> after a game. We only store your nickname, the game and your score.</p>
+        Scores only appear here if you tap <b>Post</b> after a game. We only store your nickname, the game and your score.
+        <a href="privacy.html">Privacy</a> &middot; <a href="guidelines.html">Rules</a></p>
+      <p class="hint"><button class="forget" id="forget">Remove my scores and nickname</button> <span id="forget-msg"></span></p>
     </div>
   </div>
   <div class="toasts" id="toasts"></div>
@@ -643,6 +650,20 @@
   };
 
 
+  /* ------------------------------------------------------------- stats ---- */
+  // Anonymous counts only (visits, plays per game) - no cookies, no ids, no IP stored.
+  // Skipped entirely when the browser sends Do Not Track or Global Privacy Control.
+  const stats = {
+    api: (typeof location !== "undefined" && location.protocol === "file:" ? "https://playforkade.com" : "") + "/api/stats",
+    off() { try { return navigator.doNotTrack === "1" || window.doNotTrack === "1" || navigator.globalPrivacyControl === true; } catch (_) { return true; } },
+    send(e, game) {
+      if (this.off() || (typeof location !== "undefined" && /^(localhost|127\.)/.test(location.hostname) && !global.__forkadeTestStats)) return;
+      const body = JSON.stringify(game ? { e, game } : { e });
+      try { if (navigator.sendBeacon && navigator.sendBeacon(this.api, body)) return; } catch (_) {}
+      try { fetch(this.api, { method: "POST", body, keepalive: true }).catch(() => {}); } catch (_) {}
+    },
+  };
+
   /* ---------------------------------------------------------- rankings ---- */
   // Opt-in global rankings. Nothing is sent unless the player taps "Post".
   // Identity = a random id made on this device + the nickname they choose.
@@ -661,6 +682,11 @@
     async top(game, period = "week") {
       const r = await fetch(`${this.api}?game=${encodeURIComponent(game)}&period=${period}&pid=${this.pid()}`);
       const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Rankings are offline right now.");
+      return j;
+    },
+    async forget() {       // "Remove my scores": deletes nickname + every score for this device's id
+      const r = await fetch(this.api, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pid: this.pid() }) });
+      const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Couldn't remove right now.");
       return j;
     },
     async post(game, score, name) {
@@ -807,7 +833,7 @@
   global.Forkade = {
     palette, ECHO_COLOR, rand, TAU,
     glowRect, glowCircle, glowLine, drawEcho, fillBg, text, bar, banner,
-    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board,
+    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats,
     register, boot, play, stop, registry,
     current: () => current,          // the running game (handy for tests and the Playground)
   };
@@ -2127,6 +2153,7 @@
       stage.classList.remove("d3", "t-tap", "t-lr");
       const meta = (Forkade.registry.find(g => g.id === id) || {}).meta || {};
       if (meta.touch) stage.classList.add("t-" + meta.touch);
+      Forkade.stats.send("play", id);
       phoneFullscreen();
       gframe.src = "about:blank";
       stage.classList.add("on");
@@ -2134,7 +2161,7 @@
       Forkade.play(id);
     }
     function open3D() {
-      Forkade.sfx.ensure(); phoneFullscreen();
+      Forkade.sfx.ensure(); phoneFullscreen(); Forkade.stats.send("play", "echo3d");
       stage.classList.add("on", "d3");
       // If the 3D page was inlined (single-file build), run it from srcdoc so it
       // works with no separate file. Otherwise load the file (folder version).
@@ -2247,6 +2274,7 @@
     });
     { const d = R.daily(); if (d && d.cores) setTimeout(() => toast(`Day ${d.streak} streak! +${d.cores} cores`), 600); }
     refreshRewards();
+    Forkade.stats.send("visit");
 
     /* ---------- global rankings (opt-in) ---------- */
     const B = Forkade.board;
@@ -2267,6 +2295,16 @@
         me.textContent = d.me ? `You're #${d.me.rank} of ${d.count} with ${d.me.score}.` : `${d.count} players ranked. Post a score after any round to join.`;
       } catch (err) { list.innerHTML = `<li>${esc(err.message)}</li>`; }
     }
+    document.getElementById("forget").addEventListener("click", async () => {
+      const m = document.getElementById("forget-msg");
+      if (document.getElementById("forget").dataset.sure !== "1") {
+        document.getElementById("forget").dataset.sure = "1"; m.textContent = "Tap again to confirm. This removes all your posted scores."; return;
+      }
+      m.textContent = "Removing\u2026";
+      try { await B.forget(); m.textContent = "Done. Your nickname and scores are gone from the rankings."; loadRanks(); }
+      catch (err) { m.textContent = err.message; }
+      document.getElementById("forget").dataset.sure = "";
+    });
     document.getElementById("open-ranks").addEventListener("click", () => { document.getElementById("ranks").hidden = false; loadRanks(); });
     document.getElementById("close-ranks").addEventListener("click", () => { document.getElementById("ranks").hidden = true; });
     document.getElementById("ranks").addEventListener("click", e => {

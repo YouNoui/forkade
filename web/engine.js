@@ -366,6 +366,20 @@
   };
 
 
+  /* ------------------------------------------------------------- stats ---- */
+  // Anonymous counts only (visits, plays per game) - no cookies, no ids, no IP stored.
+  // Skipped entirely when the browser sends Do Not Track or Global Privacy Control.
+  const stats = {
+    api: (typeof location !== "undefined" && location.protocol === "file:" ? "https://playforkade.com" : "") + "/api/stats",
+    off() { try { return navigator.doNotTrack === "1" || window.doNotTrack === "1" || navigator.globalPrivacyControl === true; } catch (_) { return true; } },
+    send(e, game) {
+      if (this.off() || (typeof location !== "undefined" && /^(localhost|127\.)/.test(location.hostname) && !global.__forkadeTestStats)) return;
+      const body = JSON.stringify(game ? { e, game } : { e });
+      try { if (navigator.sendBeacon && navigator.sendBeacon(this.api, body)) return; } catch (_) {}
+      try { fetch(this.api, { method: "POST", body, keepalive: true }).catch(() => {}); } catch (_) {}
+    },
+  };
+
   /* ---------------------------------------------------------- rankings ---- */
   // Opt-in global rankings. Nothing is sent unless the player taps "Post".
   // Identity = a random id made on this device + the nickname they choose.
@@ -384,6 +398,11 @@
     async top(game, period = "week") {
       const r = await fetch(`${this.api}?game=${encodeURIComponent(game)}&period=${period}&pid=${this.pid()}`);
       const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Rankings are offline right now.");
+      return j;
+    },
+    async forget() {       // "Remove my scores": deletes nickname + every score for this device's id
+      const r = await fetch(this.api, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pid: this.pid() }) });
+      const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Couldn't remove right now.");
       return j;
     },
     async post(game, score, name) {
@@ -530,7 +549,7 @@
   global.Forkade = {
     palette, ECHO_COLOR, rand, TAU,
     glowRect, glowCircle, glowLine, drawEcho, fillBg, text, bar, banner,
-    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board,
+    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats,
     register, boot, play, stop, registry,
     current: () => current,          // the running game (handy for tests and the Playground)
   };

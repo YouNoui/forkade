@@ -82,7 +82,7 @@
     <div id="log">Press &#9654; Run to play your game. Keys: arrows/WASD, SPACE, hold R to rewind, P pause.</div>
   </section>
 </main>
-<div class="note">&#128274; Your code stays in this browser (saved on this device only). Nothing is uploaded unless you submit it yourself on GitHub.</div>
+<div class="note">&#128274; Your code stays in this browser (saved on this device only). Nothing is uploaded unless you submit it yourself on GitHub. &middot; <a href="terms.html" style="color:var(--cyan)">Terms</a> &middot; <a href="privacy.html" style="color:var(--cyan)">Privacy</a></div>
 
 <script src="engine.js"></script>
 <script>
@@ -151,6 +151,7 @@ try { code.value = localStorage.getItem(KEY) || TEMPLATE; } catch (_) { code.val
 
 Forkade.rewards.enabled = false;   // test games don't earn arcade cores
 Forkade.boot(canvas, () => {});
+Forkade.stats.send("play", "playground");
 function say(msg, err) { log.textContent = msg; log.className = err ? "err" : ""; }
 window.addEventListener("error", e => say("Error: " + e.message + (e.lineno ? "  (line " + e.lineno + ")" : ""), true));
 
