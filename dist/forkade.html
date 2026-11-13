@@ -59,6 +59,10 @@
   .foot{text-align:center; color:var(--dim); font-size:13px; margin-top:34px; line-height:1.7;}
   .foot a{color:var(--cyan);}
   .foot b{color:var(--violet);}
+  .chip.oss{margin-top:8px; border-color:var(--magenta);}
+  .chip.oss a{color:var(--magenta); text-decoration:none;}
+  a.card{display:block; text-decoration:none; color:inherit;}
+  .card.make{border-style:dashed;}
   .nodata{display:inline-block; margin-top:10px; color:var(--lime); opacity:.85;}
 
   /* ---- in-game stage ---- */
@@ -114,6 +118,7 @@
       <h1 class="title">FORKADE</h1>
       <div class="sub">play it, rewind it, fork it &middot; 10 games (incl. 3D) &middot; one hero &middot; open source &middot; no sign-ups &middot; plays in your browser</div>
       <div class="chip">&#9199; one twist: hold R or Shift to rewind time whenever you mess up</div>
+      <div class="chip oss"><a href="https://playforkade.com/playground.html" id="osslink">&#9998; open source &mdash; build your own game in the Playground</a> &middot; <a href="https://github.com/YouNoui/forkade" target="_blank" rel="noopener noreferrer">GitHub</a></div>
       <br><button class="install" id="install">&#11015; Install to your phone</button>
       <button class="mute" id="mute">&#128266; Sound: on</button>
       <div class="pname"><label>Player</label><input id="playername" maxlength="14" placeholder="ECHO"></div>
@@ -560,13 +565,18 @@
       this.vx = 0; this.vy = 0; this.onGround = false;
       this.cam = 0; this.best = 0; this.score = 0;
       this.plats = [{ x: 0, y: this.H - 40, w: this.W, h: 40 }];
-      this.orbs = [];
-      let y = this.H - 140;
-      for (let i = 0; i < 40; i++) { this.addPlat(y); y -= NE.rand(80, 120); }
+      this.orbs = []; this.lastX = this.W / 2; this.coyote = 0; this.buffer = 0;
+      let y = this.H - 130;
+      for (let i = 0; i < 40; i++) { this.addPlat(y); y -= this.gap(); }
       this.state = "play";
     }
+    // jump reaches ~150px high; gaps stay well under that, and grow a little with height
+    gap() { return NE.rand(70, 95) + Math.min(15, this.best / 400); }
     addPlat(y) {
-      const w = NE.rand(90, 160), x = NE.rand(20, this.W - w - 20);
+      const w = Math.max(70, NE.rand(100, 170) - Math.min(50, this.best / 250));
+      // keep each platform within a reachable sideways distance of the one below
+      const cx = Math.max(20 + w / 2, Math.min(this.W - 20 - w / 2, this.lastX + NE.rand(-240, 240)));
+      const x = cx - w / 2; this.lastX = cx;
       this.plats.push({ x, y, w, h: 18 });
       if (Math.random() < 0.5) this.orbs.push({ x: x + w / 2, y: y - 26, on: true });
     }
@@ -575,11 +585,16 @@
       if (this.state !== "play") { if (I.pressed.Enter || I.pressed.NumpadEnter) this.reset(); return; }
       const ax = (I.right() ? 1 : 0) - (I.left() ? 1 : 0);
       this.vx = ax * 320;
-      if ((I.pressed.Space || I.pressed.KeyW || I.pressed.ArrowUp) && this.onGround) {
-        this.vy = -560; this.onGround = false; NE.sfx.jump();
+      // forgiving jump: press slightly early (buffer) or just after leaving a ledge (coyote)
+      if (I.pressed.Space || I.pressed.KeyW || I.pressed.ArrowUp) this.buffer = 0.12;
+      else this.buffer = Math.max(0, this.buffer - dt);
+      this.coyote = this.onGround ? 0.09 : Math.max(0, this.coyote - dt);
+      if (this.buffer > 0 && this.coyote > 0) {
+        this.vy = -680; this.onGround = false; this.coyote = 0; this.buffer = 0; NE.sfx.jump();
         this.particles.emit(this.px, this.py + 16, P.cyan, { n: 10, angle: Math.PI / 2, spread: 1.2, speed: 3 });
       }
       this.vy += 1500 * dt;
+      if (this.vy < 0 && !(I.keys.Space || I.keys.KeyW || I.keys.ArrowUp)) this.vy += 1400 * dt;  // tap = short hop, hold = full jump
       this.px = Math.max(16, Math.min(this.W - 16, this.px + this.vx * dt));
       this.py += this.vy * dt;
 
@@ -600,7 +615,7 @@
         this.cam += d; this.best += d; this.score = (this.best / 10) | 0;
       }
       let top = Infinity; for (const p of this.plats) top = Math.min(top, p.y);
-      if (top + this.cam > -40) this.addPlat(top - NE.rand(80, 120));
+      if (top + this.cam > -40) this.addPlat(top - this.gap());
       this.plats = this.plats.filter(p => p.y + this.cam < this.H + 60);
 
       for (const o of this.orbs)
@@ -614,9 +629,13 @@
     }
     snapshot() {
       if (this.state !== "play") return null;
-      return [this.px, this.py, this.vx, this.vy, this.cam, this.best, this.score, this.onGround];
+      return { v: [this.px, this.py, this.vx, this.vy, this.cam, this.best, this.score, this.onGround, this.lastX, this.coyote, this.buffer],
+               plats: this.plats.map(p => ({ ...p })), orbs: this.orbs.map(o => ({ ...o })) };
     }
-    restore(s) { [this.px, this.py, this.vx, this.vy, this.cam, this.best, this.score, this.onGround] = s; }
+    restore(s) {
+      [this.px, this.py, this.vx, this.vy, this.cam, this.best, this.score, this.onGround, this.lastX, this.coyote, this.buffer] = s.v;
+      this.plats = s.plats.map(p => ({ ...p })); this.orbs = s.orbs.map(o => ({ ...o }));
+    }
     render(ctx) {
       for (const p of this.plats) {
         const sy = p.y + this.cam;
@@ -831,34 +850,52 @@
 
 </script>
   <script>
-/* GAME 4 - PULSE BREAKER : neon brick-breaker */
+/* GAME 4 - PULSE BREAKER : neon brick-breaker with endless levels */
 (function () {
   const NE = Forkade, P = NE.palette;
 
   class Breaker extends NE.GameBase {
     reset() {
       this.paddle = this.W / 2; this.pw = 110; this.lives = 3; this.score = 0;
+      this.level = 1; this.state = "play";
+      this.buildWall();
+    }
+    // every level is a new wall shape; tougher bricks take 2-3 hits
+    buildWall() {
+      const L = this.level, cols = ["cyan", "lime", "amber", "magenta", "violet"];
+      const rows = Math.min(8, 4 + Math.ceil(L / 2)), shape = (L - 1) % 5;
       this.bricks = [];
-      const cols = ["cyan", "lime", "amber", "magenta", "violet"];
-      for (let row = 0; row < 5; row++)
-        for (let col = 0; col < 10; col++)
-          this.bricks.push({ x: 60 + col * 78, y: 90 + row * 34, c: P[cols[row]] });
+      for (let row = 0; row < rows; row++) for (let col = 0; col < 10; col++) {
+        const mid = Math.abs(col - 4.5);
+        if (shape === 1 && mid > rows - row) continue;                       // pyramid
+        if (shape === 2 && (row + col) % 2) continue;                        // checker
+        if (shape === 3 && Math.abs(mid - 2.5) + Math.abs(row - rows / 2) > rows / 2 + 1) continue; // twin diamonds
+        if (shape === 4 && row % 3 === 2 && col % 3 !== 0) continue;         // ladders
+        const hp = Math.min(3, 1 + (row < Math.floor((L - 1) / 2) ? 1 : 0) + (L >= 6 && row === 0 ? 1 : 0));
+        this.bricks.push({ x: 60 + col * 78, y: 80 + row * 32, c: P[cols[row % 5]], hp });
+      }
+      this.speed = 420 + Math.min(260, (L - 1) * 35);
       this.stuck = true; this.bx = this.paddle; this.by = this.H - 70;
-      this.bvx = 0; this.bvy = 0; this.state = "play";
+      this.bvx = 0; this.bvy = 0; this.phase = "play";
     }
     launch() {
       this.stuck = false;
       const a = NE.rand(-0.6, 0.6) - Math.PI / 2;
-      this.bvx = Math.cos(a) * 420; this.bvy = Math.sin(a) * 420;
+      this.bvx = Math.cos(a) * this.speed; this.bvy = Math.sin(a) * this.speed;
     }
     step(dt) {
       const I = this.input;
       if (this.state !== "play") { if (I.pressed.Enter) this.reset(); return; }
+      const click = I.mouse.down && !this.prevDown; this.prevDown = I.mouse.down;
+      if (this.phase === "clear") {
+        if (I.pressed.Space || I.pressed.Enter || click) { this.level++; this.buildWall(); NE.sfx.ui(); }
+        return;
+      }
       const kb = (I.right() ? 1 : 0) - (I.left() ? 1 : 0);
       if (kb) this.paddle += kb * 520 * dt;
       else this.paddle += (I.mouse.x - this.paddle) * Math.min(1, dt * 14);
       this.paddle = Math.max(this.pw / 2, Math.min(this.W - this.pw / 2, this.paddle));
-      if (I.pressed.Space && this.stuck) this.launch();
+      if ((I.pressed.Space || click) && this.stuck) this.launch();
       if (this.stuck) { this.bx = this.paddle; this.by = this.H - 70; return; }
 
       this.bx += this.bvx * dt; this.by += this.bvy * dt;
@@ -875,46 +912,58 @@
       for (let i = 0; i < this.bricks.length; i++) {
         const br = this.bricks[i];
         if (Math.abs(this.bx - (br.x + 34)) < 38 && Math.abs(this.by - (br.y + 12)) < 18) {
-          this.bvy *= -1; this.score += 15; this.shake.add(2); NE.sfx.pickup();
+          this.bvy *= -1; this.shake.add(2);
           this.particles.emit(this.bx, this.by, br.c, { n: 8, speed: 3 });
-          this.bricks.splice(i, 1); break;
+          if (--br.hp <= 0) { this.score += 15 * this.level; NE.sfx.pickup(); this.bricks.splice(i, 1); }
+          else { this.score += 5; NE.sfx.hit(); }
+          break;
         }
       }
       if (this.by > this.H + 10) {
         this.lives -= 1; this.shake.add(10);
         if (this.lives <= 0) this.state = "over"; else this.stuck = true;
       }
-      if (!this.bricks.length) this.state = "win";
+      if (!this.bricks.length) {
+        this.bonus = 250 * this.level; this.score += this.bonus;
+        this.lives = Math.min(5, this.lives + 1); this.phase = "clear"; NE.sfx.win();
+      }
     }
     snapshot() {
       if (this.state !== "play") return null;
       return { paddle: this.paddle, lives: this.lives, score: this.score, stuck: this.stuck,
                bx: this.bx, by: this.by, bvx: this.bvx, bvy: this.bvy,
-               bricks: this.bricks.map(b => ({ ...b })) };
+               bricks: this.bricks.map(b => ({ ...b })),
+               level: this.level, speed: this.speed, phase: this.phase, bonus: this.bonus };
     }
     restore(s) {
       this.paddle = s.paddle; this.lives = s.lives; this.score = s.score; this.stuck = s.stuck;
       this.bx = s.bx; this.by = s.by; this.bvx = s.bvx; this.bvy = s.bvy;
       this.bricks = s.bricks.map(b => ({ ...b }));
+      this.level = s.level; this.speed = s.speed; this.phase = s.phase; this.bonus = s.bonus;
     }
     render(ctx) {
-      for (const br of this.bricks) NE.glowRect(ctx, br.c, br.x, br.y, 68, 24, 5);
+      for (const br of this.bricks) {
+        if (br.hp >= 3) { NE.glowRect(ctx, "#b8bcd8", br.x, br.y, 68, 24, 5); }
+        else NE.glowRect(ctx, br.c, br.x, br.y, 68, 24, 5);
+        if (br.hp === 2) NE.glowRect(ctx, P.white, br.x + 4, br.y + 4, 60, 16, 4, 2);
+      }
       NE.glowRect(ctx, P.cyan, this.paddle - this.pw / 2, this.H - 68, this.pw, 14, 7);
       NE.drawEcho(ctx, this.paddle, this.H - 86, 12, P.cyan, 1, this.t);
       NE.glowCircle(ctx, P.white, this.bx, this.by, 7);
       NE.text(ctx, String(this.score), 20, 16, { size: 40 });
       for (let i = 0; i < this.lives; i++) NE.glowCircle(ctx, P.cyan, this.W - 30 - i * 26, 28, 7);
+      NE.text(ctx, `LEVEL ${this.level}`, 22, 60, { size: 15, color: P.dim });
       if (this.stuck && this.state === "play")
-        NE.text(ctx, "SPACE to launch", this.W / 2, this.H - 110, { size: 16, color: P.dim, align: "center" });
+        NE.text(ctx, "SPACE or click to launch", this.W / 2, this.H - 110, { size: 16, color: P.dim, align: "center" });
       if (this.state === "over")
         NE.banner(ctx, this.W, this.H, "GAME OVER", `score ${this.score}   -   ENTER retry   ESC menu`);
-      else if (this.state === "win")
-        NE.banner(ctx, this.W, this.H, "WALL CLEARED!", `score ${this.score}   -   ENTER again   ESC menu`);
+      if (this.phase === "clear" && this.state === "play")
+        NE.banner(ctx, this.W, this.H, `WALL ${this.level} CLEARED!`, `+${this.bonus} and +1 life   -   SPACE / click for wall ${this.level + 1}`);
     }
   }
   NE.register("breaker",
     { title: "PULSE BREAKER", genre: "Brick-breaker", color: P.amber,
-      desc: "Bounce a pulse to shatter the wall. Lost the ball? Rewind the bounce." },
+      desc: "Bounce a pulse through wall after wall - tougher bricks, faster ball. Lost it? Rewind the bounce." },
     Breaker);
 })();
 
@@ -1007,8 +1056,8 @@
     reset() {
       this.px = this.W / 2; this.py = this.H / 2; this.vx = 0; this.vy = 0;
       this.ang = -Math.PI / 2; this.hp = 3; this.score = 0;
-      this.bullets = []; this.rocks = []; this.cool = 0; this.inv = 0; this.state = "play";
-      for (let i = 0; i < 5; i++) this.spawnRock();
+      this.bullets = []; this.rocks = []; this.cool = 0; this.inv = 0; this.state = "play"; this.wave = 1;
+      for (let i = 0; i < 4; i++) this.spawnRock();
     }
     spawnRock(x, y, size = 3) {
       if (x == null) {
@@ -1066,17 +1115,22 @@
             break;
           }
         }
-      if (!this.rocks.length) { for (let i = 0; i < 5; i++) this.spawnRock(); this.score += 50; }
+      if (!this.rocks.length) {   // next wave: more rocks, +1 hull every 3 waves
+        this.wave++; this.score += 100 * this.wave;
+        if (this.wave % 3 === 0) this.hp = Math.min(5, this.hp + 1);
+        for (let i = 0; i < Math.min(10, 3 + this.wave); i++) this.spawnRock();
+        NE.sfx.win();
+      }
     }
     snapshot() {
       if (this.state !== "play") return null;
       return { px: this.px, py: this.py, vx: this.vx, vy: this.vy, ang: this.ang,
-               hp: this.hp, score: this.score, inv: this.inv,
+               hp: this.hp, score: this.score, inv: this.inv, wave: this.wave,
                b: this.bullets.map(o => ({ ...o })), r: this.rocks.map(o => ({ ...o })) };
     }
     restore(s) {
       this.px = s.px; this.py = s.py; this.vx = s.vx; this.vy = s.vy; this.ang = s.ang;
-      this.hp = s.hp; this.score = s.score; this.inv = s.inv;
+      this.hp = s.hp; this.score = s.score; this.inv = s.inv; this.wave = s.wave;
       this.bullets = s.b.map(o => ({ ...o })); this.rocks = s.r.map(o => ({ ...o }));
     }
     render(ctx) {
@@ -1103,6 +1157,7 @@
         NE.drawEcho(ctx, x, y, 9, P.cyan, 1, this.t);
       }
       NE.text(ctx, String(this.score), 20, 16, { size: 40 });
+      NE.text(ctx, `WAVE ${this.wave}`, 22, 60, { size: 15, color: P.dim });
       for (let i = 0; i < this.hp; i++) NE.glowCircle(ctx, P.cyan, this.W - 30 - i * 26, 28, 7);
       if (this.state === "over")
         NE.banner(ctx, this.W, this.H, "LOST IN THE STORM", `score ${this.score}   -   ENTER retry   ESC menu`);
@@ -1577,7 +1632,7 @@
 
 </script>
   <script>
-/* GAME 8 - CORE MATCH : swap-and-match-3 (Candy-Crush-style) */
+/* GAME 8 - CORE MATCH : swap-and-match-3 with endless levels */
 (function () {
   const NE = Forkade, P = NE.palette, N = 8, CELL = 52;
   const GC = [P.cyan, P.magenta, P.lime, P.amber, P.violet, P.red];
@@ -1586,18 +1641,27 @@
     reset() {
       this.ox = (this.W - N * CELL) / 2 - 60;
       this.oy = (this.H - N * CELL) / 2 + 10;
-      this.g = Array.from({ length: N }, () => Array.from({ length: N }, () => (Math.random() * GC.length) | 0));
+      this.prevDown = false;
+      this.score = 0; this.level = 1; this.state = "play";
+      this.startLevel();
+    }
+    // each level: fresh board, refilled moves, a bigger goal. Score carries over.
+    startLevel() {
+      const L = this.level;
+      this.colors = L <= 2 ? 5 : 6;
+      this.g = Array.from({ length: N }, () => Array.from({ length: N }, () => (Math.random() * this.colors) | 0));
       this.removeInitial();
-      this.sel = null; this.prevDown = false;
-      this.score = 0; this.moves = 25; this.target = 1200; this.state = "play";
+      // tuned so an average level takes ~15-25 moves and the squeeze tightens each level
+      this.need = 1500 + (L - 1) * 300;  // points needed THIS level
+      this.got = 0; this.moves = Math.min(34, 20 + 2 * (L - 1)); this.phase = "play"; this.sel = null;
     }
     removeInitial() {
       // re-roll any cell that forms a line, until the board is clean
       for (let pass = 0; pass < 40; pass++) {
         let changed = false;
         for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
-          if (c >= 2 && this.g[r][c] === this.g[r][c-1] && this.g[r][c] === this.g[r][c-2]) { this.g[r][c] = (this.g[r][c] + 1) % GC.length; changed = true; }
-          if (r >= 2 && this.g[r][c] === this.g[r-1][c] && this.g[r][c] === this.g[r-2][c]) { this.g[r][c] = (this.g[r][c] + 1) % GC.length; changed = true; }
+          if (c >= 2 && this.g[r][c] === this.g[r][c-1] && this.g[r][c] === this.g[r][c-2]) { this.g[r][c] = (this.g[r][c] + 1) % this.colors; changed = true; }
+          if (r >= 2 && this.g[r][c] === this.g[r-1][c] && this.g[r][c] === this.g[r-2][c]) { this.g[r][c] = (this.g[r][c] + 1) % this.colors; changed = true; }
         }
         if (!changed) break;
       }
@@ -1631,10 +1695,10 @@
         for (let c = 0; c < N; c++) {
           let col = [];
           for (let r = N - 1; r >= 0; r--) if (this.g[r][c] >= 0) col.push(this.g[r][c]);
-          for (let r = N - 1; r >= 0; r--) this.g[r][c] = col.length ? col.shift() : ((Math.random() * GC.length) | 0);
+          for (let r = N - 1; r >= 0; r--) this.g[r][c] = col.length ? col.shift() : ((Math.random() * this.colors) | 0);
         }
       }
-      if (score) this.score += total;
+      if (score) { this.score += total; this.got += total; }
       return chain > 0;
     }
     cellAt(mx, my) {
@@ -1645,6 +1709,10 @@
       const I = this.input;
       if (this.state !== "play") { if (I.pressed.Enter) this.reset(); return; }
       const down = I.mouse.down;
+      if (this.phase === "clear") {
+        if ((down && !this.prevDown) || I.pressed.Enter || I.pressed.Space) { this.level++; this.startLevel(); NE.sfx.ui(); }
+        this.prevDown = down; return;
+      }
       if (down && !this.prevDown) {
         const hit = this.cellAt(I.mouse.x, I.mouse.y);
         if (hit) {
@@ -1656,7 +1724,7 @@
         }
       }
       this.prevDown = down;
-      if (this.moves <= 0) this.state = this.score >= this.target ? "win" : "over";
+      if (this.moves <= 0 && this.got < this.need) this.state = "over";
     }
     trySwap(a, b) {
       const t = this.g[a.r][a.c]; this.g[a.r][a.c] = this.g[b.r][b.c]; this.g[b.r][b.c] = t;
@@ -1665,13 +1733,20 @@
         const u = this.g[a.r][a.c]; this.g[a.r][a.c] = this.g[b.r][b.c]; this.g[b.r][b.c] = u;
         NE.sfx.bounce();
       }
-      if (this.score >= this.target) this.state = "win";
+      if (this.got >= this.need) {
+        this.bonus = this.moves * 40 * this.level; this.score += this.bonus;
+        this.phase = "clear"; NE.sfx.win(); this.shake.add(6);
+      }
     }
     snapshot() {
       if (this.state !== "play") return null;
-      return { g: this.g.map(r => r.slice()), sel: this.sel, score: this.score, moves: this.moves };
+      return { g: this.g.map(r => r.slice()), sel: this.sel, score: this.score, moves: this.moves,
+               level: this.level, need: this.need, got: this.got, phase: this.phase, colors: this.colors, bonus: this.bonus };
     }
-    restore(s) { this.g = s.g.map(r => r.slice()); this.sel = s.sel; this.score = s.score; this.moves = s.moves; }
+    restore(s) {
+      this.g = s.g.map(r => r.slice()); this.sel = s.sel; this.score = s.score; this.moves = s.moves;
+      Object.assign(this, { level: s.level, need: s.need, got: s.got, phase: s.phase, colors: s.colors, bonus: s.bonus });
+    }
     render(ctx) {
       for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
         const v = this.g[r][c]; if (v < 0) continue;
@@ -1687,22 +1762,22 @@
       const hx = this.ox + N * CELL + 28;
       NE.text(ctx, "SCORE", hx, 70, { size: 14, color: P.dim });
       NE.text(ctx, String(this.score), hx, 88, { size: 30 });
-      NE.text(ctx, "TARGET", hx, 140, { size: 14, color: P.dim });
-      NE.text(ctx, String(this.target), hx, 158, { size: 22, color: P.lime });
+      NE.text(ctx, `LEVEL ${this.level}  GOAL`, hx, 140, { size: 14, color: P.dim });
+      NE.text(ctx, `${Math.min(this.got, this.need)} / ${this.need}`, hx, 158, { size: 20, color: P.lime });
       NE.text(ctx, "MOVES", hx, 205, { size: 14, color: P.dim });
       NE.text(ctx, String(this.moves), hx, 223, { size: 30, color: this.moves <= 5 ? P.red : P.ink });
-      NE.bar(ctx, hx, 270, 130, 12, this.score / this.target, P.amber);
+      NE.bar(ctx, hx, 270, 130, 12, this.got / this.need, this.got >= this.need ? P.lime : P.amber);
       NE.drawEcho(ctx, hx + 50, 330, 16, P.cyan, 1, this.t);
       NE.text(ctx, "click a core, then a neighbour to swap", this.W / 2, this.H - 20, { size: 13, color: P.dim, align: "center" });
       if (this.state === "over")
         NE.banner(ctx, this.W, this.H, "OUT OF MOVES", `score ${this.score}   -   ENTER retry   ESC menu`);
-      else if (this.state === "win")
-        NE.banner(ctx, this.W, this.H, "TARGET HIT!", `score ${this.score}   -   ENTER again   ESC menu`);
+      if (this.phase === "clear" && this.state === "play")
+        NE.banner(ctx, this.W, this.H, `LEVEL ${this.level} CLEARED!`, `+${this.bonus} for spare moves   -   click / SPACE for level ${this.level + 1}`);
     }
   }
   NE.register("match",
     { title: "CORE MATCH", genre: "Match-3 puzzle", color: P.magenta,
-      desc: "Swap neon cores to line up 3+, chain cascades, hit the target. Misfire? Rewind the move." },
+      desc: "Swap neon cores to line up 3+, chain cascades, climb endless levels. Misfire? Rewind the move." },
     Match);
 })();
 
@@ -1779,10 +1854,27 @@
         <div class="dot"><span></span></div>
         <h3 class="name">ECHO 3D <span style="font-size:12px;color:#9dff57">· 3D</span></h3>
         <div class="genre">3D platformer</div>
-        <p class="desc">Run and jump ECHO across a floating neon course, Roblox-style. Collect cores, reach the goal. Rewind your falls.</p>
+        <p class="desc">Run and jump ECHO across a floating neon obstacle course. Collect cores, reach the goal. Rewind your falls.</p>
         <span class="play">&#9654; Play now</span>
         <div class="best" data-id="echo3d">BEST <b>${Forkade.scores.get("echo3d")}</b></div>`;
       card.addEventListener("click", open3D);
+      grid.appendChild(card);
+    })();
+
+    /* ---------- build-your-own card -> Playground ---------- */
+    (function addMake() {
+      const href = "https://playforkade.com/playground.html";   // build_dist.py points this at the live site
+      const card = document.createElement("a");
+      card.className = "card make"; card.href = href;
+      card.style.setProperty("--c", "#ff3ea5");
+      card.innerHTML = `
+        <div class="num">+</div>
+        <div class="dot"><span></span></div>
+        <h3 class="name">MAKE YOUR OWN</h3>
+        <div class="genre">Open source &middot; MIT</div>
+        <p class="desc">Every game here is open source. Write your own in the Playground, play it instantly with rewind built in, then submit it to join the arcade.</p>
+        <span class="play">&#9998; Open Playground</span>
+        <div class="best">no install needed</div>`;
       grid.appendChild(card);
     })();
 

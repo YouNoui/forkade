@@ -1,4 +1,4 @@
-/* GAME 8 - CORE MATCH : swap-and-match-3 (Candy-Crush-style) */
+/* GAME 8 - CORE MATCH : swap-and-match-3 with endless levels */
 (function () {
   const NE = Forkade, P = NE.palette, N = 8, CELL = 52;
   const GC = [P.cyan, P.magenta, P.lime, P.amber, P.violet, P.red];
@@ -7,18 +7,27 @@
     reset() {
       this.ox = (this.W - N * CELL) / 2 - 60;
       this.oy = (this.H - N * CELL) / 2 + 10;
-      this.g = Array.from({ length: N }, () => Array.from({ length: N }, () => (Math.random() * GC.length) | 0));
+      this.prevDown = false;
+      this.score = 0; this.level = 1; this.state = "play";
+      this.startLevel();
+    }
+    // each level: fresh board, refilled moves, a bigger goal. Score carries over.
+    startLevel() {
+      const L = this.level;
+      this.colors = L <= 2 ? 5 : 6;
+      this.g = Array.from({ length: N }, () => Array.from({ length: N }, () => (Math.random() * this.colors) | 0));
       this.removeInitial();
-      this.sel = null; this.prevDown = false;
-      this.score = 0; this.moves = 25; this.target = 1200; this.state = "play";
+      // tuned so an average level takes ~15-25 moves and the squeeze tightens each level
+      this.need = 1500 + (L - 1) * 300;  // points needed THIS level
+      this.got = 0; this.moves = Math.min(34, 20 + 2 * (L - 1)); this.phase = "play"; this.sel = null;
     }
     removeInitial() {
       // re-roll any cell that forms a line, until the board is clean
       for (let pass = 0; pass < 40; pass++) {
         let changed = false;
         for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
-          if (c >= 2 && this.g[r][c] === this.g[r][c-1] && this.g[r][c] === this.g[r][c-2]) { this.g[r][c] = (this.g[r][c] + 1) % GC.length; changed = true; }
-          if (r >= 2 && this.g[r][c] === this.g[r-1][c] && this.g[r][c] === this.g[r-2][c]) { this.g[r][c] = (this.g[r][c] + 1) % GC.length; changed = true; }
+          if (c >= 2 && this.g[r][c] === this.g[r][c-1] && this.g[r][c] === this.g[r][c-2]) { this.g[r][c] = (this.g[r][c] + 1) % this.colors; changed = true; }
+          if (r >= 2 && this.g[r][c] === this.g[r-1][c] && this.g[r][c] === this.g[r-2][c]) { this.g[r][c] = (this.g[r][c] + 1) % this.colors; changed = true; }
         }
         if (!changed) break;
       }
@@ -52,10 +61,10 @@
         for (let c = 0; c < N; c++) {
           let col = [];
           for (let r = N - 1; r >= 0; r--) if (this.g[r][c] >= 0) col.push(this.g[r][c]);
-          for (let r = N - 1; r >= 0; r--) this.g[r][c] = col.length ? col.shift() : ((Math.random() * GC.length) | 0);
+          for (let r = N - 1; r >= 0; r--) this.g[r][c] = col.length ? col.shift() : ((Math.random() * this.colors) | 0);
         }
       }
-      if (score) this.score += total;
+      if (score) { this.score += total; this.got += total; }
       return chain > 0;
     }
     cellAt(mx, my) {
@@ -66,6 +75,10 @@
       const I = this.input;
       if (this.state !== "play") { if (I.pressed.Enter) this.reset(); return; }
       const down = I.mouse.down;
+      if (this.phase === "clear") {
+        if ((down && !this.prevDown) || I.pressed.Enter || I.pressed.Space) { this.level++; this.startLevel(); NE.sfx.ui(); }
+        this.prevDown = down; return;
+      }
       if (down && !this.prevDown) {
         const hit = this.cellAt(I.mouse.x, I.mouse.y);
         if (hit) {
@@ -77,7 +90,7 @@
         }
       }
       this.prevDown = down;
-      if (this.moves <= 0) this.state = this.score >= this.target ? "win" : "over";
+      if (this.moves <= 0 && this.got < this.need) this.state = "over";
     }
     trySwap(a, b) {
       const t = this.g[a.r][a.c]; this.g[a.r][a.c] = this.g[b.r][b.c]; this.g[b.r][b.c] = t;
@@ -86,13 +99,20 @@
         const u = this.g[a.r][a.c]; this.g[a.r][a.c] = this.g[b.r][b.c]; this.g[b.r][b.c] = u;
         NE.sfx.bounce();
       }
-      if (this.score >= this.target) this.state = "win";
+      if (this.got >= this.need) {
+        this.bonus = this.moves * 40 * this.level; this.score += this.bonus;
+        this.phase = "clear"; NE.sfx.win(); this.shake.add(6);
+      }
     }
     snapshot() {
       if (this.state !== "play") return null;
-      return { g: this.g.map(r => r.slice()), sel: this.sel, score: this.score, moves: this.moves };
+      return { g: this.g.map(r => r.slice()), sel: this.sel, score: this.score, moves: this.moves,
+               level: this.level, need: this.need, got: this.got, phase: this.phase, colors: this.colors, bonus: this.bonus };
     }
-    restore(s) { this.g = s.g.map(r => r.slice()); this.sel = s.sel; this.score = s.score; this.moves = s.moves; }
+    restore(s) {
+      this.g = s.g.map(r => r.slice()); this.sel = s.sel; this.score = s.score; this.moves = s.moves;
+      Object.assign(this, { level: s.level, need: s.need, got: s.got, phase: s.phase, colors: s.colors, bonus: s.bonus });
+    }
     render(ctx) {
       for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
         const v = this.g[r][c]; if (v < 0) continue;
@@ -108,21 +128,21 @@
       const hx = this.ox + N * CELL + 28;
       NE.text(ctx, "SCORE", hx, 70, { size: 14, color: P.dim });
       NE.text(ctx, String(this.score), hx, 88, { size: 30 });
-      NE.text(ctx, "TARGET", hx, 140, { size: 14, color: P.dim });
-      NE.text(ctx, String(this.target), hx, 158, { size: 22, color: P.lime });
+      NE.text(ctx, `LEVEL ${this.level}  GOAL`, hx, 140, { size: 14, color: P.dim });
+      NE.text(ctx, `${Math.min(this.got, this.need)} / ${this.need}`, hx, 158, { size: 20, color: P.lime });
       NE.text(ctx, "MOVES", hx, 205, { size: 14, color: P.dim });
       NE.text(ctx, String(this.moves), hx, 223, { size: 30, color: this.moves <= 5 ? P.red : P.ink });
-      NE.bar(ctx, hx, 270, 130, 12, this.score / this.target, P.amber);
+      NE.bar(ctx, hx, 270, 130, 12, this.got / this.need, this.got >= this.need ? P.lime : P.amber);
       NE.drawEcho(ctx, hx + 50, 330, 16, P.cyan, 1, this.t);
       NE.text(ctx, "click a core, then a neighbour to swap", this.W / 2, this.H - 20, { size: 13, color: P.dim, align: "center" });
       if (this.state === "over")
         NE.banner(ctx, this.W, this.H, "OUT OF MOVES", `score ${this.score}   -   ENTER retry   ESC menu`);
-      else if (this.state === "win")
-        NE.banner(ctx, this.W, this.H, "TARGET HIT!", `score ${this.score}   -   ENTER again   ESC menu`);
+      if (this.phase === "clear" && this.state === "play")
+        NE.banner(ctx, this.W, this.H, `LEVEL ${this.level} CLEARED!`, `+${this.bonus} for spare moves   -   click / SPACE for level ${this.level + 1}`);
     }
   }
   NE.register("match",
     { title: "CORE MATCH", genre: "Match-3 puzzle", color: P.magenta,
-      desc: "Swap neon cores to line up 3+, chain cascades, hit the target. Misfire? Rewind the move." },
+      desc: "Swap neon cores to line up 3+, chain cascades, climb endless levels. Misfire? Rewind the move." },
     Match);
 })();

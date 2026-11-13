@@ -59,6 +59,10 @@
   .foot{text-align:center; color:var(--dim); font-size:13px; margin-top:34px; line-height:1.7;}
   .foot a{color:var(--cyan);}
   .foot b{color:var(--violet);}
+  .chip.oss{margin-top:8px; border-color:var(--magenta);}
+  .chip.oss a{color:var(--magenta); text-decoration:none;}
+  a.card{display:block; text-decoration:none; color:inherit;}
+  .card.make{border-style:dashed;}
   .nodata{display:inline-block; margin-top:10px; color:var(--lime); opacity:.85;}
 
   /* ---- in-game stage ---- */
@@ -114,6 +118,7 @@
       <h1 class="title">FORKADE</h1>
       <div class="sub">play it, rewind it, fork it &middot; 10 games (incl. 3D) &middot; one hero &middot; open source &middot; no sign-ups &middot; plays in your browser</div>
       <div class="chip">&#9199; one twist: hold R or Shift to rewind time whenever you mess up</div>
+      <div class="chip oss"><a href="playground.html" id="osslink">&#9998; open source &mdash; build your own game in the Playground</a> &middot; <a href="https://github.com/YouNoui/forkade" target="_blank" rel="noopener noreferrer">GitHub</a></div>
       <br><button class="install" id="install">&#11015; Install to your phone</button>
       <button class="mute" id="mute">&#128266; Sound: on</button>
       <div class="pname"><label>Player</label><input id="playername" maxlength="14" placeholder="ECHO"></div>
@@ -233,10 +238,27 @@
         <div class="dot"><span></span></div>
         <h3 class="name">ECHO 3D <span style="font-size:12px;color:#9dff57">· 3D</span></h3>
         <div class="genre">3D platformer</div>
-        <p class="desc">Run and jump ECHO across a floating neon course, Roblox-style. Collect cores, reach the goal. Rewind your falls.</p>
+        <p class="desc">Run and jump ECHO across a floating neon obstacle course. Collect cores, reach the goal. Rewind your falls.</p>
         <span class="play">&#9654; Play now</span>
         <div class="best" data-id="echo3d">BEST <b>${Forkade.scores.get("echo3d")}</b></div>`;
       card.addEventListener("click", open3D);
+      grid.appendChild(card);
+    })();
+
+    /* ---------- build-your-own card -> Playground ---------- */
+    (function addMake() {
+      const href = "playground.html";   // build_dist.py points this at the live site
+      const card = document.createElement("a");
+      card.className = "card make"; card.href = href;
+      card.style.setProperty("--c", "#ff3ea5");
+      card.innerHTML = `
+        <div class="num">+</div>
+        <div class="dot"><span></span></div>
+        <h3 class="name">MAKE YOUR OWN</h3>
+        <div class="genre">Open source &middot; MIT</div>
+        <p class="desc">Every game here is open source. Write your own in the Playground, play it instantly with rewind built in, then submit it to join the arcade.</p>
+        <span class="play">&#9998; Open Playground</span>
+        <div class="best">no install needed</div>`;
       grid.appendChild(card);
     })();
 

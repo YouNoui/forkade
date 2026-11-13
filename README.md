@@ -2,7 +2,9 @@
 
 Open-source neon arcade. Play it, rewind it, fork it.
 
-The browser edition has **ten games**, including ECHO 3D and the destruction game Tower Wrecker. Serve `web/` with any static host (no build step), or run `python -m http.server --directory web 8080`. Open http://localhost:8080.
+The browser edition has **ten games**, including ECHO 3D and the destruction game Tower Wrecker.
+
+**Make your own:** open `playground.html` (live at https://playforkade.com/playground.html), edit the starter game, press Run, then submit it. See [CONTRIBUTING.md](CONTRIBUTING.md). Serve `web/` with any static host (no build step), or run `python -m http.server --directory web 8080`. Open http://localhost:8080.
 
 Fork: https://github.com/YouNoui/forkade. MIT licensed; bundled third-party notices are retained.
 

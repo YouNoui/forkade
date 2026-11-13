@@ -17,6 +17,9 @@ echo3d = (here / "games3d" / "echo3d.html").read_text()
 inject = "<script>window.__ECHO3D_HTML__ = " + json.dumps(echo3d).replace("</", "<\\/") + ";</script>\n</body>"
 html = html.replace("</body>", inject, 1)
 
+# the one-file build has no playground.html beside it: link the live one
+html = html.replace('"playground.html"', '"https://playforkade.com/playground.html"')
+
 out = here.parent / "dist" / "forkade.html"
 out.parent.mkdir(exist_ok=True)
 out.write_text(html)

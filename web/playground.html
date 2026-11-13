@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FORKADE Playground - build your own game</title>
+<meta name="theme-color" content="#06051a">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+  :root{
+    --bg:#06051a; --bg2:#16113d; --ink:#f1f3ff; --dim:#8d92bd;
+    --cyan:#22e4ff; --magenta:#ff3ea5; --lime:#9dff57; --amber:#ffb23f; --violet:#a07bff; --red:#ff4f6e;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:"Consolas","SF Mono",ui-monospace,monospace; color:var(--ink);
+    background:radial-gradient(1200px 600px at 50% -10%,#2a1650 0%,var(--bg) 60%); min-height:100vh;}
+  header{display:flex; flex-wrap:wrap; align-items:center; gap:14px; padding:18px 22px;}
+  header h1{margin:0; font-size:26px; letter-spacing:3px; color:var(--cyan); text-shadow:0 0 14px var(--cyan);}
+  header .sub{color:var(--dim); font-size:13px;}
+  header a.back{margin-left:auto; color:var(--cyan); border:1px solid var(--cyan); border-radius:10px;
+    padding:7px 12px; text-decoration:none; font-size:13px; font-weight:700;}
+  .steps{display:flex; flex-wrap:wrap; gap:10px; padding:0 22px 12px; font-size:13px; color:var(--dim);}
+  .steps span{border:1px solid rgba(160,123,255,.35); border-radius:999px; padding:6px 12px;}
+  .steps b{color:var(--violet);}
+  main{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.15fr); gap:16px; padding:0 22px 22px;}
+  @media (max-width:980px){ main{grid-template-columns:1fr;} }
+  .panel{border:1px solid rgba(141,146,189,.3); border-radius:14px; background:rgba(14,10,40,.7); overflow:hidden;}
+  .bar{display:flex; flex-wrap:wrap; gap:8px; padding:10px; border-bottom:1px solid rgba(141,146,189,.2);}
+  button, .btn{font-family:inherit; font-size:13px; font-weight:800; cursor:pointer; border-radius:10px;
+    padding:8px 12px; background:rgba(34,228,255,.06); color:var(--cyan); border:1px solid var(--cyan); text-decoration:none;}
+  button.run{background:var(--lime); color:#06051a; border-color:var(--lime);}
+  button.ghost, .btn.ghost{color:var(--dim); border-color:rgba(141,146,189,.5); background:transparent;}
+  .btn.share{color:var(--magenta); border-color:var(--magenta); background:rgba(255,62,165,.06);}
+  textarea{width:100%; height:62vh; min-height:360px; resize:vertical; border:0; outline:0; padding:14px;
+    white-space:pre; overflow-wrap:normal; overflow:auto;
+    background:transparent; color:var(--ink); font:13px/1.55 "Consolas","SF Mono",ui-monospace,monospace; tab-size:2;}
+  .stagewrap{padding:12px;}
+  canvas{display:block; width:100%; height:auto; aspect-ratio:900/560; border-radius:10px;
+    box-shadow:0 0 40px -12px var(--cyan); background:var(--bg); touch-action:none;}
+  #log{min-height:44px; margin:10px 12px 12px; padding:10px 12px; border-radius:10px; font-size:12px;
+    background:rgba(0,0,0,.3); color:var(--lime); white-space:pre-wrap;}
+  #log.err{color:var(--red);}
+  .help{padding:4px 14px 14px; font-size:12px; color:var(--dim); line-height:1.7;}
+  .help code{color:var(--amber);}
+  .note{padding:0 22px 26px; font-size:12px; color:var(--dim);}
+</style>
+</head>
+<body>
+<header>
+  <h1>PLAYGROUND</h1>
+  <div class="sub">Build your own FORKADE game right here. It's open source (MIT) &mdash; your game can join the arcade.</div>
+  <a class="back" href="index.html">&larr; Back to the arcade</a>
+</header>
+<div class="steps">
+  <span><b>1</b> Edit the code</span>
+  <span><b>2</b> Press &#9654; Run (or Ctrl+Enter)</span>
+  <span><b>3</b> Happy? Download it and submit it on GitHub</span>
+</div>
+<main>
+  <section class="panel">
+    <div class="bar">
+      <button class="run" id="run">&#9654; Run</button>
+      <button class="ghost" id="reset">&#10227; Start over</button>
+      <button id="download">&#11015; Download .js</button>
+      <a class="btn share" id="submit" target="_blank" rel="noopener noreferrer"
+         href="https://github.com/YouNoui/forkade/upload/main/web/games">&#8679; Submit to FORKADE</a>
+    </div>
+    <textarea id="code" spellcheck="false" aria-label="Game code"></textarea>
+    <div class="help">
+      Your game is a class that extends <code>Forkade.GameBase</code> with
+      <code>reset()</code>, <code>step(dt)</code>, <code>render(ctx)</code>,
+      <code>snapshot()</code> and <code>restore(s)</code>. Rewind (hold <b>R</b>) works for free
+      as long as <code>snapshot()</code> returns everything that changes.
+      Helpers: <code>NE.glowRect</code>, <code>NE.glowCircle</code>, <code>NE.drawEcho</code>,
+      <code>NE.text</code>, <code>NE.banner</code>, <code>this.particles</code>, <code>this.shake</code>,
+      <code>NE.sfx</code>, <code>this.input</code>. Submitting opens GitHub: drop in your downloaded file and it becomes a pull request (<a href="https://github.com/YouNoui/forkade/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer" style="color:var(--cyan)">guide</a>). Read any game in
+      <a href="https://github.com/YouNoui/forkade/tree/main/web/games" target="_blank" rel="noopener noreferrer" style="color:var(--cyan)">web/games</a> for more.
+    </div>
+  </section>
+  <section class="panel">
+    <div class="stagewrap"><canvas id="game" width="900" height="560" tabindex="0"></canvas></div>
+    <div id="log">Press &#9654; Run to play your game. Keys: arrows/WASD, SPACE, hold R to rewind, P pause.</div>
+  </section>
+</main>
+<div class="note">&#128274; Your code stays in this browser (saved on this device only). Nothing is uploaded unless you submit it yourself on GitHub.</div>
+
+<script src="engine.js"></script>
+<script>
+const TEMPLATE = `/* MY GAME - DODGE RAIN : a tiny starter game. Change anything! */
+(function () {
+  const NE = Forkade, P = NE.palette;
+
+  class Dodge extends NE.GameBase {
+    reset() {
+      this.x = this.W / 2;          // ECHO's position
+      this.drops = [];              // falling bars
+      this.spawnT = 0; this.score = 0; this.state = "play";
+    }
+    step(dt) {
+      const I = this.input;
+      if (this.state !== "play") { if (I.pressed.Enter) this.reset(); return; }
+      // move with arrows / A-D, or follow the mouse / finger
+      const kb = (I.right() ? 1 : 0) - (I.left() ? 1 : 0);
+      if (kb) this.x += kb * 420 * dt; else if (I.mouse.down) this.x += (I.mouse.x - this.x) * Math.min(1, dt * 10);
+      this.x = Math.max(20, Math.min(this.W - 20, this.x));
+      // spawn faster as the score grows
+      this.spawnT -= dt;
+      if (this.spawnT <= 0) {
+        this.spawnT = Math.max(0.18, 0.7 - this.score / 4000);
+        this.drops.push({ x: NE.rand(20, this.W - 20), y: -20, v: NE.rand(180, 320) + this.score / 20 });
+      }
+      for (const d of this.drops) d.y += d.v * dt;
+      for (const d of this.drops) {
+        if (Math.abs(d.x - this.x) < 22 && Math.abs(d.y - (this.H - 60)) < 22) {
+          this.state = "over"; this.shake.add(14);
+          this.particles.emit(this.x, this.H - 60, P.magenta, { n: 30, speed: 5 });
+        }
+      }
+      const before = this.drops.length;
+      this.drops = this.drops.filter(d => d.y < this.H + 30);
+      this.score += (before - this.drops.length) * 10;   // +10 per dodged drop
+    }
+    // everything that changes goes in the snapshot -> rewind just works
+    snapshot() {
+      if (this.state !== "play") return null;
+      return { x: this.x, score: this.score, spawnT: this.spawnT, drops: this.drops.map(d => ({ ...d })) };
+    }
+    restore(s) {
+      this.x = s.x; this.score = s.score; this.spawnT = s.spawnT; this.drops = s.drops.map(d => ({ ...d }));
+    }
+    render(ctx) {
+      for (const d of this.drops) NE.glowRect(ctx, P.magenta, d.x - 6, d.y - 16, 12, 32, 6);
+      NE.drawEcho(ctx, this.x, this.H - 60, 16, P.cyan, 1, this.t);
+      NE.text(ctx, String(this.score), 20, 16, { size: 40 });
+      if (this.state === "over")
+        NE.banner(ctx, this.W, this.H, "SPLASHED", \`score \${this.score}   -   ENTER retry\`);
+    }
+  }
+
+  // id, card info, class. Pick a unique id for your game.
+  NE.register("mygame",
+    { title: "DODGE RAIN", genre: "Starter game", color: P.cyan,
+      desc: "Dodge the neon rain. Got hit? Rewind." },
+    Dodge);
+})();
+`;
+const KEY = "forkade-playground-draft";
+const code = document.getElementById("code"), log = document.getElementById("log");
+const canvas = document.getElementById("game");
+try { code.value = localStorage.getItem(KEY) || TEMPLATE; } catch (_) { code.value = TEMPLATE; }
+
+Forkade.boot(canvas, () => {});
+function say(msg, err) { log.textContent = msg; log.className = err ? "err" : ""; }
+window.addEventListener("error", e => say("Error: " + e.message + (e.lineno ? "  (line " + e.lineno + ")" : ""), true));
+
+function run() {
+  try { localStorage.setItem(KEY, code.value); } catch (_) {}
+  Forkade.stop();                              // stop whatever is running
+  Forkade.registry.length = 0;                 // forget the previous version
+  try { new Function(code.value)(); }
+  catch (e) { say("Your code has an error: " + e.message, true); return; }
+  const g = Forkade.registry[Forkade.registry.length - 1];
+  if (!g) { say("Nothing registered. Your code needs a Forkade.register(id, info, GameClass) call.", true); return; }
+  say("Running “" + g.meta.title + "” — hold R to rewind, P to pause, ENTER to restart after game over.");
+  canvas.focus();
+  Forkade.play(g.id);
+}
+document.getElementById("run").addEventListener("click", run);
+code.addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); run(); }
+  if (e.key === "Tab") { e.preventDefault(); const s = code.selectionStart;
+    code.setRangeText("  ", s, code.selectionEnd, "end"); }
+  e.stopPropagation();                         // typing shouldn't steer the game
+});
+code.addEventListener("keyup", e => e.stopPropagation());
+document.getElementById("reset").addEventListener("click", () => {
+  code.value = TEMPLATE; try { localStorage.removeItem(KEY); } catch (_) {}
+  say("Back to the starter game. Press ▶ Run.");
+});
+document.getElementById("download").addEventListener("click", () => {
+  const m = code.value.match(/register\(\s*["']([\w-]+)["']/);
+  const name = (m ? m[1] : "mygame") + ".js";
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([code.value], { type: "text/javascript" }));
+  a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  say("Downloaded " + name + ". Next: press ⇧ Submit to FORKADE to add it to the arcade.");
+});
+</script>
+</body>
+</html>
