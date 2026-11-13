@@ -52,10 +52,11 @@
           }
         }
       }
-      const screenY = this.py + this.cam;
-      if (screenY < this.H * 0.42) {
-        const d = this.H * 0.42 - screenY;
-        this.cam += d; this.best += d;
+      // camera: once ECHO climbs above 42% of the screen, scroll the world down AND
+      // move ECHO down with it, so he always stays in view
+      if (this.py < this.H * 0.42) {
+        const d = this.H * 0.42 - this.py;
+        this.cam += d; this.py += d; this.best += d;
       }
       let top = Infinity; for (const p of this.plats) top = Math.min(top, p.y);
       if (top + this.cam > -40) this.addPlat(top - this.gap());
