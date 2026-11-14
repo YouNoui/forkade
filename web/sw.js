@@ -1,6 +1,6 @@
 /* FORKADE service worker - caches everything so it runs offline once installed.
    Bump CACHE when you change files to push an update to installed users. */
-const CACHE = "forkade-v13";
+const CACHE = "forkade-v14";
 const ASSETS = [
   "./",
   "./index.html",
@@ -28,7 +28,10 @@ const ASSETS = [
 ];
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  // cache: "reload" skips the browser's HTTP cache so a new version never stores old files
+  e.waitUntil(caches.open(CACHE)
+    .then(c => Promise.all(ASSETS.map(u => fetch(u, { cache: "reload" }).then(r => r.ok && c.put(u, r)).catch(() => {}))))
+    .then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", e => {
@@ -43,12 +46,26 @@ self.addEventListener("fetch", e => {
   const u = new URL(e.request.url);
   // live data and other sites: always straight to the network, never cached
   if (u.origin !== location.origin || u.pathname.startsWith("/api/")) return;
-  // cache-first: instant loads and full offline play
+  // pages and code: NETWORK FIRST so players always get the newest games; the saved copy is
+  // only used when offline (or the network takes over 3s). Icons/images: cache first.
+  const code = e.request.mode === "navigate" || /\.(html|js|webmanifest)$/.test(u.pathname) || u.pathname.endsWith("/");
+  if (code) {
+    e.respondWith(new Promise(resolve => {
+      let done = false;
+      const fallback = () => caches.match(e.request).then(hit => hit || caches.match("./index.html"));
+      const timer = setTimeout(() => { if (!done) fallback().then(r => { if (r && !done) { done = true; resolve(r); } }); }, 3000);
+      fetch(e.request, { cache: "no-cache" }).then(res => {
+        if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {}); }
+        if (!done) { done = true; clearTimeout(timer); resolve(res); }
+      }).catch(() => fallback().then(r => { if (!done) { done = true; clearTimeout(timer); resolve(r || Response.error()); } }));
+    }));
+    return;
+  }
   e.respondWith(
     caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
       const copy = res.clone();
       caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {});
       return res;
-    }).catch(() => caches.match("./index.html")))
+    }))
   );
 });
