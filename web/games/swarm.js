@@ -25,7 +25,17 @@
       const dy = (I.down() ? 1 : 0) - (I.up() ? 1 : 0);
       this.px = Math.max(16, Math.min(this.W - 16, this.px + dx * 240 * dt));
       this.py = Math.max(16, Math.min(this.H - 16, this.py + dy * 240 * dt));
-      const aim = Math.atan2(M.y - this.py, M.x - this.px);
+      // aiming: finger held on the game or a hovering mouse aims at the pointer;
+      // otherwise (phone ACT button, keyboard only) auto-aim at the nearest enemy
+      let aim;
+      if (M.seen && (M.down || M.kind === "mouse")) aim = Math.atan2(M.y - this.py, M.x - this.px);
+      else {
+        let best = null, bd = Infinity;
+        for (const e of this.enemies) { const d = (e.x - this.px) ** 2 + (e.y - this.py) ** 2; if (d < bd) { bd = d; best = e; } }
+        aim = best ? Math.atan2(best.y - this.py, best.x - this.px)
+            : (dx || dy) ? Math.atan2(dy, dx) : (this.aim != null ? this.aim : 0);
+      }
+      this.aim = aim;
       this.cool -= dt;
       if ((M.down || I.keys.Space) && this.cool <= 0) {
         this.cool = 0.12; NE.sfx.shoot();
@@ -70,9 +80,10 @@
         ctx.fillStyle = P.bg; ctx.beginPath(); ctx.arc(e.x, e.y, 5, 0, NE.TAU); ctx.fill();
       }
       for (const b of this.bullets) NE.glowCircle(ctx, P.cyan, b.x, b.y, 4);
-      const M = this.input.mouse;
-      NE.drawEcho(ctx, this.px, this.py, 16, P.cyan, M.x >= this.px ? 1 : -1, this.t);
-      NE.glowCircle(ctx, P.dim, M.x, M.y, 10, 2);
+      const M = this.input.mouse, aim = this.aim || 0;
+      NE.drawEcho(ctx, this.px, this.py, 16, P.cyan, Math.cos(aim) >= 0 ? 1 : -1, this.t);
+      if (M.seen && M.kind === "mouse") NE.glowCircle(ctx, P.dim, M.x, M.y, 10, 2);
+      else NE.glowCircle(ctx, P.dim, this.px + Math.cos(aim) * 60, this.py + Math.sin(aim) * 60, 7, 2);   // aim marker
       NE.bar(ctx, 16, 16, 200, 16, this.hp / 100, P.red, "HULL");
       NE.text(ctx, String(this.score), this.W - 120, 16, { size: 40 });
       NE.text(ctx, "WAVE " + this.wave, this.W - 120, 60, { size: 16, color: P.dim });

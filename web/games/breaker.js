@@ -41,7 +41,9 @@
       }
       const kb = (I.right() ? 1 : 0) - (I.left() ? 1 : 0);
       if (kb) this.paddle += kb * 520 * dt;
-      else this.paddle += (I.mouse.x - this.paddle) * Math.min(1, dt * 14);
+      // follow a hovering mouse, or a finger only while it's touching the game
+      else if (I.mouse.seen && (I.mouse.kind === "mouse" || I.mouse.down))
+        this.paddle += (I.mouse.x - this.paddle) * Math.min(1, dt * 14);
       this.paddle = Math.max(this.pw / 2, Math.min(this.W - this.pw / 2, this.paddle));
       if ((I.pressed.Space || click) && this.stuck) this.launch();
       if (this.stuck) { this.bx = this.paddle; this.by = this.H - 70; return; }

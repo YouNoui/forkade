@@ -476,7 +476,7 @@
   /* ------------------------------------------------------------- input --- */
   const Input = {
     keys: Object.create(null), pressed: Object.create(null),
-    mouse: { x: 0, y: 0, down: false }, tapped: false,
+    mouse: { x: 0, y: 0, down: false, seen: false, kind: "" }, tapped: false,
     _bind(canvas) {
       if (this._bound) return; this._bound = true;
       addEventListener("keydown", e => {
@@ -488,6 +488,7 @@
       addEventListener("blur", () => { this.keys = Object.create(null); });
       const upd = e => {
         const r = canvas.getBoundingClientRect();
+        this.mouse.seen = true; this.mouse.kind = e.pointerType || "mouse";   // a real pointer exists (mouse, finger or pen)
         this.mouse.x = (e.clientX - r.left) * (canvas.width / r.width);
         this.mouse.y = (e.clientY - r.top) * (canvas.height / r.height);
       };
@@ -976,7 +977,17 @@
       const dy = (I.down() ? 1 : 0) - (I.up() ? 1 : 0);
       this.px = Math.max(16, Math.min(this.W - 16, this.px + dx * 240 * dt));
       this.py = Math.max(16, Math.min(this.H - 16, this.py + dy * 240 * dt));
-      const aim = Math.atan2(M.y - this.py, M.x - this.px);
+      // aiming: finger held on the game or a hovering mouse aims at the pointer;
+      // otherwise (phone ACT button, keyboard only) auto-aim at the nearest enemy
+      let aim;
+      if (M.seen && (M.down || M.kind === "mouse")) aim = Math.atan2(M.y - this.py, M.x - this.px);
+      else {
+        let best = null, bd = Infinity;
+        for (const e of this.enemies) { const d = (e.x - this.px) ** 2 + (e.y - this.py) ** 2; if (d < bd) { bd = d; best = e; } }
+        aim = best ? Math.atan2(best.y - this.py, best.x - this.px)
+            : (dx || dy) ? Math.atan2(dy, dx) : (this.aim != null ? this.aim : 0);
+      }
+      this.aim = aim;
       this.cool -= dt;
       if ((M.down || I.keys.Space) && this.cool <= 0) {
         this.cool = 0.12; NE.sfx.shoot();
@@ -1021,9 +1032,10 @@
         ctx.fillStyle = P.bg; ctx.beginPath(); ctx.arc(e.x, e.y, 5, 0, NE.TAU); ctx.fill();
       }
       for (const b of this.bullets) NE.glowCircle(ctx, P.cyan, b.x, b.y, 4);
-      const M = this.input.mouse;
-      NE.drawEcho(ctx, this.px, this.py, 16, P.cyan, M.x >= this.px ? 1 : -1, this.t);
-      NE.glowCircle(ctx, P.dim, M.x, M.y, 10, 2);
+      const M = this.input.mouse, aim = this.aim || 0;
+      NE.drawEcho(ctx, this.px, this.py, 16, P.cyan, Math.cos(aim) >= 0 ? 1 : -1, this.t);
+      if (M.seen && M.kind === "mouse") NE.glowCircle(ctx, P.dim, M.x, M.y, 10, 2);
+      else NE.glowCircle(ctx, P.dim, this.px + Math.cos(aim) * 60, this.py + Math.sin(aim) * 60, 7, 2);   // aim marker
       NE.bar(ctx, 16, 16, 200, 16, this.hp / 100, P.red, "HULL");
       NE.text(ctx, String(this.score), this.W - 120, 16, { size: 40 });
       NE.text(ctx, "WAVE " + this.wave, this.W - 120, 60, { size: 16, color: P.dim });
@@ -1182,7 +1194,9 @@
       }
       const kb = (I.right() ? 1 : 0) - (I.left() ? 1 : 0);
       if (kb) this.paddle += kb * 520 * dt;
-      else this.paddle += (I.mouse.x - this.paddle) * Math.min(1, dt * 14);
+      // follow a hovering mouse, or a finger only while it's touching the game
+      else if (I.mouse.seen && (I.mouse.kind === "mouse" || I.mouse.down))
+        this.paddle += (I.mouse.x - this.paddle) * Math.min(1, dt * 14);
       this.paddle = Math.max(this.pw / 2, Math.min(this.W - this.pw / 2, this.paddle));
       if ((I.pressed.Space || click) && this.stuck) this.launch();
       if (this.stuck) { this.bx = this.paddle; this.by = this.H - 70; return; }

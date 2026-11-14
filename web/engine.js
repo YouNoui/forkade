@@ -192,7 +192,7 @@
   /* ------------------------------------------------------------- input --- */
   const Input = {
     keys: Object.create(null), pressed: Object.create(null),
-    mouse: { x: 0, y: 0, down: false }, tapped: false,
+    mouse: { x: 0, y: 0, down: false, seen: false, kind: "" }, tapped: false,
     _bind(canvas) {
       if (this._bound) return; this._bound = true;
       addEventListener("keydown", e => {
@@ -204,6 +204,7 @@
       addEventListener("blur", () => { this.keys = Object.create(null); });
       const upd = e => {
         const r = canvas.getBoundingClientRect();
+        this.mouse.seen = true; this.mouse.kind = e.pointerType || "mouse";   // a real pointer exists (mouse, finger or pen)
         this.mouse.x = (e.clientX - r.left) * (canvas.width / r.width);
         this.mouse.y = (e.clientY - r.top) * (canvas.height / r.height);
       };
