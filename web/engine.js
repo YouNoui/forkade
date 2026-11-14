@@ -330,6 +330,7 @@
     // called once when a round ends; returns cores earned
     roundEnd(id, score, newBest, meta) {
       if (!this.enabled || !id) return 0;
+      if (score > 0) board.last = { id, score: Math.floor(score), at: Date.now() };
       let got = this.add(Math.max(1, Math.sqrt(Math.max(0, score)) * 0.6));
       if (newBest && score > 0) got += this.add(10);
       const g = this.goals(id, meta), b = this.badges(), had = b[id] || 0;
@@ -362,6 +363,54 @@
     },
     streak() { return load("forkade-streak", { n: 0 }).n || 0; },
     echoColor(t) { const c = this.skin().color; return c === "rainbow" ? `hsl(${(t * 90) % 360},95%,62%)` : c; },
+  };
+
+
+  /* ------------------------------------------------------------- stats ---- */
+  // Anonymous counts only (visits, plays per game) - no cookies, no ids, no IP stored.
+  // Skipped entirely when the browser sends Do Not Track or Global Privacy Control.
+  const stats = {
+    api: (typeof location !== "undefined" && location.protocol === "file:" ? "https://playforkade.com" : "") + "/api/stats",
+    off() { try { return navigator.doNotTrack === "1" || window.doNotTrack === "1" || navigator.globalPrivacyControl === true; } catch (_) { return true; } },
+    send(e, game) {
+      if (this.off() || (typeof location !== "undefined" && /^(localhost|127\.)/.test(location.hostname) && !global.__forkadeTestStats)) return;
+      const body = JSON.stringify(game ? { e, game } : { e });
+      try { if (navigator.sendBeacon && navigator.sendBeacon(this.api, body)) return; } catch (_) {}
+      try { fetch(this.api, { method: "POST", body, keepalive: true }).catch(() => {}); } catch (_) {}
+    },
+  };
+
+  /* ---------------------------------------------------------- rankings ---- */
+  // Opt-in global rankings. Nothing is sent unless the player taps "Post".
+  // Identity = a random id made on this device + the nickname they choose.
+  const board = {
+    api: (typeof location !== "undefined" && location.protocol === "file:" ? "https://playforkade.com" : "") + "/api/leaderboard",
+    last: null,                                    // { id, score } of the round that just ended
+    pid() {
+      let id = load("forkade-pid", null);
+      if (!id) {
+        const b = new Uint8Array(16); (global.crypto || {}).getRandomValues ? crypto.getRandomValues(b) : b.forEach((_, i) => b[i] = Math.random() * 256);
+        id = [...b].map(x => x.toString(16).padStart(2, "0")).join("");
+        save("forkade-pid", id);
+      }
+      return id;
+    },
+    async top(game, period = "week") {
+      const r = await fetch(`${this.api}?game=${encodeURIComponent(game)}&period=${period}&pid=${this.pid()}`);
+      const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Rankings are offline right now.");
+      return j;
+    },
+    async forget() {       // "Remove my scores": deletes nickname + every score for this device's id
+      const r = await fetch(this.api, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pid: this.pid() }) });
+      const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Couldn't remove right now.");
+      return j;
+    },
+    async post(game, score, name) {
+      const r = await fetch(this.api, { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ game, score, name, pid: this.pid() }) });
+      const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Couldn't post right now.");
+      return j;
+    },
   };
 
   /* --------------------------------------------------------- game base --- */
@@ -428,6 +477,7 @@
           this.earned = rewards.roundEnd(this.id, this.score, this.newBest, this.meta);
         } else if (this.state === "play") {
           this.newBest = false; this.earned = 0; this._keys = new Set();   // restarted
+          board.last = null;
         }
         this._prevState = this.state;
       }
@@ -499,7 +549,7 @@
   global.Forkade = {
     palette, ECHO_COLOR, rand, TAU,
     glowRect, glowCircle, glowLine, drawEcho, fillBg, text, bar, banner,
-    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards,
+    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats,
     register, boot, play, stop, registry,
     current: () => current,          // the running game (handy for tests and the Playground)
   };

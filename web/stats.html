@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>FORKADE stats (owner)</title><meta name="theme-color" content="#06051a"><link rel="icon" href="icons/icon-192.png">
+<style>
+  body{margin:0; font-family:"Consolas","SF Mono",ui-monospace,monospace; color:#f1f3ff;
+    background:radial-gradient(1200px 600px at 50% -10%,#2a1650 0%,#06051a 60%); min-height:100vh;}
+  main{max-width:980px; margin:0 auto; padding:30px 18px 50px;}
+  h1{margin:0 0 4px; color:#22e4ff; letter-spacing:3px; text-shadow:0 0 14px rgba(34,228,255,.6);}
+  .sub{color:#8d92bd; font-size:13px; margin-bottom:18px;}
+  .row{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:16px;}
+  input,select,button{font-family:inherit; font-size:14px; border-radius:10px; padding:8px 12px; background:#0d0a2a; color:#f1f3ff; border:1px solid rgba(141,146,189,.5);}
+  button{cursor:pointer; color:#06051a; background:#22e4ff; border:0; font-weight:800;}
+  .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-bottom:18px;}
+  .card{border:1px solid rgba(160,123,255,.45); border-radius:14px; padding:14px; background:rgba(14,10,40,.7);}
+  .card b{display:block; font-size:28px; color:#9dff57;} .card span{color:#8d92bd; font-size:12px;}
+  h2{font-size:15px; color:#ff3ea5; letter-spacing:2px; margin:22px 0 8px;}
+  .bars div{display:flex; align-items:center; gap:10px; font-size:13px; margin:5px 0;}
+  .bars i{display:block; height:14px; border-radius:7px; background:linear-gradient(90deg,#22e4ff,#a07bff);}
+  .bars .n{width:130px; color:#8d92bd;} .bars .v{color:#9dff57; font-weight:800;}
+  .chart{display:flex; align-items:flex-end; gap:3px; height:140px; border-bottom:1px solid rgba(141,146,189,.3);}
+  .chart div{flex:1; background:linear-gradient(180deg,#ff3ea5,#a07bff); border-radius:3px 3px 0 0; min-height:1px; position:relative;}
+  .chart div:hover::after{content:attr(data-t); position:absolute; bottom:100%; left:50%; transform:translateX(-50%);
+    background:#0d0a2a; border:1px solid #a07bff; padding:3px 6px; border-radius:6px; font-size:11px; white-space:nowrap;}
+  table{width:100%; border-collapse:collapse; font-size:13px;} td,th{padding:6px 8px; border-bottom:1px solid rgba(141,146,189,.15); text-align:right;}
+  th:first-child,td:first-child{text-align:left;} th{color:#8d92bd; font-weight:400;}
+  #msg{color:#ffb23f; font-size:13px;} .note{color:#8d92bd; font-size:12px; margin-top:24px; line-height:1.6;}
+</style></head><body><main>
+<h1>FORKADE STATS</h1>
+<div class="sub">Owner-only. Anonymous counts: no cookies, no IP addresses, no personal data.</div>
+<div class="row">
+  <input id="key" type="password" placeholder="stats key" aria-label="Stats key" autocomplete="current-password">
+  <select id="days"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option></select>
+  <button id="go">Show</button> <span id="msg"></span>
+</div>
+<div id="out" hidden>
+  <div class="cards">
+    <div class="card"><b id="c-visits">0</b><span>visits</span></div>
+    <div class="card"><b id="c-visitors">0</b><span>visitors (sum of daily uniques)</span></div>
+    <div class="card"><b id="c-plays">0</b><span>games started</span></div>
+    <div class="card"><b id="c-players">0</b><span>players on the rankings</span></div>
+  </div>
+  <h2>VISITORS PER DAY</h2><div class="chart" id="chart"></div>
+  <h2>PLAYS PER GAME</h2><div class="bars" id="bars"></div>
+  <h2>DAY BY DAY</h2><table><thead><tr><th>Day (UTC)</th><th>Visits</th><th>Visitors</th><th>Plays</th></tr></thead><tbody id="tbody"></tbody></table>
+</div>
+<p class="note">The key is the <code>STATS_KEY</code> value set in Vercel. It's remembered on this device only.
+  Counts skip bots and browsers that send Do Not Track / Global Privacy Control, so real numbers are a little higher.</p>
+<script>
+  const NAMES = { skyhop: "Sky Hop", swarm: "Neon Swarm", striker: "Sky Striker", breaker: "Pulse Breaker", trail: "Echo Trail",
+    drift: "Driftstorm", prism: "Prism Stacks", match: "Core Match", wrecker: "Tower Wrecker", echo3d: "ECHO 3D", playground: "Playground" };
+  const $ = id => document.getElementById(id), api = (location.protocol === "file:" ? "https://playforkade.com" : "") + "/api/stats";
+  try { $("key").value = localStorage.getItem("forkade-stats-key") || ""; } catch (_) {}
+  async function load() {
+    const key = $("key").value.trim(); if (!key) { $("msg").textContent = "Enter your stats key."; return; }
+    $("msg").textContent = "Loading…";
+    try {
+      const r = await fetch(`${api}?key=${encodeURIComponent(key)}&days=${$("days").value}`);
+      const d = await r.json(); if (!r.ok) throw new Error(d.error || "Couldn't load stats.");
+      try { localStorage.setItem("forkade-stats-key", key); } catch (_) {}
+      const sum = (f) => d.days.reduce((a, x) => a + f(x), 0), plays = {};
+      d.days.forEach(x => Object.entries(x.plays).forEach(([g, n]) => plays[g] = (plays[g] || 0) + n));
+      $("c-visits").textContent = sum(x => x.visits); $("c-visitors").textContent = sum(x => x.visitors);
+      $("c-plays").textContent = Object.values(plays).reduce((a, b) => a + b, 0); $("c-players").textContent = d.rankedPlayers;
+      const max = Math.max(1, ...d.days.map(x => x.visitors));
+      $("chart").innerHTML = d.days.map(x => `<div style="height:${x.visitors / max * 100}%" data-t="${x.day}: ${x.visitors}"></div>`).join("");
+      const pmax = Math.max(1, ...Object.values(plays));
+      $("bars").innerHTML = Object.keys(NAMES).map(g => [g, plays[g] || 0]).sort((a, b) => b[1] - a[1]).map(([g, n]) =>
+        `<div><span class="n">${NAMES[g]}</span><i style="width:${Math.max(2, n / pmax * 60)}%"></i><span class="v">${n}</span></div>`).join("");
+      $("tbody").innerHTML = d.days.slice().reverse().map(x =>
+        `<tr><td>${x.day}</td><td>${x.visits}</td><td>${x.visitors}</td><td>${Object.values(x.plays).reduce((a, b) => a + b, 0)}</td></tr>`).join("");
+      $("out").hidden = false; $("msg").textContent = "";
+    } catch (err) { $("msg").textContent = err.message; }
+  }
+  $("go").addEventListener("click", load); $("key").addEventListener("keydown", e => { if (e.key === "Enter") load(); });
+  if ($("key").value) load();
+</script>
+</main></body></html>

@@ -91,6 +91,53 @@
   .toast{background:rgba(6,5,26,.92); border:1px solid var(--lime); color:var(--lime); border-radius:12px;
     padding:10px 16px; font-size:14px; font-weight:800; box-shadow:0 0 24px -8px var(--lime); animation:tin .25s ease-out;}
   @keyframes tin{from{opacity:0; transform:translateY(-8px);} to{opacity:1; transform:none;}}
+  .wallet .ranks{color:var(--cyan); border-color:var(--cyan); background:rgba(34,228,255,.06);}
+  .rtabs{display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 10px;}
+  .rtabs button{font-family:inherit; font-size:12px; font-weight:800; cursor:pointer; border-radius:8px; padding:6px 10px;
+    background:transparent; color:var(--dim); border:1px solid rgba(141,146,189,.4);}
+  .rtabs button.on{color:var(--cyan); border-color:var(--cyan); background:rgba(34,228,255,.08);}
+  .rlist{list-style:none; margin:0; padding:0; font-size:14px; min-height:60px;}
+  .rlist li{display:flex; gap:12px; padding:8px 10px; border-bottom:1px solid rgba(141,146,189,.15);}
+  .rlist li .n{width:34px; color:var(--dim);} .rlist li .nm{flex:1;} .rlist li .sc{color:var(--lime); font-weight:800;}
+  .rlist li.me{background:rgba(157,255,87,.08); border-radius:8px;}
+  .rlist li:nth-child(1) .n{color:#ffd84a;} .rlist li:nth-child(2) .n{color:#d8dcf0;} .rlist li:nth-child(3) .n{color:#e0a060;}
+  .postbar{position:relative; z-index:70; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px;
+    margin:10px auto 0; padding:10px 12px; max-width:900px; border:1px solid var(--cyan); border-radius:12px;
+    background:rgba(6,5,26,.92); font-size:13px;}
+  .postbar[hidden]{display:none;}
+  .postbar input{font-family:inherit; font-size:14px; width:150px; padding:7px 10px; border-radius:8px;
+    border:1px solid rgba(141,146,189,.5); background:#0d0a2a; color:var(--ink);}
+  .postbar button{font-family:inherit; font-weight:800; font-size:13px; cursor:pointer; border-radius:8px; padding:8px 12px;
+    background:var(--cyan); color:#06051a; border:0;}
+  .postbar #pb-msg{width:100%; text-align:center; color:var(--lime);}
+  .postbar #pb-msg.err{color:var(--red);}
+  /* ---- phones: full-screen game, small see-through controls on top ---- */
+  body.touch .stage.on{padding:0; gap:0; background:#020110; touch-action:none;}
+  body.touch #game{width:min(100vw, calc(100dvh * 900 / 560)); max-height:100dvh; border:0; border-radius:0; box-shadow:none;}
+  body.touch #gframe{width:100vw; height:100dvh; border-radius:0;}
+  body.touch .stagebar{position:fixed; left:max(8px,env(safe-area-inset-left)); top:8px; z-index:80; gap:0;}
+  body.touch .stagebar > span:not(.back){display:none;}
+  body.touch .back{padding:6px 10px; font-size:12px; background:rgba(6,5,26,.7);}
+  body.touch .postbar{position:fixed; top:8px; left:50%; transform:translateX(-50%); width:min(560px,calc(100vw - 120px)); margin:0; z-index:85; padding:8px;}
+  body.touch .touchctl .pad{grid-template-columns:repeat(3,46px); grid-template-rows:repeat(3,46px); gap:4px;
+    left:max(10px,env(safe-area-inset-left)); bottom:max(10px,env(safe-area-inset-bottom));}
+  body.touch .pad .tbtn{width:46px; height:46px; font-size:17px;}
+  body.touch .touchctl .side{right:max(10px,env(safe-area-inset-right)); bottom:max(10px,env(safe-area-inset-bottom)); gap:8px;}
+  body.touch .tbtn{background:rgba(20,16,50,.38); border-color:rgba(160,170,220,.35); backdrop-filter:none;}
+  body.touch .big{width:66px; height:66px; font-size:14px;}
+  body.touch .rw{width:52px; height:52px; font-size:12px;}
+  body.touch .ps{position:fixed; right:max(10px,env(safe-area-inset-right)); top:8px; width:40px; height:34px;}
+  /* each game only shows the buttons it needs */
+  .stage.t-tap .pad, .stage.t-tap .big{display:none !important;}
+  .stage.t-lr .tbtn.u, .stage.t-lr .tbtn.dn{visibility:hidden;}
+  /* portrait: nudge players to turn the phone */
+  .rotate{display:none;}
+  @media (orientation:portrait){ body.touch .stage.on:not(.d3) .rotate{display:block; position:fixed; top:calc(50% - 150px - 56px);
+    left:0; right:0; text-align:center; font-size:13px; color:var(--amber);} }
+  .forget{font-family:inherit; font-size:12px; cursor:pointer; border-radius:8px; padding:6px 10px; background:transparent;
+    color:var(--red); border:1px solid rgba(255,79,110,.6);}
+  .sheet a, .foot .legal a{color:var(--cyan);}
+  .foot .legal{display:block; margin-top:10px; font-size:12px;}
   .nodata{display:inline-block; margin-top:10px; color:var(--lime); opacity:.85;}
 
   /* ---- in-game stage ---- */
@@ -156,6 +203,7 @@
         <span>RANK <b id="w-rank">1</b></span>
         <span>&#128293; <b id="w-streak">0</b>-day streak</span>
         <button class="locker" id="open-locker">&#127942; Locker &amp; badges</button>
+        <button class="locker ranks" id="open-ranks">&#127941; Rankings</button>
       </div>
       <br><button class="install show" id="install">&#11015; Download / install</button>
       <div class="dlbox" id="dlbox" hidden>
@@ -170,7 +218,8 @@
       <a href="https://github.com/YouNoui/forkade" target="_blank" rel="noopener noreferrer">Fork it on GitHub</a><br>
       Built with HTML5 Canvas + JavaScript &middot; MIT licensed &middot; fork it, extend it, add your own.<br>
       In every game: hold <b>R</b> or <b>Shift</b> to rewind &middot; <b>P</b> pause &middot; <b>Esc</b> back to menu.
-      <span class="nodata">&#128274; We collect none of your data. No accounts, no tracking, no ads &mdash; your name and scores stay on this device only.</span>
+      <span class="nodata">&#128274; No accounts, no ads, no tracking cookies. Your progress stays on this device. We only count visits and plays anonymously (no IP addresses kept), and if <i>you</i> tap <b>Post</b>, your nickname and score go on the public rankings.</span>
+      <span class="legal"><a href="terms.html">Terms</a> &middot; <a href="privacy.html">Privacy</a> &middot; <a href="guidelines.html">Community rules</a> &middot; <a href="delete.html">Delete my data</a> &middot; <a href="mailto:hello@iamynoui.com">Contact</a> &middot; &copy; 2026 IAMYNOUI</span>
     </div>
   </div>
 
@@ -184,11 +233,26 @@
       <div class="badges" id="badges"></div>
     </div>
   </div>
+  <div class="modal" id="ranks" hidden>
+    <div class="sheet">
+      <button class="x" id="close-ranks" aria-label="Close">&times;</button>
+      <h2>GLOBAL RANKINGS</h2>
+      <div class="rtabs" id="rgames"></div>
+      <div class="rtabs small"><button data-period="week" class="on">This week</button><button data-period="all">All time</button></div>
+      <ol class="rlist" id="rlist"></ol>
+      <p class="hint" id="rme"></p>
+      <p class="hint">No sign-up needed. Your device gets a random hidden ID and you pick a nickname.
+        Scores only appear here if you tap <b>Post</b> after a game. We only store your nickname, the game and your score.
+        <a href="privacy.html">Privacy</a> &middot; <a href="guidelines.html">Rules</a></p>
+      <p class="hint"><button class="forget" id="forget">Remove my scores and nickname</button> <span id="forget-msg"></span></p>
+    </div>
+  </div>
   <div class="toasts" id="toasts"></div>
 
   <div class="stage" id="stage">
     <canvas id="game" width="900" height="560" tabindex="0"></canvas>
     <iframe id="gframe" title="ECHO 3D" allow="fullscreen; autoplay"></iframe>
+    <div class="rotate">&#8635; Turn your phone sideways for a bigger screen</div>
     <div class="touchctl" id="touchctl">
       <div class="pad left">
         <div class="tbtn u"  data-code="ArrowUp">&#9650;</div>
@@ -201,6 +265,12 @@
         <div class="tbtn rw"  data-code="KeyR">REW</div>
         <div class="tbtn big" data-code="Space">ACT</div>
       </div>
+    </div>
+    <div class="postbar" id="postbar" hidden>
+      <span id="pb-text"></span>
+      <input id="pb-name" maxlength="14" placeholder="nickname" aria-label="Nickname for the rankings">
+      <button id="pb-post">&#127941; Post to rankings</button>
+      <span id="pb-msg"></span>
     </div>
     <div class="stagebar">
       <span class="back" id="back">&larr; Back to menu (Esc)</span>
@@ -227,7 +297,7 @@
     const canvas = document.getElementById("game");
 
     Forkade.boot(canvas, () => {
-      stage.classList.remove("on", "d3");
+      stage.classList.remove("on", "d3"); leaveFullscreen();
       const gf = document.getElementById("gframe"); if (gf) { gf.removeAttribute("srcdoc"); gf.src = "about:blank"; }
       refreshBest();
     });
@@ -288,15 +358,27 @@
 
     const gframe = document.getElementById("gframe");
 
+    // phones: go full screen and lock landscape where the browser allows it (Android); iPhone just rotates
+    function phoneFullscreen() {
+      if (!document.body.classList.contains("touch")) return;
+      const el = document.documentElement;
+      if (!document.fullscreenElement && el.requestFullscreen)
+        el.requestFullscreen({ navigationUI: "hide" }).then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock("landscape").catch(() => {})).catch(() => {});
+    }
+    function leaveFullscreen() { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); }
     function openGame(id) {
-      stage.classList.remove("d3");
+      stage.classList.remove("d3", "t-tap", "t-lr");
+      const meta = (Forkade.registry.find(g => g.id === id) || {}).meta || {};
+      if (meta.touch) stage.classList.add("t-" + meta.touch);
+      Forkade.stats.send("play", id);
+      phoneFullscreen();
       gframe.src = "about:blank";
       stage.classList.add("on");
       canvas.focus();
       Forkade.play(id);
     }
     function open3D() {
-      Forkade.sfx.ensure();
+      Forkade.sfx.ensure(); phoneFullscreen(); Forkade.stats.send("play", "echo3d");
       stage.classList.add("on", "d3");
       // If the 3D page was inlined (single-file build), run it from srcdoc so it
       // works with no separate file. Otherwise load the file (folder version).
@@ -305,7 +387,7 @@
       gframe.focus();
     }
     function closeStage() {
-      stage.classList.remove("on", "d3");
+      stage.classList.remove("on", "d3"); leaveFullscreen();
       gframe.removeAttribute("srcdoc"); gframe.src = "about:blank";
       refreshBest();
     }
@@ -383,7 +465,7 @@
 
     /* ---------- touch controls ---------- */
     const isTouch = matchMedia("(pointer:coarse)").matches || "ontouchstart" in window;
-    if (isTouch) document.body.classList.add("touch");
+    if (isTouch) { document.body.classList.add("touch"); document.getElementById("back").innerHTML = "&#10005; Menu"; }
     document.querySelectorAll("#touchctl .tbtn").forEach(btn => {
       const code = btn.dataset.code;
       const down = e => { e.preventDefault(); Forkade.Input.hold(code, true); };
@@ -409,6 +491,76 @@
     });
     { const d = R.daily(); if (d && d.cores) setTimeout(() => toast(`Day ${d.streak} streak! +${d.cores} cores`), 600); }
     refreshRewards();
+    Forkade.stats.send("visit");
+
+    /* ---------- global rankings (opt-in) ---------- */
+    const B = Forkade.board;
+    const rankGames = () => [...Forkade.registry.map(g => ({ id: g.id, t: g.meta.title })), { id: "echo3d", t: "ECHO 3D" }];
+    let rGame = "skyhop", rPeriod = "week";
+    const esc = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    async function loadRanks() {
+      const list = document.getElementById("rlist"), me = document.getElementById("rme");
+      document.getElementById("rgames").innerHTML = rankGames().map(g =>
+        `<button data-game="${g.id}" class="${g.id === rGame ? "on" : ""}">${esc(g.t)}</button>`).join("");
+      document.querySelectorAll("#ranks [data-period]").forEach(b => b.classList.toggle("on", b.dataset.period === rPeriod));
+      list.innerHTML = "<li>Loading&hellip;</li>"; me.textContent = "";
+      try {
+        const d = await B.top(rGame, rPeriod);
+        list.innerHTML = d.top.length ? d.top.map(r =>
+          `<li class="${r.me ? "me" : ""}"><span class="n">#${r.rank}</span><span class="nm">${esc(r.name)}${r.me ? " (you)" : ""}</span><span class="sc">${r.score}</span></li>`).join("")
+          : "<li>No scores yet this " + (rPeriod === "week" ? "week" : "time") + ". Be the first!</li>";
+        me.textContent = d.me ? `You're #${d.me.rank} of ${d.count} with ${d.me.score}.` : `${d.count} players ranked. Post a score after any round to join.`;
+      } catch (err) { list.innerHTML = `<li>${esc(err.message)}</li>`; }
+    }
+    document.getElementById("forget").addEventListener("click", async () => {
+      const m = document.getElementById("forget-msg");
+      if (document.getElementById("forget").dataset.sure !== "1") {
+        document.getElementById("forget").dataset.sure = "1"; m.textContent = "Tap again to confirm. This removes all your posted scores."; return;
+      }
+      m.textContent = "Removing\u2026";
+      try { await B.forget(); m.textContent = "Done. Your nickname and scores are gone from the rankings."; loadRanks(); }
+      catch (err) { m.textContent = err.message; }
+      document.getElementById("forget").dataset.sure = "";
+    });
+    document.getElementById("open-ranks").addEventListener("click", () => { document.getElementById("ranks").hidden = false; loadRanks(); });
+    document.getElementById("close-ranks").addEventListener("click", () => { document.getElementById("ranks").hidden = true; });
+    document.getElementById("ranks").addEventListener("click", e => {
+      if (e.target.id === "ranks") e.currentTarget.hidden = true;
+      if (e.target.dataset.game) { rGame = e.target.dataset.game; loadRanks(); }
+      if (e.target.dataset.period) { rPeriod = e.target.dataset.period; loadRanks(); }
+    });
+    // "post this score?" bar under the game, shown after a round ends
+    const pb = document.getElementById("postbar"), pbName = document.getElementById("pb-name"), pbMsg = document.getElementById("pb-msg");
+    let posted = null;
+    try { pbName.value = localStorage.getItem("neon-player") || ""; } catch (_) {}
+    ["keydown", "keyup"].forEach(t => pbName.addEventListener(t, e => {
+      if (e.key === "Escape") { pbName.blur(); return; }     // Esc still goes back to the menu
+      e.stopPropagation();                                   // typing a name must not steer or restart the game
+      if (t === "keydown" && e.key === "Enter") document.getElementById("pb-post").click();
+    }));
+    setInterval(() => {
+      const L = B.last, on = stage.classList.contains("on");
+      const show = on && L && L.score > 0 && posted !== L;
+      if (show && pb.hidden) {
+        pb.hidden = false; pbMsg.textContent = ""; pbMsg.className = "";
+        const name = (rankGames().find(g => g.id === L.id) || {}).t || L.id;
+        document.getElementById("pb-text").textContent = `${name}: ${L.score} points`;
+      } else if (!show && !pb.hidden && posted !== L) pb.hidden = true;
+      if (!on) pb.hidden = true;
+    }, 250);
+    document.getElementById("pb-post").addEventListener("click", async () => {
+      const L = B.last; if (!L) return;
+      const name = pbName.value.trim();
+      if (name.length < 2) { pbMsg.textContent = "Pick a nickname first (2-14 letters or numbers)."; pbMsg.className = "err"; pbName.focus(); return; }
+      try { localStorage.setItem("neon-player", name); } catch (_) {}
+      document.getElementById("playername").value = name;
+      pbMsg.textContent = "Posting…"; pbMsg.className = "";
+      try {
+        const r = await B.post(L.id, L.score, name); posted = L;
+        pbMsg.textContent = `Posted! You're #${r.week.rank} this week and #${r.all.rank} all time (best ${r.all.best}).`;
+        setTimeout(() => { if (posted === L) pb.hidden = true; }, 4500);
+      } catch (err) { pbMsg.textContent = err.message; pbMsg.className = "err"; }
+    });
 
     /* ---------- PWA: install button + service worker ---------- */
     let deferredPrompt = null;

@@ -111,7 +111,7 @@
     }
   }
   NE.register("breaker",
-    { title: "PULSE BREAKER", genre: "Brick-breaker", color: P.amber,
+    { touch: "lr", title: "PULSE BREAKER", genre: "Brick-breaker", color: P.amber,
       desc: "Bounce a pulse through wall after wall - tougher bricks, faster ball. Lost it? Rewind the bounce." },
     Breaker);
 })();

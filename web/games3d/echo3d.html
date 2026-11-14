@@ -35,6 +35,15 @@
     justify-content:center;border-radius:14px;background:rgba(20,24,46,.72);
     border:1px solid rgba(120,130,170,.5);color:var(--ink);font-size:20px;font-weight:800;}
   .tb:active{background:rgba(34,228,255,.25);border-color:var(--cyan);}
+  /* phones: drag the left half to move, tap the right half to jump */
+  body.touchon .pad, body.touchon .jump{display:none !important;}
+  body.touchon .rw{position:fixed;right:14px;top:58px;width:58px;height:44px;opacity:.85;}
+  .stick{position:fixed;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;pointer-events:none;
+    border:2px solid rgba(34,228,255,.45);background:rgba(34,228,255,.06);display:none;z-index:5;}
+  .stick i{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;
+    background:rgba(34,228,255,.55);box-shadow:0 0 16px #22e4ff;}
+  .thint{position:fixed;left:0;right:0;bottom:14px;text-align:center;font:12px Consolas,monospace;color:rgba(241,243,255,.55);
+    pointer-events:none;display:none;} body.touchon .thint{display:block;}
   .pad .tb{width:52px;height:52px;} .u{grid-column:2;grid-row:1;}.l{grid-column:1;grid-row:2;}
   .r{grid-column:3;grid-row:2;}.dn{grid-column:2;grid-row:3;}
   .jb{width:84px;height:84px;font-size:14px;border-color:var(--cyan);color:var(--cyan);}
@@ -51,6 +60,8 @@
   <div class="back" id="back">← Back</div>
   <div class="mid" id="banner" style="display:none"><div class="big" id="bt"></div><div class="sub" id="bs"></div></div>
 </div>
+<div class="stick" id="stick"><i></i></div>
+<div class="thint" id="thint">drag left side to move &middot; tap right side to jump</div>
 <div class="touch">
   <div class="pad">
     <div class="tb u"  data-k="f">▲</div><div class="tb l" data-k="l">◀</div>
@@ -178,6 +189,33 @@
 
   // ---- input ----
   let doneAt = 0;
+  window.__echo3d = () => state;   // read-only peek for automated tests
+  // ---- phone controls: left half = floating thumb stick, right half = tap to jump ----
+  const stick = { id: null, ox: 0, oy: 0, x: 0, y: 0 }, stickEl = () => document.getElementById("stick");
+  let jumpId = null;
+  addEventListener("pointerdown", e => {
+    if (e.pointerType === "mouse" || (e.target.closest && e.target.closest(".tb, .back, button"))) return;
+    if (state.done) return;
+    if (e.clientX < innerWidth * 0.5 && stick.id === null) {
+      stick.id = e.pointerId; stick.ox = e.clientX; stick.oy = e.clientY; stick.x = stick.y = 0;
+      const el = stickEl(); el.style.left = e.clientX + "px"; el.style.top = e.clientY + "px"; el.style.display = "block";
+      el.firstElementChild.style.transform = "";
+    } else if (jumpId === null) { jumpId = e.pointerId; tk.j = true; }
+    const h = document.getElementById("thint"); if (h) h.style.display = "none";
+  }, { passive: true });
+  addEventListener("pointermove", e => {
+    if (e.pointerId !== stick.id) return;
+    let dx = e.clientX - stick.ox, dy = e.clientY - stick.oy; const d = Math.hypot(dx, dy), R = 50;
+    if (d > R) { dx *= R / d; dy *= R / d; }
+    stick.x = dx / R; stick.y = dy / R;
+    if (Math.abs(stick.x) < 0.15) stick.x = 0; if (Math.abs(stick.y) < 0.15) stick.y = 0;   // small dead zone
+    stickEl().firstElementChild.style.transform = `translate(${dx}px,${dy}px)`;
+  }, { passive: true });
+  const lift = e => {
+    if (e.pointerId === stick.id) { stick.id = null; stick.x = stick.y = 0; stickEl().style.display = "none"; }
+    if (e.pointerId === jumpId) { jumpId = null; tk.j = false; }
+  };
+  addEventListener("pointerup", lift); addEventListener("pointercancel", lift);
   // phones: tap anywhere (or JUMP) on the result screen to play again
   addEventListener("pointerdown", () => { if (state.done && performance.now() - doneAt > 600) reset(); });
   const keys = Object.create(null);
@@ -243,6 +281,7 @@
     // camera-relative movement (camera looks toward -z)
     let ix = ( (keys.KeyD||keys.ArrowRight||tk.r) ? 1:0 ) - ( (keys.KeyA||keys.ArrowLeft||tk.l) ? 1:0 );
     let iz = ( (keys.KeyS||keys.ArrowDown||tk.b) ? 1:0 ) - ( (keys.KeyW||keys.ArrowUp||tk.f) ? 1:0 );
+    if (stick.id !== null) { ix = stick.x; iz = stick.y; }        // analog thumb stick on phones
     const sp = 11;
     state.vx = ix * sp; state.vz = iz * sp;
     if ((keys.Space || tk.j) && state.onGround) { state.vy = 13; state.onGround = false; }
