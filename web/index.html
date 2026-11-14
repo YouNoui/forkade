@@ -592,7 +592,16 @@
 
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () =>
-        navigator.serviceWorker.register("sw.js").catch(() => {}));
+        navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(reg => reg.update()).catch(() => {}));
+      // a new version took over: refresh once so the newest games load (never in the middle of a game)
+      const hadController = !!navigator.serviceWorker.controller;
+      let refreshPending = false;
+      const refreshNow = () => { try { if (sessionStorage.getItem("forkade-refreshed")) return; sessionStorage.setItem("forkade-refreshed", "1"); } catch (_) {} location.reload(); };
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (!hadController) return;                       // first install: nothing old to replace
+        if (stage.classList.contains("on")) refreshPending = true; else refreshNow();
+      });
+      setInterval(() => { if (refreshPending && !stage.classList.contains("on")) { refreshPending = false; refreshNow(); } }, 1000);
     }
   </script>
 </body>
