@@ -1,0 +1,24 @@
+{
+  "repo": "forkade",
+  "name": "Forkade",
+  "site": "https://playforkade.com",
+  "root": "web",
+  "paths": [
+    "/",
+    "/playground.html",
+    "/games3d/echo3d.html",
+    "/download/forkade.html",
+    "/privacy.html",
+    "/terms.html",
+    "/guidelines.html",
+    "/delete.html"
+  ],
+  "private": [
+    "/stats.html"
+  ],
+  "description": "Free open-source browser arcade with twelve games, rewind controls and a Playground game builder.",
+  "facts": "For browser-game players and people who want to remix games. Twelve games include ECHO 3D, Tower Wrecker, Glass City and Demolition Chain. Rewind controls, offline play and optional nickname rankings are available. Free to play; MIT-licensed source is on GitHub. Interface language: English.",
+  "contact": "hello@iamynoui.com",
+  "image": "/icons/icon-512.png",
+  "key": "c3f428ee98e49ad4cfc39dcb5e195e9a"
+}
