@@ -1,6 +1,6 @@
 # FORKADE — agent instructions
 
-- Static arcade: deploy `web/`, with no build step. Preserve all ten games and rewind controls.
+- Static arcade: deploy `web/`, with no build step. Preserve all twelve games and rewind controls.
 - Games must be original takes on a genre: no copied names, art, piece sets or layouts of existing games (e.g. no Tetris-style 7-tetromino 10x20 well).
 - `web/playground.html` lets anyone build a game in the browser; keep its starter game running whenever engine.js changes.
 - Rewards (cores, badges, skins, streak) live in `Forkade.rewards` in engine.js and stay in localStorage only. New games get them automatically; add score tiers to `GOALS` (or `meta.goals`).
