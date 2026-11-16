@@ -99,6 +99,9 @@
   .rlist{list-style:none; margin:0; padding:0; font-size:14px; min-height:60px;}
   .rlist li{display:flex; gap:12px; padding:8px 10px; border-bottom:1px solid rgba(141,146,189,.15);}
   .rlist li .n{width:34px; color:var(--dim);} .rlist li .nm{flex:1;} .rlist li .sc{color:var(--lime); font-weight:800;}
+  .rlist button.rep, .rlist span.rep{width:62px; text-align:center; font-family:inherit; font-size:12px; cursor:pointer; border-radius:7px;
+    padding:2px 6px; background:transparent; color:var(--dim); border:1px solid transparent;}
+  .rlist button.rep:hover, .rlist button.rep[data-sure="1"]{color:var(--red); border-color:rgba(255,79,110,.6);}
   .rlist li.me{background:rgba(157,255,87,.08); border-radius:8px;}
   .rlist li:nth-child(1) .n{color:#ffd84a;} .rlist li:nth-child(2) .n{color:#d8dcf0;} .rlist li:nth-child(3) .n{color:#e0a060;}
   .postbar{position:relative; z-index:70; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px;
@@ -195,7 +198,7 @@
   <div class="wrap">
     <div class="head">
       <h1 class="title">FORKADE</h1>
-      <div class="sub">play it, rewind it, fork it &middot; 10 games (incl. 3D) &middot; one hero &middot; open source &middot; no sign-ups &middot; plays in your browser</div>
+      <div class="sub">play it, rewind it, fork it &middot; 12 games (incl. 3D) &middot; one hero &middot; open source &middot; no sign-ups &middot; plays in your browser</div>
       <div class="chip">&#9199; one twist: hold R or Shift to rewind time whenever you mess up</div>
       <div class="chip oss"><a href="playground.html" id="osslink">&#9998; open source &mdash; build your own game in the Playground</a> &middot; <a href="https://github.com/YouNoui/forkade" target="_blank" rel="noopener noreferrer">GitHub</a></div>
       <div class="wallet" id="wallet">
@@ -243,6 +246,7 @@
       <p class="hint" id="rme"></p>
       <p class="hint">No sign-up needed. Your device gets a random hidden ID and you pick a nickname.
         Scores only appear here if you tap <b>Post</b> after a game. We only store your nickname, the game and your score.
+        See a rude or fake nickname? Tap &#9873; next to it.
         <a href="privacy.html">Privacy</a> &middot; <a href="guidelines.html">Rules</a></p>
       <p class="hint"><button class="forget" id="forget">Remove my scores and nickname</button> <span id="forget-msg"></span></p>
     </div>
@@ -290,6 +294,8 @@
   <script src="games/drift.js"></script>
   <script src="games/prism.js"></script>
   <script src="games/wrecker.js"></script>
+  <script src="games/glass.js"></script>
+  <script src="games/demo.js"></script>
   <script src="games/match.js"></script>
   <script>
     const grid = document.getElementById("grid");
@@ -507,7 +513,8 @@
       try {
         const d = await B.top(rGame, rPeriod);
         list.innerHTML = d.top.length ? d.top.map(r =>
-          `<li class="${r.me ? "me" : ""}"><span class="n">#${r.rank}</span><span class="nm">${esc(r.name)}${r.me ? " (you)" : ""}</span><span class="sc">${r.score}</span></li>`).join("")
+          `<li class="${r.me ? "me" : ""}"><span class="n">#${r.rank}</span><span class="nm">${esc(r.name)}${r.me ? " (you)" : ""}</span><span class="sc">${r.score}</span>${
+            r.me || r.name === "Player" ? `<span class="rep"></span>` : `<button class="rep" data-rank="${r.rank}" data-name="${esc(r.name)}" title="Report this nickname" aria-label="Report ${esc(r.name)}">&#9873;</button>`}</li>`).join("")
           : "<li>No scores yet this " + (rPeriod === "week" ? "week" : "time") + ". Be the first!</li>";
         me.textContent = d.me ? `You're #${d.me.rank} of ${d.count} with ${d.me.score}.` : `${d.count} players ranked. Post a score after any round to join.`;
       } catch (err) { list.innerHTML = `<li>${esc(err.message)}</li>`; }
@@ -528,6 +535,16 @@
       if (e.target.id === "ranks") e.currentTarget.hidden = true;
       if (e.target.dataset.game) { rGame = e.target.dataset.game; loadRanks(); }
       if (e.target.dataset.period) { rPeriod = e.target.dataset.period; loadRanks(); }
+      const rb = e.target.closest && e.target.closest("button.rep");
+      if (rb) {
+        // two taps: first asks, second sends
+        if (rb.dataset.sure !== "1") { document.querySelectorAll("button.rep").forEach(x => { x.dataset.sure = ""; x.textContent = "\u2691"; });
+          rb.dataset.sure = "1"; rb.textContent = "Report?"; return; }
+        rb.disabled = true; rb.textContent = "\u2026";
+        B.report(rGame, rPeriod, +rb.dataset.rank, rb.dataset.name)
+          .then(() => { rb.textContent = "Thanks"; toast("Thanks, we'll take a look."); })
+          .catch(err => { rb.textContent = "\u2691"; rb.disabled = false; toast(err.message); });
+      }
     });
     // "post this score?" bar under the game, shown after a round ends
     const pb = document.getElementById("postbar"), pbName = document.getElementById("pb-name"), pbMsg = document.getElementById("pb-msg");

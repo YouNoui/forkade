@@ -16,6 +16,7 @@ const crypto = require("crypto");
 const CAPS = {
   skyhop: 100000, swarm: 200000, striker: 200000, breaker: 2000000, trail: 20000,
   drift: 1000000, prism: 5000000, match: 5000000, wrecker: 2000000, echo3d: 1000,
+  glass: 3000000, demo: 2000000,
 };
 const BLOCK = /(fuck|shit|cunt|nigg|fag|bitch|whore|slut|rape|nazi|hitler|porn|dick|pussy|cock)/i;
 const TOP = 50;
@@ -65,6 +66,53 @@ async function readBody(req) {
   try { return JSON.parse(raw || "{}"); } catch (_) { return {}; }
 }
 
+// ---------------------------------------------------------------- reports --
+// Reports point at "rank N on this board, showing this nickname"; the server finds the player,
+// so ids are never published. 3 different reporters -> nickname auto-hidden until the owner reviews.
+const HIDE_AFTER = 3;
+async function report(R, b, req, res, week) {
+  const game = b.game, period = b.period === "all" ? "all" : "week", rank = Math.floor(Number(b.rank)), by = b.pid;
+  if (!CAPS[game] || !(rank >= 1 && rank <= TOP) || !validPid(by)) return send(res, 400, { error: "Can't report that." });
+  const key = period === "all" ? `lb:${game}:all` : `lb:${game}:w:${week}`;
+  const [[target]] = await R([["ZRANGE", key, String(rank - 1), String(rank - 1), "REV"]]).then(r => [r[0] || []]);
+  if (!target || target === by) return send(res, 400, { error: "Can't report that." });
+  const [[name]] = await R([["HMGET", "lb:names", target]]);
+  if (name && b.name && String(b.name) !== name) return send(res, 409, { error: "The list changed. Refresh and try again." });
+  const [slot] = await R([["SET", `rl:rep:${by}`, "1", "NX", "EX", "20"]]);
+  if (slot !== "OK") return send(res, 429, { error: "One report every 20 seconds, please." });
+  const [added, n] = await R([["SADD", `lb:rep:${target}`, by], ["SCARD", `lb:rep:${target}`],
+    ["HSET", "lb:reported", target, `${game}|${name || ""}`], ["EXPIRE", `lb:rep:${target}`, String(60 * 60 * 24 * 60)]]);
+  if (n >= HIDE_AFTER) await R([["SADD", "lb:hidden", target]]);
+  return send(res, 200, { ok: true, counted: added === 1 });
+}
+function ownerOk(k) {
+  const key = process.env.STATS_KEY; if (!key || typeof k !== "string") return false;
+  const a = Buffer.from(k), w = Buffer.from(key);
+  return a.length === w.length && crypto.timingSafeEqual(a, w);
+}
+async function moderate(R, b, res, week) {
+  if (!ownerOk(b.key)) return send(res, 401, { error: "Wrong key." });
+  if (b.do === "list") {
+    const [flat] = await R([["HGETALL", "lb:reported"]]);
+    const items = [];
+    for (let i = 0; i < (flat || []).length; i += 2) items.push({ pid: flat[i], game: flat[i + 1].split("|")[0] });
+    if (!items.length) return send(res, 200, { reports: [] });
+    const out = await R(items.flatMap(it => [["SCARD", `lb:rep:${it.pid}`], ["HMGET", "lb:names", it.pid], ["SISMEMBER", "lb:hidden", it.pid]]));
+    items.forEach((it, i) => { it.reports = out[i * 3]; it.name = (out[i * 3 + 1] || [])[0] || "(removed)"; it.hidden = out[i * 3 + 2] === 1; });
+    return send(res, 200, { reports: items.sort((x, y) => y.reports - x.reports) });
+  }
+  const pid = b.target; if (!validPid(pid)) return send(res, 400, { error: "Bad player id." });
+  if (b.do === "hide") await R([["SADD", "lb:hidden", pid], ["HSET", "lb:names", pid, "Player"], ["HDEL", "lb:reported", pid], ["DEL", `lb:rep:${pid}`]]);
+  else if (b.do === "dismiss") await R([["SREM", "lb:hidden", pid], ["HDEL", "lb:reported", pid], ["DEL", `lb:rep:${pid}`]]);
+  else if (b.do === "remove") {
+    const weeks = [0, 7, 14, 21].map(n => isoWeek(new Date(Date.now() - n * 864e5)));
+    const cmds = [["HDEL", "lb:names", pid], ["HDEL", "lb:reported", pid], ["DEL", `lb:rep:${pid}`], ["SREM", "lb:hidden", pid]];
+    for (const g of Object.keys(CAPS)) { cmds.push(["ZREM", `lb:${g}:all`, pid]); for (const w of weeks) cmds.push(["ZREM", `lb:${g}:w:${w}`, pid]); }
+    await R(cmds);
+  } else return send(res, 400, { error: "Unknown action." });
+  return send(res, 200, { ok: true });
+}
+
 module.exports = async function handler(req, res) {
   if (req.method === "OPTIONS") return send(res, 204, {});
   const R = redis();
@@ -82,14 +130,18 @@ module.exports = async function handler(req, res) {
       const [flat, count, myRank, myScore] = await R(cmds);
       const ids = [], top = [];
       for (let i = 0; i < (flat || []).length; i += 2) { ids.push(flat[i]); top.push({ score: Number(flat[i + 1]) }); }
-      const names = ids.length ? (await R([["HMGET", "lb:names", ...ids]]))[0] : [];
-      top.forEach((t, i) => { t.rank = i + 1; t.name = names[i] || "ECHO"; t.me = ids[i] === pid; });
+      const [names, hidden] = ids.length ? await R([["HMGET", "lb:names", ...ids], ["SMISMEMBER", "lb:hidden", ...ids]]) : [[], []];
+      // a nickname hidden by reports or the owner shows as "Player" (the player still sees their own)
+      top.forEach((t, i) => { t.rank = i + 1; t.me = ids[i] === pid;
+        t.name = hidden && hidden[i] && !t.me ? "Player" : (names[i] || "ECHO"); });
       return send(res, 200, { game, period, week, count: count || 0, top,
         me: myRank == null ? null : { rank: myRank + 1, score: Number(myScore) } });
     }
 
     if (req.method === "POST") {
       const b = await readBody(req);
+      if (b.action === "report") return report(R, b, req, res, week);
+      if (b.action === "moderate") return moderate(R, b, res, week);
       const game = b.game, score = Math.floor(Number(b.score)), name = cleanName(b.name), pid = b.pid;
       if (!CAPS[game]) return send(res, 400, { error: "Unknown game." });
       if (!validPid(pid)) return send(res, 400, { error: "Bad player id." });
@@ -101,9 +153,10 @@ module.exports = async function handler(req, res) {
       const [slot, ipCount] = await R([["SET", `rl:pid:${pid}`, "1", "NX", "EX", "8"], ["INCR", ipKey], ["EXPIRE", ipKey, "60"]]);
       if (slot !== "OK" || ipCount > 30) return send(res, 429, { error: "Slow down a little and try again in a few seconds." });
 
+      const [isHidden] = await R([["SISMEMBER", "lb:hidden", pid]]);   // hidden by reports/owner: keep "Player"
       const wk = `lb:${game}:w:${week}`, all = `lb:${game}:all`;
       await R([
-        ["HSET", "lb:names", pid, name],
+        ...(isHidden ? [] : [["HSET", "lb:names", pid, name]]),
         ["ZADD", wk, "GT", String(score), pid], ["EXPIRE", wk, String(60 * 60 * 24 * 21)],
         ["ZADD", all, "GT", String(score), pid],
       ]);

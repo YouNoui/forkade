@@ -298,7 +298,7 @@
     skyhop: [150, 500, 1200], swarm: [150, 500, 1200], striker: [300, 1000, 2500],
     breaker: [1000, 4000, 10000], trail: [100, 300, 600], drift: [500, 2000, 5000],
     prism: [500, 2000, 6000], match: [2000, 6000, 12000], wrecker: [1500, 5000, 12000],
-    echo3d: [50, 120, 200],
+    echo3d: [50, 120, 200], glass: [1500, 5000, 12000], demo: [1000, 3000, 7000],
   };
   const TIERS = [{ name: "BRONZE", color: "#e0a060", cores: 20 },
                  { name: "SILVER", color: "#d8dcf0", cores: 50 },
@@ -399,6 +399,12 @@
     async top(game, period = "week") {
       const r = await fetch(`${this.api}?game=${encodeURIComponent(game)}&period=${period}&pid=${this.pid()}`);
       const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Rankings are offline right now.");
+      return j;
+    },
+    async report(game, period, rank, name) {
+      const r = await fetch(this.api, { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "report", game, period, rank, name, pid: this.pid() }) });
+      const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Couldn't send the report.");
       return j;
     },
     async forget() {       // "Remove my scores": deletes nickname + every score for this device's id

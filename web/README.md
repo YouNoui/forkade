@@ -19,7 +19,9 @@ web/
     ├── drift.js       # 6  space rocks
     ├── prism.js       # 7  colour-burst stacker (Prism Stacks)
     ├── match.js       # 8  match-3
-    └── wrecker.js     # 9  destruction (Tower Wrecker)
+    ├── wrecker.js     # 9  destruction (Tower Wrecker)
+    ├── glass.js       # 10 run & smash (Glass City)
+    └── demo.js        # 11 blast puzzle (Demolition Chain)
 ```
 
 There is also `../dist/forkade.html` — the **entire thing inlined into one

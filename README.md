@@ -2,7 +2,7 @@
 
 Open-source neon arcade. Play it, rewind it, fork it.
 
-The browser edition has **ten games**, including ECHO 3D and the destruction game Tower Wrecker.
+The browser edition has **twelve games**, including ECHO 3D and three destruction games: Tower Wrecker, Glass City and Demolition Chain.
 
 **Rewards:** every game pays out *cores* (finish rounds, clear levels, beat your best), plus bronze/silver/gold badges per game, a rank and a daily streak. Spend cores on ECHO skins in the Locker. All of it stays on the device.
 

@@ -3,7 +3,7 @@
 Same standard as Breekit: plain language, operator + UEN, DPO, PDPA baseline, version line.
 Edit the copy here, bump VERSION/UPDATED, run:  python tools/make_legal.py"""
 import html, pathlib
-VERSION, UPDATED = "2026-11-14-v1", "14 Nov 2026"
+VERSION, UPDATED = "2026-11-16-v2", "16 Nov 2026"
 EMAIL = "hello@iamynoui.com"
 OP = "Forkade (playforkade.com) is operated by IAMYNOUI, a sole proprietorship registered in Singapore (UEN 53535234D)."
 DOCS = {
@@ -22,7 +22,7 @@ DOCS = {
   ("Data Protection Officer", f"Younes Noui, Data Protection Officer, IAMYNOUI &mdash; {EMAIL}. We respond to requests for access, correction or deletion within 30 days."),
   ("What stays on your device", "High scores, cores, badges, skins, your streak, the nickname box, Playground drafts and a random player ID are saved in your browser's local storage. We can't see any of it. Clearing your browser's site data, or the button on the Delete my data page, removes it."),
   ("Anonymous counts", "To see which games people enjoy, we count visits and plays per game per day. To avoid counting the same visitor twice in a day, a hash of your network address and browser type, salted with a value that changes daily, is added to an approximate counter that cannot be turned back into an address. Raw network addresses are not stored, no cookies are set, and nothing is linked to you. If your browser sends Do Not Track or Global Privacy Control, nothing is counted."),
-  ("Rankings (only if you tap Post)", "When you post a score we store your nickname, the game, your best score and your random player ID. Your network address is used briefly, as a hash, to stop spam and is deleted after 60 seconds. Rankings are public, so please don't use your real full name as a nickname."),
+  ("Rankings (only if you tap Post)", "When you post a score we store your nickname, the game, your best score and your random player ID. Your network address is used briefly, as a hash, to stop spam and is deleted after 60 seconds. Rankings are public, so please don't use your real full name as a nickname. If you report a nickname, your random player ID is kept with that report for up to 60 days, only so the same person can't report someone twice."),
   ("Who handles it", "Vercel hosts the site and runs the rankings and counting functions. Upstash stores the rankings and daily counts. GitHub hosts the open-source code and any game you choose to submit there. Each gets only what it needs. Data may be processed outside Singapore with contractual and technical safeguards."),
   ("Cookies and ads", "Forkade sets no cookies and shows no ads. We never sell data and never share it for advertising."),
   ("Retention", "Daily counts are kept for about 13 months. Weekly boards expire after 3 weeks. All-time scores stay until you remove them or we remove them for breaking the rules. Spam-check hashes are deleted after 60 seconds."),
@@ -35,7 +35,8 @@ DOCS = {
   ("Nicknames", "2&ndash;14 letters or numbers. No real full names, no rude, hateful or sexual words, no pretending to be someone else, and no ads or links."),
   ("Fair play", "Rewind is part of the game, so use it as much as you like. Don't post edited or scripted scores, don't use bots, and don't flood the rankings."),
   ("Submitted games", "Make it your own. Genres are free to use, but don't copy another game's name, characters, art, piece set or exact layout, and don't use brand names. No tracking, network calls or ads, and keep it suitable for all ages."),
-  ("Moderation", f"We review reports sent to {EMAIL} and may remove scores, nicknames or games that break these rules. There are no automatic bans; decisions consider context and evidence."),
+  ("Reporting", "See a rude or fake nickname? Tap the flag next to it in Rankings. When three different players report the same nickname, it is hidden (shown as \"Player\") until we review it. Scores stay; only the name is hidden."),
+  ("Moderation", f"We review reports from the flag button and from {EMAIL}, and may hide nicknames or remove scores and games that break these rules. Decisions consider context and evidence; a hidden nickname can be restored if it was fine."),
  ]),
  "delete": ("YOUR DATA", "Delete my data",
   "Forkade has no accounts, so you are in control of your data. Here is how to remove each part.", [
