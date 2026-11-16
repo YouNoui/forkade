@@ -1,0 +1,20 @@
+# Forkade
+
+Free open-source browser arcade with twelve games, rewind controls and a Playground game builder.
+
+For browser-game players and people who want to remix games. Twelve games include ECHO 3D, Tower Wrecker, Glass City and Demolition Chain. Rewind controls, offline play and optional nickname rankings are available. Free to play; MIT-licensed source is on GitHub. Interface language: English.
+
+Publisher: IAMYNOUI, Singapore.
+
+## Public pages
+- https://playforkade.com/
+- https://playforkade.com/playground.html
+- https://playforkade.com/games3d/echo3d.html
+- https://playforkade.com/download/forkade.html
+- https://playforkade.com/privacy.html
+- https://playforkade.com/terms.html
+- https://playforkade.com/guidelines.html
+- https://playforkade.com/delete.html
+
+## Contact
+hello@iamynoui.com

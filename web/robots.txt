@@ -1,0 +1,23 @@
+User-agent: *
+User-agent: Googlebot
+User-agent: Bingbot
+User-agent: Google-Extended
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Applebot
+User-agent: Applebot-Extended
+User-agent: DuckDuckBot
+Allow: /
+Disallow: /admin
+Disallow: /account
+Disallow: /api
+Disallow: /auth
+Disallow: /stats.html
+
+Sitemap: https://playforkade.com/sitemap.xml
