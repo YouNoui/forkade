@@ -1,22 +1,25 @@
 name: Notify search engines after production deploy
 on:
-  deployment_status:
+  push:
+    branches: [main, master]
   workflow_dispatch:
 permissions:
   contents: read
+  statuses: read
 jobs:
   indexnow:
-    if: github.event_name == 'workflow_dispatch' || (github.event.deployment_status.state == 'success' && contains(fromJSON('["Production", "production"]'), github.event.deployment.environment))
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 17
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.deployment.sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Wait for successful production deployment of this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/wait-production.mjs
       - name: Notify IndexNow (best effort)
         continue-on-error: true
         run: node scripts/indexnow.mjs
