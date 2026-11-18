@@ -290,6 +290,12 @@
     ui()     { this._tone(600, 0.05, "sine", 0.08); },
   };
   sfx.muted = !!settings.mute;
+  // Safari requires AudioContext creation/resume directly in a trusted gesture.
+  const unlockAudio = () => { sfx.ensure(); };
+  global.addEventListener('pointerdown', unlockAudio, { passive: true });
+  global.addEventListener('touchstart', unlockAudio, { passive: true });
+  global.addEventListener('keydown', unlockAudio);
+
 
   /* ----------------------------------------------------------- scores ----- */
   // Per-game best score in localStorage. Survives refreshes; no server.
@@ -311,7 +317,7 @@
     skyhop: [150, 500, 1200], swarm: [150, 500, 1200], striker: [300, 1000, 2500],
     breaker: [1000, 4000, 10000], trail: [100, 300, 600], drift: [500, 2000, 5000],
     prism: [500, 2000, 6000], match: [2000, 6000, 12000], wrecker: [1500, 5000, 12000],
-    echo3d: [50, 120, 200], glass: [1500, 5000, 12000], demo: [1000, 3000, 7000],
+    echo3d: [50, 120, 200], rampage: [1500, 6000, 12000], glass: [1500, 5000, 12000], demo: [1000, 3000, 7000],
   };
   const TIERS = [{ name: "BRONZE", color: "#e0a060", cores: 20 },
                  { name: "SILVER", color: "#d8dcf0", cores: 50 },
@@ -555,7 +561,7 @@
   const registry = [];
   function register(id, meta, cls) { registry.push({ id, meta, cls }); }
 
-  let canvas, ctx, current = null, running = false, last = 0, onExit = null;
+  let canvas, ctx, current = null, running = false, last = 0, onExit = null, frameId = null;
 
   function boot(cv, exitCb) {
     canvas = cv; ctx = cv.getContext("2d"); onExit = exitCb || null;
@@ -578,10 +584,10 @@
     current.reset = function () { seed(options.seed || null); this.t = 0; this._prevState = 'play'; this.rewind.frames = []; this.rewind.energy = 1;
       board.begin(id, options.daily || null); reset(); };
     current.reset(); rewards.toasts = [];
-    if (!running) { running = true; last = performance.now(); requestAnimationFrame(loop); }
+    if (!running) { running = true; last = performance.now(); frameId = requestAnimationFrame(loop); }
   }
   function stop() {
-    running = false; current = null;
+    running = false; current = null; if (frameId != null) cancelAnimationFrame(frameId); frameId = null;
     if (onExit) onExit();
   }
   function loop(now) {
@@ -589,7 +595,7 @@
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
     current.frame(ctx, dt);
     Input.clearPressed();
-    requestAnimationFrame(loop);
+    frameId = requestAnimationFrame(loop);
   }
 
   global.Forkade = {

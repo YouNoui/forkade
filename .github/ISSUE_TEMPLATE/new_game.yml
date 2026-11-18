@@ -1,0 +1,33 @@
+name: New game submission
+description: Propose an original community game for ECHO.
+title: "[Game] "
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Original game name and unique ID
+    validations:
+      required: true
+  - type: textarea
+    id: concept
+    attributes:
+      label: How it plays, controls, and how rewind works
+    validations:
+      required: true
+  - type: input
+    id: code
+    attributes:
+      label: Link to your code or pull request
+  - type: checkboxes
+    id: rules
+    attributes:
+      label: Game checklist
+      options:
+        - label: I made this or have permission to release it under MIT.
+          required: true
+        - label: Original name, art, characters, pieces and layouts; no copied brands.
+          required: true
+        - label: No trackers, network calls, ads, or third-party dependencies.
+          required: true
+        - label: I read CONTRIBUTING.md and tested touch controls and rewind.
+          required: true

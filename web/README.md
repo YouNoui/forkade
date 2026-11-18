@@ -1,8 +1,8 @@
 # FORKADE — web version (plays in the browser)
 
-Six small games on one grid. Same hero (**ECHO**), same neon look, same twist
+Thirteen games on one grid: eleven 2D games plus ECHO 3D and RAMPAGE 3D. Same hero (**ECHO**), same neon look, same twist
 (**rewind time** — hold **R** or **Shift**). Pure HTML5 Canvas + JavaScript.
-**No database, no backend, no sign-ups** — just static files.
+**No sign-ups. Casual play is local-first and works offline.** Optional rankings and anonymous usage counts use Vercel functions and Upstash; both are off by default.
 
 ## Files
 
@@ -34,7 +34,7 @@ This is a Progressive Web App. When you open the hosted `index.html` over
 to add FORKADE to the home screen — it then launches fullscreen, like a native
 app, and **works offline** (a service worker, `sw.js`, caches all the files).
 
-- No app store, no accounts, no database.
+- No app store or accounts. Online rankings are optional.
 - On iPhone/Safari: use Share &rarr; "Add to Home Screen".
 - On-screen **touch controls** (d-pad + FIRE + REW) appear automatically on
   phones; keyboard/mouse is used on desktop.
@@ -97,3 +97,13 @@ returns.
 
 MIT licensed — do whatever you like.
 ```
+
+## Upgrade systems
+
+- `daily.js`: shared Singapore dates and six seeded daily games. Daily layouts are identical across screens. RNG state rewinds with game state.
+- `settings.js` / `features.js`: local settings, explicit privacy opt-ins, sharing, daily card, bonus claims and deep-link startup.
+- `entries/` and `og/`: generated per-game launcher pages and 1200×630 preview images. Generate with `python tools/build_previews.py` from the repo root. Unknown paths return the grid.
+- Portrait: Sky Hop, Sky Striker and Pulse Breaker use 560×900 in upright phones; other games retain landscape. Daily Sky Hop uses 560×900 for everybody.
+- `games3d/rampage.js`: giant ECHO destroys a neon city. Run `python tools/build_rampage.py` to embed the existing licensed THREE r128 bundle. Both 3D pages are also embedded in the single-file distribution.
+- Run tokens expire in two hours and cannot be reused. Owner moderation handles pending jumps over 10× a previous best. Preview data uses a separate branch prefix.
+- Regenerate legal pages, previews and distribution after relevant edits; bump `sw.js` CACHE. Run `npm test` and the Chromium/WebKit browser matrix before a PR. See `../docs/upgrade-validation.md`.

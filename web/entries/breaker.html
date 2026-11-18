@@ -206,14 +206,20 @@
   body.touch .postbar{top:auto;bottom:max(85px,env(safe-area-inset-bottom));width:calc(100vw - 20px);}
   .stage.d3 .stagebar{display:flex;position:absolute;top:6px;left:6px;z-index:80;}
   .stage.d3 .stagebar > span{display:none;}
+  
+  html,body{overscroll-behavior:none}body.playing{overflow:hidden;touch-action:none;}
+  .wrap{padding-top:max(48px,env(safe-area-inset-top));padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right));padding-bottom:max(64px,env(safe-area-inset-bottom));}
+  body.touch .stagebar,body.touch .ps{top:max(8px,env(safe-area-inset-top));}
+  .stage.on{padding-bottom:max(16px,env(safe-area-inset-bottom));}
+  .stage.d3 .stagebar{display:none;}
   </style>
-<meta name="description" content="Free open-source browser arcade with twelve games, rewind controls and a Playground game builder.">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://iamynoui.com/#organization","name":"IAMYNOUI","url":"https://iamynoui.com/","address":{"@type":"PostalAddress","addressCountry":"SG"}},{"@type":"SoftwareApplication","@id":"https://playforkade.com/#website","name":"Forkade","url":"https://playforkade.com/","description":"Free open-source browser arcade with twelve games, rewind controls and a Playground game builder.","publisher":{"@id":"https://iamynoui.com/#organization"},"applicationCategory":"GameApplication","operatingSystem":"Web browser","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}</script>
+<meta name="description" content="Free open-source browser arcade with thirteen games, rewind controls and a Playground game builder.">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://iamynoui.com/#organization","name":"IAMYNOUI","url":"https://iamynoui.com/","address":{"@type":"PostalAddress","addressCountry":"SG"}},{"@type":"SoftwareApplication","@id":"https://playforkade.com/#website","name":"Forkade","url":"https://playforkade.com/","description":"Free open-source browser arcade with thirteen games, rewind controls and a Playground game builder.","publisher":{"@id":"https://iamynoui.com/#organization"},"applicationCategory":"GameApplication","operatingSystem":"Web browser","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}</script>
 <link rel="canonical" href="https://playforkade.com/">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://playforkade.com/">
 <meta property="og:title" content="Forkade">
-<meta property="og:description" content="Free open-source browser arcade with twelve games, rewind controls and a Playground game builder.">
+<meta property="og:description" content="Free open-source browser arcade with thirteen games, rewind controls and a Playground game builder.">
 <meta property="og:image" content="https://playforkade.com/icons/icon-512.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://playforkade.com/icons/icon-512.png">
@@ -230,7 +236,7 @@
   <div class="wrap">
     <div class="head">
       <h1 class="title">FORKADE</h1>
-      <div class="sub">play it, rewind it, fork it &middot; 12 games (incl. 3D) &middot; one hero &middot; open source &middot; no sign-ups &middot; plays in your browser</div>
+      <div class="sub">play it, rewind it, fork it &middot; 13 games (incl. 3D) &middot; one hero &middot; open source &middot; no sign-ups &middot; plays in your browser</div>
       <div class="chip">&#9199; one twist: hold R or Shift to rewind time whenever you mess up</div>
       <div class="chip oss"><a href="playground.html" id="osslink">&#9998; open source &mdash; build your own game in the Playground</a> &middot; <a href="https://github.com/YouNoui/forkade" target="_blank" rel="noopener noreferrer">GitHub</a></div>
       <div class="wallet" id="wallet">
@@ -337,7 +343,7 @@
     const canvas = document.getElementById("game");
 
     Forkade.boot(canvas, () => {
-      stage.classList.remove("on", "d3", "portrait-game"); leaveFullscreen();
+      stage.classList.remove("on", "d3", "portrait-game"); document.body.classList.remove("playing"); leaveFullscreen();
       const gf = document.getElementById("gframe"); if (gf) { gf.removeAttribute("srcdoc"); gf.src = "about:blank"; }
       refreshBest();
     });
@@ -350,7 +356,7 @@
     }
     /* ---------- rewards: wallet, stars, locker ---------- */
     const R = Forkade.rewards;
-    const GAME_NAMES = () => Object.fromEntries([...Forkade.registry.map(g => [g.id, g.meta.title]), ["echo3d", "ECHO 3D"]]);
+    const GAME_NAMES = () => Object.fromEntries([...Forkade.registry.map(g => [g.id, g.meta.title]), ["echo3d", "ECHO 3D"], ["rampage", "RAMPAGE 3D"]]);
     function refreshRewards() {
       document.getElementById("w-cores").textContent = R.cores();
       document.getElementById("w-rank").textContent = R.rank();
@@ -396,7 +402,7 @@
       refreshRewards(); renderLocker();
     });
 
-    const gframe = document.getElementById("gframe");
+    let gframe = document.getElementById("gframe");
 
     // phones: go full screen and lock landscape where the browser allows it (Android); iPhone just rotates
     function phoneFullscreen() {
@@ -414,21 +420,27 @@
       // Preserve portrait orientation for the three adaptive games.
       if (!["skyhop","striker","breaker"].includes(id)) phoneFullscreen();
       gframe.src = "about:blank";
-      stage.classList.add("on");
+      stage.classList.add("on"); document.body.classList.add("playing");
       canvas.focus();
       Forkade.play(id, options);
     }
-    function open3D() {
-      Forkade.sfx.ensure(); phoneFullscreen(); Forkade.board.begin("echo3d"); Forkade.stats.send("play", "echo3d");
-      stage.classList.add("on", "d3");
+    function open3D(id = "echo3d") {
+      if (typeof id !== "string") id = "echo3d";
+      if (Forkade.current()) Forkade.stop();
+      // A fresh frame avoids Safari racing a previous about:blank navigation.
+      const fresh = gframe.cloneNode(false); fresh.removeAttribute('srcdoc'); fresh.removeAttribute('src');
+      gframe.replaceWith(fresh); gframe = fresh;
+      Forkade.sfx.ensure(); phoneFullscreen(); Forkade.board.begin(id); Forkade.stats.send("play", id);
+      stage.classList.add("on", "d3"); document.body.classList.add("playing");
       // If the 3D page was inlined (single-file build), run it from srcdoc so it
       // works with no separate file. Otherwise load the file (folder version).
-      if (window.__ECHO3D_HTML__) { gframe.removeAttribute("src"); gframe.srcdoc = window.__ECHO3D_HTML__; }
-      else { gframe.removeAttribute("srcdoc"); gframe.src = "games3d/echo3d.html"; }
+      const inline = id === "rampage" ? window.__RAMPAGE_HTML__ : window.__ECHO3D_HTML__;
+      if (inline) { gframe.removeAttribute("src"); gframe.srcdoc = inline; }
+      else { gframe.removeAttribute("srcdoc"); gframe.src = "games3d/" + (id === "rampage" ? "rampage" : "echo3d") + ".html"; }
       gframe.focus();
     }
     function closeStage() {
-      stage.classList.remove("on", "d3", "portrait-game"); leaveFullscreen();
+      stage.classList.remove("on", "d3", "portrait-game"); document.body.classList.remove("playing"); leaveFullscreen();
       gframe.removeAttribute("srcdoc"); gframe.src = "about:blank";
       refreshBest();
     }
@@ -437,9 +449,9 @@
     window.addEventListener("message", e => {
       if (e.source === gframe.contentWindow && e.data?.t === "forkade-run-start") Forkade.board.begin(e.data.id);
       if (e.data === "neon-3d-back") closeStage();
-      if (e.data && e.data.t === "forkade-score" && e.data.id === "echo3d" && e.source === gframe.contentWindow) {
-        const got = R.roundEnd("echo3d", e.data.score | 0, !!e.data.best);
-        if (got) toast(`+${got} cores from ECHO 3D`);
+      if (e.data && e.data.t === "forkade-score" && ["echo3d", "rampage"].includes(e.data.id) && e.source === gframe.contentWindow) {
+        const got = R.roundEnd(e.data.id, e.data.score | 0, !!e.data.best);
+        if (got) toast(`+${got} cores from ${GAME_NAMES()[e.data.id]}`);
         refreshRewards();
       }
     });
@@ -481,6 +493,11 @@
       grid.appendChild(card);
     })();
 
+    (function addRampage() {
+      const card=document.createElement('button');card.className='card';card.style.setProperty('--c','#ff3ea5');card.style.color='var(--ink)';card.style.fontFamily='inherit';card.style.textAlign='left';
+      card.innerHTML='<div class="dot"><span></span></div><h3 class="name">RAMPAGE 3D</h3><div class="genre">3D city destruction</div><p class="desc">Giant ECHO stomps a neon city into chunks. Race the timer, rewind and smash again.</p><span class="play">▶ Play now</span><div class="best" data-id="rampage">BEST <b>'+Forkade.scores.get('rampage')+'</b></div><div class="stars" data-id="rampage"></div>';
+      card.onclick=()=>open3D('rampage');grid.appendChild(card);
+    })();
     /* ---------- build-your-own card -> Playground ---------- */
     (function addMake() {
       const href = "playground.html";   // build_dist.py points this at the live site
@@ -537,7 +554,7 @@
 
     /* ---------- global rankings (opt-in) ---------- */
     const B = Forkade.board;
-    const rankGames = () => [...Forkade.registry.map(g => ({ id: g.id, t: g.meta.title })), { id: "echo3d", t: "ECHO 3D" }];
+    const rankGames = () => [...Forkade.registry.map(g => ({ id: g.id, t: g.meta.title })), { id: "echo3d", t: "ECHO 3D" }, { id: "rampage", t: "RAMPAGE 3D" }];
     let rGame = "skyhop", rPeriod = "week";
     const esc = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     async function loadRanks() {
