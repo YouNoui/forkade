@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import test from 'node:test';
 import {sitemapUrls,notify} from './indexnow.mjs';
 const c=JSON.parse(await readFile(new URL('./search-config.json',import.meta.url),'utf8'));
-const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
+const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8').then(s=>s.replaceAll('\r\n','\n'));
 test('public crawler rules keep private paths excluded',async()=>{const txt=await read(c.root+'/robots.txt');for(const bot of ['*','Googlebot','Bingbot','Google-Extended','GPTBot','OAI-SearchBot','ChatGPT-User','ClaudeBot','Claude-SearchBot','Claude-User','PerplexityBot','Perplexity-User','Applebot','Applebot-Extended','DuckDuckBot'])assert.ok(txt.includes('User-agent: '+bot+'\n'));assert.ok(txt.includes('Allow: /\n'));for(const p of ['/admin','/api','/account',...c.private])assert.ok(txt.includes('Disallow: '+p+'\n'));assert.ok(txt.includes('Sitemap: '+c.site+'/sitemap.xml'));assert.ok(!txt.includes('Content-Signal'))});
 test('assistant summary is ASCII and ownership key is published',async()=>{const txt=await read(c.llms||c.root+'/llms.txt');assert.match(txt,/^[\x09\x0a\x0d\x20-\x7e]+$/);assert.ok(txt.includes('IAMYNOUI'));assert.ok(txt.includes('Contact'));assert.equal((await read(c.root+'/'+c.key+'.txt')).trim(),c.key)});
 test('IndexNow only submits canonical same-origin URLs',()=>{assert.deepEqual(sitemapUrls(`<urlset><loc>${c.site}/</loc><loc>https://evil.test/</loc><loc>${c.site}.evil.test/</loc><loc>${c.site}/?a=1&amp;b=2</loc><loc>${c.site}/</loc></urlset>`),[c.site+'/',c.site+'/?a=1&b=2'])});

@@ -40,7 +40,7 @@
       for (let t = 0; t < tries && !ok; t++) {
         const plan = new Set(); let guard = 0;
         while (plan.size < Math.min(n, cells.length) && guard++ < 100) {
-          const pool = Math.random() < 0.45 && gas.length ? gas : (low.length ? low : cells); plan.add(pool[(Math.random() * pool.length) | 0]);
+          const pool = NE.rng() < 0.45 && gas.length ? gas : (low.length ? low : cells); plan.add(pool[(NE.rng() * pool.length) | 0]);
         }
         this.grid = keep.slice(); this.charges = []; this.queue = [...plan].map(i => ({ i, r: 1, at: 0 }));
         for (let w = 0; this.queue.length && w < 40; w++) {
@@ -58,13 +58,13 @@
       // a few towers side by side, taller and tougher each level
       let x = 1;
       while (x < COLS - 1) {
-        const w = 2 + ((Math.random() * 3) | 0), h = Math.min(ROWS, 5 + ((Math.random() * (2 + Math.min(5, L))) | 0));
+        const w = 2 + ((NE.rng() * 3) | 0), h = Math.min(ROWS, 5 + ((NE.rng() * (2 + Math.min(5, L))) | 0));
         for (let cx = x; cx < Math.min(COLS, x + w); cx++) for (let r = 0; r < h; r++) {
           const i = (ROWS - 1 - r) * COLS + cx;
-          g[i] = (L >= 2 && r % 4 === 0 && Math.random() < 0.35 + L * 0.05) ? STEEL : BLOCK;
+          g[i] = (L >= 2 && r % 4 === 0 && NE.rng() < 0.35 + L * 0.05) ? STEEL : BLOCK;
         }
-        for (let k = 0; k < (Math.random() < 0.7 ? 1 : 2); k++) {         // gas cans hidden in the towers
-          const cx = x + ((Math.random() * w) | 0), r = 1 + ((Math.random() * (h - 2)) | 0);
+        for (let k = 0; k < (NE.rng() < 0.7 ? 1 : 2); k++) {         // gas cans hidden in the towers
+          const cx = x + ((NE.rng() * w) | 0), r = 1 + ((NE.rng() * (h - 2)) | 0);
           if (cx < COLS) g[(ROWS - 1 - r) * COLS + cx] = GAS;
         }
         x += w + 1;

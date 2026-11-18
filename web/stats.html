@@ -47,6 +47,7 @@
   </div>
   <h2>VISITORS PER DAY</h2><div class="chart" id="chart"></div>
   <h2>PLAYS PER GAME</h2><div class="bars" id="bars"></div>
+  <h2>SCORES PENDING REVIEW</h2><div id="pending" class="mod"></div>
   <h2>REPORTED NICKNAMES</h2>
   <div id="mod" class="mod"><span class="dimtxt">Loading…</span></div>
   <h2>DAY BY DAY</h2><table><thead><tr><th>Day (UTC)</th><th>Visits</th><th>Visitors</th><th>Plays</th></tr></thead><tbody id="tbody"></tbody></table>
@@ -89,7 +90,8 @@
   async function loadReports(key) {
     const box = $("mod");
     try {
-      const { reports } = await modCall(key, { do: "list" });
+      const { reports, pending = [] } = await modCall(key, { do: "list" });
+      $('pending').innerHTML = pending.length ? pending.map(p => `<div class="r"><b>${escH(p.name)}</b><span>${escH(p.game)}: ${p.score} (previous ${p.previous})</span><button data-do="approve-score" data-game="${escH(p.game)}" data-t="${p.pid}">Approve</button><button data-do="reject-score" data-game="${escH(p.game)}" data-t="${p.pid}">Reject</button></div>`).join('') : 'No suspicious scores.';
       box.innerHTML = reports.length ? reports.map(r => `<div class="r"><b>${escH(r.name)}</b><span class="c">${r.reports} report${r.reports > 1 ? "s" : ""}</span>
         <span class="dimtxt">${escH(NAMES[r.game] || r.game)}</span>${r.hidden ? `<span class="h">auto-hidden</span>` : ""}
         <button data-do="hide" data-t="${r.pid}">Hide name</button><button class="x" data-do="remove" data-t="${r.pid}">Remove player</button>
@@ -97,11 +99,11 @@
         : `<span class="dimtxt">Nothing reported. 3 reports from different players hide a nickname automatically until you check it here.</span>`;
     } catch (err) { box.innerHTML = `<span class="dimtxt">${escH(err.message)}</span>`; }
   }
-  $("mod").addEventListener("click", async e => {
+  document.getElementById("out").addEventListener("click", async e => {
     const b = e.target.closest("button[data-do]"); if (!b) return;
     if (b.dataset.do === "remove" && b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "Sure? removes all scores"; return; }
     b.disabled = true;
-    try { await modCall($("key").value.trim(), { do: b.dataset.do, target: b.dataset.t }); loadReports($("key").value.trim()); }
+    try { await modCall($("key").value.trim(), { do: b.dataset.do, target: b.dataset.t, game: b.dataset.game }); loadReports($("key").value.trim()); }
     catch (err) { b.disabled = false; b.textContent = err.message; }
   });
   $("go").addEventListener("click", load); $("key").addEventListener("keydown", e => { if (e.key === "Enter") load(); });

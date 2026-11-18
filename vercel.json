@@ -13,5 +13,59 @@
         }
       ]
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/breaker",
+      "destination": "/entries/breaker.html"
+    },
+    {
+      "source": "/demo",
+      "destination": "/entries/demo.html"
+    },
+    {
+      "source": "/drift",
+      "destination": "/entries/drift.html"
+    },
+    {
+      "source": "/glass",
+      "destination": "/entries/glass.html"
+    },
+    {
+      "source": "/match",
+      "destination": "/entries/match.html"
+    },
+    {
+      "source": "/prism",
+      "destination": "/entries/prism.html"
+    },
+    {
+      "source": "/skyhop",
+      "destination": "/entries/skyhop.html"
+    },
+    {
+      "source": "/striker",
+      "destination": "/entries/striker.html"
+    },
+    {
+      "source": "/swarm",
+      "destination": "/entries/swarm.html"
+    },
+    {
+      "source": "/trail",
+      "destination": "/entries/trail.html"
+    },
+    {
+      "source": "/wrecker",
+      "destination": "/entries/wrecker.html"
+    },
+    {
+      "source": "/echo3d",
+      "destination": "/entries/echo3d.html"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/index.html"
+    }
   ]
 }

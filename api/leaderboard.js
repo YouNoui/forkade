@@ -11,6 +11,7 @@
 // (or UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN).
 
 const crypto = require("crypto");
+const Runs = require("../lib/runs");
 
 // highest believable score per game - anything above is rejected
 const CAPS = {
@@ -33,12 +34,16 @@ function redis() {
   const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) return null;
   return async cmds => {
+    if (process.env.VERCEL_ENV === 'preview') {
+      const prefix = 'preview:' + (process.env.VERCEL_GIT_COMMIT_REF || 'forkade') + ':';
+      cmds = cmds.map(c => { c = c.slice(); const k = c[0] === 'EVAL' ? 3 : 1; c[k] = prefix + c[k]; return c; });
+    }
     const r = await fetch(url.replace(/\/$/, "") + "/pipeline", {
       method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify(cmds),
     });
     if (!r.ok) throw new Error("store " + r.status);
-    return (await r.json()).map(x => (x.error ? null : x.result));
+    return (await r.json()).map(x => { if (x.error) throw Error(x.error); return x.result; });
   };
 }
 
@@ -71,9 +76,9 @@ async function readBody(req) {
 // so ids are never published. 3 different reporters -> nickname auto-hidden until the owner reviews.
 const HIDE_AFTER = 3;
 async function report(R, b, req, res, week) {
-  const game = b.game, period = b.period === "all" ? "all" : "week", rank = Math.floor(Number(b.rank)), by = b.pid;
+  const game = b.game, period = ["all", "daily"].includes(b.period) ? b.period : "week", rank = Math.floor(Number(b.rank)), by = b.pid;
   if (!CAPS[game] || !(rank >= 1 && rank <= TOP) || !validPid(by)) return send(res, 400, { error: "Can't report that." });
-  const key = period === "all" ? `lb:${game}:all` : `lb:${game}:w:${week}`;
+  const key = period === "daily" ? `lb:${game}:d:${Runs.Daily.date()}` : period === "all" ? `lb:${game}:all` : `lb:${game}:w:${week}`;
   const [[target]] = await R([["ZRANGE", key, String(rank - 1), String(rank - 1), "REV"]]).then(r => [r[0] || []]);
   if (!target || target === by) return send(res, 400, { error: "Can't report that." });
   const [[name]] = await R([["HMGET", "lb:names", target]]);
@@ -96,10 +101,20 @@ async function moderate(R, b, res, week) {
     const [flat] = await R([["HGETALL", "lb:reported"]]);
     const items = [];
     for (let i = 0; i < (flat || []).length; i += 2) items.push({ pid: flat[i], game: flat[i + 1].split("|")[0] });
-    if (!items.length) return send(res, 200, { reports: [] });
+    if (!items.length) return send(res, 200, { reports: [], pending: await Runs.pending(R) });
     const out = await R(items.flatMap(it => [["SCARD", `lb:rep:${it.pid}`], ["HMGET", "lb:names", it.pid], ["SISMEMBER", "lb:hidden", it.pid]]));
     items.forEach((it, i) => { it.reports = out[i * 3]; it.name = (out[i * 3 + 1] || [])[0] || "(removed)"; it.hidden = out[i * 3 + 2] === 1; });
-    return send(res, 200, { reports: items.sort((x, y) => y.reports - x.reports) });
+    return send(res, 200, { reports: items.sort((x, y) => y.reports - x.reports), pending: await Runs.pending(R) });
+  }
+  if (b.do === 'approve-score' || b.do === 'reject-score') {
+    if (!validPid(b.target) || !CAPS[b.game]) return send(res,400,{error:'Invalid review.'});
+    const key = `lb:pending:${b.target}:${b.game}`;
+    const [raw] = await R([['GET', key]]);
+    if (!raw) return send(res,404,{error:'Review expired.'});
+    const item = JSON.parse(raw);
+    if (b.do === 'approve-score') await publish(R, item.game, item.score, item.name, item.pid, item.week, item.daily);
+    await R([['DEL',key],['ZREM','lb:pending',key]]);
+    return send(res,200,{ok:true});
   }
   const pid = b.target; if (!validPid(pid)) return send(res, 400, { error: "Bad player id." });
   if (b.do === "hide") await R([["SADD", "lb:hidden", pid], ["HSET", "lb:names", pid, "Player"], ["HDEL", "lb:reported", pid], ["DEL", `lb:rep:${pid}`]]);
@@ -107,10 +122,27 @@ async function moderate(R, b, res, week) {
   else if (b.do === "remove") {
     const weeks = [0, 7, 14, 21].map(n => isoWeek(new Date(Date.now() - n * 864e5)));
     const cmds = [["HDEL", "lb:names", pid], ["HDEL", "lb:reported", pid], ["DEL", `lb:rep:${pid}`], ["SREM", "lb:hidden", pid]];
-    for (const g of Object.keys(CAPS)) { cmds.push(["ZREM", `lb:${g}:all`, pid]); for (const w of weeks) cmds.push(["ZREM", `lb:${g}:w:${w}`, pid]); }
+    for (const g of Object.keys(CAPS)) {
+      cmds.push(['DEL', `lb:pending:${pid}:${g}`], ['ZREM','lb:pending',`lb:pending:${pid}:${g}`]);
+      for (let n=0;n<4;n++) cmds.push(['ZREM',`lb:${g}:d:${Runs.Daily.date(Date.now()-n*86400000)}`,pid]);
+      cmds.push(["ZREM", `lb:${g}:all`, pid]); for (const w of weeks) cmds.push(["ZREM", `lb:${g}:w:${w}`, pid]); }
     await R(cmds);
   } else return send(res, 400, { error: "Unknown action." });
   return send(res, 200, { ok: true });
+}
+
+async function publish(R,game,score,name,pid,week,daily) {
+  const [isHidden] = await R([['SISMEMBER','lb:hidden',pid]]);
+  const wk = `lb:${game}:w:${week}`, all = `lb:${game}:all`;
+  const cmds = [...(isHidden ? [] : [['HSET','lb:names',pid,name]]),
+    ['ZADD',wk,'GT',String(score),pid],['EXPIRE',wk,'1814400'],['ZADD',all,'GT',String(score),pid]];
+  const expires = daily ? Date.parse(daily+'T00:00:00+08:00') / 1000 + 259200 : 0;
+  const dk = daily && expires > Date.now()/1000 ? `lb:${game}:d:${daily}` : null;
+  if (dk) cmds.push(['ZADD',dk,'GT',String(score),pid],['EXPIREAT',dk,String(expires)]);
+  await R(cmds);
+  const [wr,ar,wb,ab] = await R([['ZREVRANK',wk,pid],['ZREVRANK',all,pid],['ZSCORE',wk,pid],['ZSCORE',all,pid]]);
+  const [dr] = dk ? await R([['ZREVRANK',dk,pid]]) : [null];
+  return {ok:true,week:{rank:wr+1,best:Number(wb)},all:{rank:ar+1,best:Number(ab)},daily:dk?{rank:dr+1,date:daily}:null};
 }
 
 module.exports = async function handler(req, res) {
@@ -122,9 +154,11 @@ module.exports = async function handler(req, res) {
 
   try {
     if (req.method === "GET") {
-      const game = q.get("game"), period = q.get("period") === "all" ? "all" : "week", pid = q.get("pid");
+      const game = q.get("game"), period = ["all", "daily"].includes(q.get("period")) ? q.get("period") : "week", pid = q.get("pid");
       if (!CAPS[game]) return send(res, 400, { error: "Unknown game." });
-      const key = period === "all" ? `lb:${game}:all` : `lb:${game}:w:${week}`;
+      const date = q.get('date') || Runs.Daily.date();
+      if (period === 'daily' && ![0,1,2].map(n => Runs.Daily.date(Date.now()-n*86400000)).includes(date)) return send(res, 400, { error: 'Daily board expired.' });
+      const key = period === 'daily' ? `lb:${game}:d:${date}` : period === "all" ? `lb:${game}:all` : `lb:${game}:w:${week}`;
       const cmds = [["ZRANGE", key, "0", String(TOP - 1), "REV", "WITHSCORES"], ["ZCARD", key]];
       if (validPid(pid)) cmds.push(["ZREVRANK", key, pid], ["ZSCORE", key, pid]);
       const [flat, count, myRank, myScore] = await R(cmds);
@@ -142,6 +176,13 @@ module.exports = async function handler(req, res) {
       const b = await readBody(req);
       if (b.action === "report") return report(R, b, req, res, week);
       if (b.action === "moderate") return moderate(R, b, res, week);
+      // round start: anonymous on purpose (no player id), so it runs before the id check
+      if (b.action === 'start') {
+        if (!CAPS[b.game]) return send(res, 400, { error: "Unknown game." });
+        const ip = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "na";
+        const ipHash = crypto.createHash("sha256").update(ip + week).digest("hex").slice(0, 24);   // spam check only, gone in 1s
+        const started = await Runs.start(R, b, ipHash); return send(res, started.status || 200, started);
+      }
       const game = b.game, score = Math.floor(Number(b.score)), name = cleanName(b.name), pid = b.pid;
       if (!CAPS[game]) return send(res, 400, { error: "Unknown game." });
       if (!validPid(pid)) return send(res, 400, { error: "Bad player id." });
@@ -153,15 +194,17 @@ module.exports = async function handler(req, res) {
       const [slot, ipCount] = await R([["SET", `rl:pid:${pid}`, "1", "NX", "EX", "8"], ["INCR", ipKey], ["EXPIRE", ipKey, "60"]]);
       if (slot !== "OK" || ipCount > 30) return send(res, 429, { error: "Slow down a little and try again in a few seconds." });
 
-      const [isHidden] = await R([["SISMEMBER", "lb:hidden", pid]]);   // hidden by reports/owner: keep "Player"
-      const wk = `lb:${game}:w:${week}`, all = `lb:${game}:all`;
-      await R([
-        ...(isHidden ? [] : [["HSET", "lb:names", pid, name]]),
-        ["ZADD", wk, "GT", String(score), pid], ["EXPIRE", wk, String(60 * 60 * 24 * 21)],
-        ["ZADD", all, "GT", String(score), pid],
-      ]);
-      const [wr, ar, wbest, abest] = await R([["ZREVRANK", wk, pid], ["ZREVRANK", all, pid], ["ZSCORE", wk, pid], ["ZSCORE", all, pid]]);
-      return send(res, 200, { ok: true, week: { rank: wr + 1, best: Number(wbest) }, all: { rank: ar + 1, best: Number(abest) } });
+      const checked = await Runs.consume(R, { ...b, score });
+      if (checked.error) return send(res, 400, { error: checked.error });
+      const daily = checked.run.daily;
+      const [previous] = await R([['ZSCORE', `lb:${game}:all`, pid]]);
+      if (Number(previous) > 0 && score > Number(previous) * 10) {
+        const key = `lb:pending:${pid}:${game}`;
+        await R([['SET',key,JSON.stringify({pid,game,score,name,week,daily,at:Date.now(),previous:Number(previous)}),'EX','259200'],
+          ['ZADD','lb:pending',String(Date.now()),key]]);
+        return send(res,202,{ok:true,pending:true,message:'Pending review: this score is more than 10× your previous best.'});
+      }
+      return send(res, 200, await publish(R,game,score,name,pid,week,daily));
     }
     if (req.method === "DELETE") {
       // "Remove my scores": wipes this player's nickname and every score on every board
@@ -169,7 +212,10 @@ module.exports = async function handler(req, res) {
       if (!validPid(pid)) return send(res, 400, { error: "Bad player id." });
       const weeks = [0, 7, 14, 21].map(n => isoWeek(new Date(Date.now() - n * 864e5)));
       const cmds = [["HDEL", "lb:names", pid]];
-      for (const g of Object.keys(CAPS)) { cmds.push(["ZREM", `lb:${g}:all`, pid]); for (const w of weeks) cmds.push(["ZREM", `lb:${g}:w:${w}`, pid]); }
+      for (const g of Object.keys(CAPS)) {
+      cmds.push(['DEL', `lb:pending:${pid}:${g}`], ['ZREM','lb:pending',`lb:pending:${pid}:${g}`]);
+      for (let n=0;n<4;n++) cmds.push(['ZREM',`lb:${g}:d:${Runs.Daily.date(Date.now()-n*86400000)}`,pid]);
+      cmds.push(["ZREM", `lb:${g}:all`, pid]); for (const w of weeks) cmds.push(["ZREM", `lb:${g}:w:${w}`, pid]); }
       await R(cmds);
       return send(res, 200, { ok: true, removed: true });
     }

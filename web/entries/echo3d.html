@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="/">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ECHO 3D - FORKADE</title>
+<meta name="theme-color" content="#06051a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Forkade">
+<style>
+  :root{
+    --bg:#06051a; --bg2:#16113d; --ink:#f1f3ff; --dim:#8d92bd;
+    --cyan:#22e4ff; --magenta:#ff3ea5; --lime:#9dff57; --amber:#ffb23f;
+    --violet:#a07bff; --red:#ff4f6e;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:"Consolas","SF Mono",ui-monospace,monospace;
+    background:radial-gradient(1200px 600px at 50% -10%,#2a1650 0%,var(--bg) 60%);
+    color:var(--ink); min-height:100vh;
+  }
+  .wrap{padding:48px 20px 64px;}
+  .head{text-align:center; max-width:760px; margin:0 auto 38px;}
+  .title{
+    font-size:clamp(34px,7vw,64px); font-weight:800; letter-spacing:4px; margin:0; color:var(--cyan);
+    text-shadow:0 0 12px rgba(34,228,255,.7),0 0 34px rgba(34,228,255,.35);
+  }
+  .sub{color:var(--dim); font-size:15px; margin-top:12px; letter-spacing:1px;}
+  .chip{display:inline-block; margin-top:16px; padding:7px 16px; border-radius:20px;
+    border:1px solid var(--violet); color:var(--violet); font-size:13px;
+    box-shadow:0 0 14px rgba(160,123,255,.35) inset;}
+  .grid{display:grid; gap:18px; max-width:1040px; margin:0 auto;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));}
+  .card{position:relative; border-radius:16px; padding:22px 20px 20px;
+    background:linear-gradient(160deg,var(--bg2),#0a0c1a);
+    border:1px solid rgba(120,130,160,.25); overflow:hidden; cursor:pointer;
+    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;}
+  .card:hover{transform:translateY(-6px); box-shadow:0 0 28px -4px var(--c); border-color:var(--c);}
+  .num{position:absolute; top:14px; right:18px; font-size:34px; font-weight:800; color:var(--c); opacity:.22;}
+  .dot{width:46px; height:46px; border-radius:12px; margin-bottom:14px;
+    background:var(--c); box-shadow:0 0 18px var(--c); display:flex; align-items:center; justify-content:center;}
+  .dot span{width:16px; height:9px; border-radius:5px; background:var(--bg); display:block;}
+  .name{font-size:21px; font-weight:800; letter-spacing:1px; margin:0 0 4px;}
+  .genre{color:var(--c); font-size:13px; letter-spacing:1px; margin-bottom:10px;}
+  .desc{color:var(--dim); font-size:13.5px; line-height:1.5; margin:0 0 16px;}
+  .play{display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:700;
+    color:var(--ink); padding:8px 14px; border-radius:10px; border:1px solid var(--c);
+    background:rgba(255,255,255,.03);}
+  .best{position:absolute; bottom:22px; right:20px; font-size:12px; color:var(--dim); letter-spacing:1px;}
+  .best b{color:var(--c);}
+  .mute{cursor:pointer; color:var(--dim); border:1px solid rgba(120,130,170,.5);
+    border-radius:10px; padding:8px 14px; font-weight:700; background:rgba(20,24,46,.4);
+    font-family:inherit; font-size:13px;}
+  .foot{text-align:center; color:var(--dim); font-size:13px; margin-top:34px; line-height:1.7;}
+  .foot a{color:var(--cyan);}
+  .foot b{color:var(--violet);}
+  .chip.oss{margin-top:8px; border-color:var(--magenta);}
+  .chip.oss a{color:var(--magenta); text-decoration:none;}
+  a.card{display:block; text-decoration:none; color:inherit;}
+  .card.make{border-style:dashed;}
+  .wallet{display:flex; flex-wrap:wrap; justify-content:center; gap:10px 16px; margin-top:14px; font-size:13px; color:var(--dim);}
+  .wallet b{color:var(--lime);}
+  .wallet .locker{cursor:pointer; font-family:inherit; font-weight:800; font-size:13px; color:var(--amber);
+    border:1px solid var(--amber); border-radius:10px; padding:5px 12px; background:rgba(255,178,63,.06);}
+  .stars{position:absolute; right:20px; bottom:42px; font-size:14px; letter-spacing:2px;}
+  .stars .on{color:#ffd84a; text-shadow:0 0 8px #ffd84a;} .stars .off{color:rgba(141,146,189,.35);}
+  .modal{position:fixed; inset:0; z-index:200; background:rgba(3,2,14,.78); display:flex; align-items:flex-start;
+    justify-content:center; overflow:auto; padding:30px 14px;}
+  .modal[hidden]{display:none;}
+  .sheet{position:relative; width:min(760px,100%); background:#0d0a2a; border:1px solid var(--violet);
+    border-radius:18px; padding:22px; box-shadow:0 0 60px -10px var(--violet);}
+  .sheet h2{margin:6px 0 10px; letter-spacing:3px; color:var(--cyan); font-size:18px;}
+  .sheet .hint{color:var(--dim); font-size:13px; line-height:1.6; margin:0 0 14px;}
+  .sheet .x{position:absolute; right:14px; top:10px; font-size:28px; background:none; border:0; color:var(--dim); cursor:pointer;}
+  .skins{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin-bottom:18px;}
+  .skin{border:1px solid rgba(141,146,189,.3); border-radius:12px; padding:12px; text-align:center; font-size:13px;}
+  .skin .sw{width:34px; height:34px; border-radius:10px; margin:0 auto 8px; box-shadow:0 0 14px currentColor;}
+  .skin button{margin-top:8px; width:100%; font-family:inherit; font-weight:800; font-size:12px; cursor:pointer;
+    border-radius:8px; padding:6px; background:transparent; color:var(--lime); border:1px solid var(--lime);}
+  .skin button[disabled]{color:var(--dim); border-color:rgba(141,146,189,.4); cursor:default;}
+  .skin.eq{border-color:var(--lime); box-shadow:0 0 16px -6px var(--lime);}
+  .badges{display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:8px; font-size:13px;}
+  .badge{display:flex; justify-content:space-between; gap:8px; border:1px solid rgba(141,146,189,.25); border-radius:10px; padding:9px 12px;}
+  .badge small{display:block; color:var(--dim); font-size:11px; margin-top:2px;}
+  .toasts{position:fixed; left:50%; top:16px; transform:translateX(-50%); z-index:300; display:flex; flex-direction:column; gap:8px; pointer-events:none;}
+  .toast{background:rgba(6,5,26,.92); border:1px solid var(--lime); color:var(--lime); border-radius:12px;
+    padding:10px 16px; font-size:14px; font-weight:800; box-shadow:0 0 24px -8px var(--lime); animation:tin .25s ease-out;}
+  @keyframes tin{from{opacity:0; transform:translateY(-8px);} to{opacity:1; transform:none;}}
+  .wallet .ranks{color:var(--cyan); border-color:var(--cyan); background:rgba(34,228,255,.06);}
+  .rtabs{display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 10px;}
+  .rtabs button{font-family:inherit; font-size:12px; font-weight:800; cursor:pointer; border-radius:8px; padding:6px 10px;
+    background:transparent; color:var(--dim); border:1px solid rgba(141,146,189,.4);}
+  .rtabs button.on{color:var(--cyan); border-color:var(--cyan); background:rgba(34,228,255,.08);}
+  .rlist{list-style:none; margin:0; padding:0; font-size:14px; min-height:60px;}
+  .rlist li{display:flex; gap:12px; padding:8px 10px; border-bottom:1px solid rgba(141,146,189,.15);}
+  .rlist li .n{width:34px; color:var(--dim);} .rlist li .nm{flex:1;} .rlist li .sc{color:var(--lime); font-weight:800;}
+  .rlist button.rep, .rlist span.rep{width:62px; text-align:center; font-family:inherit; font-size:12px; cursor:pointer; border-radius:7px;
+    padding:2px 6px; background:transparent; color:var(--dim); border:1px solid transparent;}
+  .rlist button.rep:hover, .rlist button.rep[data-sure="1"]{color:var(--red); border-color:rgba(255,79,110,.6);}
+  .rlist li.me{background:rgba(157,255,87,.08); border-radius:8px;}
+  .rlist li:nth-child(1) .n{color:#ffd84a;} .rlist li:nth-child(2) .n{color:#d8dcf0;} .rlist li:nth-child(3) .n{color:#e0a060;}
+  .postbar{position:relative; z-index:70; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px;
+    margin:10px auto 0; padding:10px 12px; max-width:900px; border:1px solid var(--cyan); border-radius:12px;
+    background:rgba(6,5,26,.92); font-size:13px;}
+  .postbar[hidden]{display:none;}
+  .postbar input{font-family:inherit; font-size:14px; width:150px; padding:7px 10px; border-radius:8px;
+    border:1px solid rgba(141,146,189,.5); background:#0d0a2a; color:var(--ink);}
+  .postbar button{font-family:inherit; font-weight:800; font-size:13px; cursor:pointer; border-radius:8px; padding:8px 12px;
+    background:var(--cyan); color:#06051a; border:0;}
+  .postbar #pb-msg{width:100%; text-align:center; color:var(--lime);}
+  .postbar #pb-msg.err{color:var(--red);}
+  /* ---- phones: full-screen game, small see-through controls on top ---- */
+  body.touch .stage.on{padding:0; gap:0; background:#020110; touch-action:none;}
+  body.touch #game{width:min(100vw, calc(100dvh * 900 / 560)); max-height:100dvh; border:0; border-radius:0; box-shadow:none;}
+  body.touch #gframe{width:100vw; height:100dvh; border-radius:0;}
+  body.touch .stagebar{position:fixed; left:max(8px,env(safe-area-inset-left)); top:8px; z-index:80; gap:0;}
+  body.touch .stagebar > span:not(.back){display:none;}
+  body.touch .back{padding:6px 10px; font-size:12px; background:rgba(6,5,26,.7);}
+  body.touch .postbar{position:fixed; top:8px; left:50%; transform:translateX(-50%); width:min(560px,calc(100vw - 120px)); margin:0; z-index:85; padding:8px;}
+  body.touch .touchctl .pad{grid-template-columns:repeat(3,46px); grid-template-rows:repeat(3,46px); gap:4px;
+    left:max(10px,env(safe-area-inset-left)); bottom:max(10px,env(safe-area-inset-bottom));}
+  body.touch .pad .tbtn{width:46px; height:46px; font-size:17px;}
+  body.touch .touchctl .side{right:max(10px,env(safe-area-inset-right)); bottom:max(10px,env(safe-area-inset-bottom)); gap:8px;}
+  body.touch .tbtn{background:rgba(20,16,50,.38); border-color:rgba(160,170,220,.35); backdrop-filter:none;}
+  body.touch .big{width:66px; height:66px; font-size:14px;}
+  body.touch .rw{width:52px; height:52px; font-size:12px;}
+  body.touch .ps{position:fixed; right:max(10px,env(safe-area-inset-right)); top:8px; width:40px; height:34px;}
+  /* each game only shows the buttons it needs */
+  .stage.t-tap .pad, .stage.t-tap .big{display:none !important;}
+  .stage.t-lr .tbtn.u, .stage.t-lr .tbtn.dn{visibility:hidden;}
+  /* portrait: nudge players to turn the phone */
+  .rotate{display:none;}
+  @media (orientation:portrait){ body.touch .stage.on:not(.d3) .rotate{display:block; position:fixed; top:calc(50% - 150px - 56px);
+    left:0; right:0; text-align:center; font-size:13px; color:var(--amber);} }
+  .forget{font-family:inherit; font-size:12px; cursor:pointer; border-radius:8px; padding:6px 10px; background:transparent;
+    color:var(--red); border:1px solid rgba(255,79,110,.6);}
+  .sheet a, .foot .legal a{color:var(--cyan);}
+  .foot .legal{display:block; margin-top:10px; font-size:12px;}
+  .nodata{display:inline-block; margin-top:10px; color:var(--lime); opacity:.85;}
+
+  /* ---- in-game stage ---- */
+  .stage{position:fixed; inset:0; background:rgba(4,6,14,.96); display:none;
+    flex-direction:column; align-items:center; justify-content:center; z-index:50; gap:14px; padding:16px;}
+  .stage.on{display:flex;}
+  #game{width:min(94vw,900px); aspect-ratio:900/560; border-radius:14px;
+    border:1px solid rgba(120,130,160,.3); box-shadow:0 0 50px -10px var(--cyan); background:var(--bg); touch-action:none;}
+  #gframe{width:min(100vw,1100px); height:min(86vh,720px); border:0; border-radius:14px;
+    box-shadow:0 0 50px -10px var(--cyan); background:#06051a; display:none;}
+  .stage.d3 #game{display:none;} .stage.d3 .stagebar{display:none;}
+  .stage.d3 #gframe{display:block;}
+  body.touch .stage.on.d3 .touchctl{display:none;}
+  .pname{margin-top:14px;}
+  .pname input{font-family:inherit; font-size:13px; color:var(--ink); background:rgba(20,24,46,.5);
+    border:1px solid rgba(120,130,170,.5); border-radius:10px; padding:8px 12px; width:170px; text-align:center;}
+  .pname label{color:var(--dim); font-size:12px; margin-right:8px;}
+  .stagebar{display:flex; gap:18px; align-items:center; color:var(--dim); font-size:13px; flex-wrap:wrap; justify-content:center;}
+  .back{cursor:pointer; color:var(--cyan); border:1px solid var(--cyan); border-radius:10px;
+    padding:8px 16px; font-weight:700; background:rgba(34,228,255,.05);}
+  kbd{background:#1a1d33; border:1px solid #2d3252; border-radius:5px; padding:1px 7px; color:var(--ink);}
+
+  /* ---- install button ---- */
+  .install{display:none; margin:18px auto 0; cursor:pointer; color:var(--cyan);
+    border:1px solid var(--cyan); border-radius:12px; padding:10px 20px; font-weight:800;
+    letter-spacing:1px; background:rgba(34,228,255,.06); box-shadow:0 0 20px -6px var(--cyan);
+    font-family:inherit; font-size:14px;}
+  .install.show{display:inline-block;}
+  .dlbox{max-width:520px; margin:12px auto 0; padding:14px 16px; border:1px solid var(--cyan); border-radius:14px;
+    background:rgba(34,228,255,.05); font-size:13px; line-height:1.6; color:var(--ink); text-align:left;}
+  .dlbox .dlfile{display:inline-block; margin-top:10px; color:var(--lime); font-weight:700; text-decoration:none;}
+
+  /* ---- touch controls (phones only) ---- */
+  .touchctl{position:absolute; inset:0; display:none; pointer-events:none; z-index:60;}
+  body.touch .stage.on .touchctl{display:block;}
+  .touchctl .pad{position:absolute; bottom:max(22px,env(safe-area-inset-bottom)); display:grid;
+    grid-template-columns:repeat(3,56px); grid-template-rows:repeat(3,56px); gap:6px;}
+  .touchctl .pad.left{left:18px;}
+  .touchctl .side{position:absolute; right:18px; bottom:max(22px,env(safe-area-inset-bottom));
+    display:flex; flex-direction:column; gap:12px; align-items:center;}
+  .tbtn{pointer-events:auto; user-select:none; -webkit-user-select:none; touch-action:none;
+    display:flex; align-items:center; justify-content:center; border-radius:14px;
+    background:rgba(20,24,46,.72); border:1px solid rgba(120,130,170,.5); color:var(--ink);
+    font-size:22px; font-weight:800; backdrop-filter:blur(2px);}
+  .tbtn:active{background:rgba(34,228,255,.25); border-color:var(--cyan);}
+  .pad .tbtn{width:56px; height:56px;}
+  .big{width:82px; height:82px; font-size:16px; border-color:var(--cyan); color:var(--cyan);}
+  .ps{width:48px; height:48px; font-size:14px; border-color:var(--dim); color:var(--dim);}
+  .rw{width:64px; height:64px; font-size:15px; border-color:var(--violet); color:var(--violet);}
+  .u{grid-column:2; grid-row:1;} .l{grid-column:1; grid-row:2;}
+  .r{grid-column:3; grid-row:2;} .dn{grid-column:2; grid-row:3;}
+
+  #settings label{display:flex;align-items:center;gap:12px;margin:18px 0;font-size:14px;}
+  #settings input[type=checkbox]{width:22px;height:22px;accent-color:var(--cyan);}
+  .settings-button{min-height:36px}.daily{grid-column:1/-1;color:var(--ink);font-family:inherit;text-align:left;}
+  #daily-claim{grid-column:1/-1;justify-self:start;}
+  .reduce-motion *, .reduce-motion *::before,.reduce-motion *::after{animation:none!important;transition:none!important;}
+  .stage.portrait-game #game{width:min(94vw,calc((100dvh - 110px) * 560 / 900));max-height:calc(100dvh - 110px);aspect-ratio:560/900;}
+  body.touch .stage.portrait-game #game{width:min(100vw,calc((100dvh - 90px) * 560 / 900));max-height:calc(100dvh - 90px);}
+  body.touch .stage.portrait-game .rotate{display:none!important;}
+  body.touch .settings-button{font-size:11px;padding:6px;margin-left:6px;}
+  body.touch .postbar{top:auto;bottom:max(85px,env(safe-area-inset-bottom));width:calc(100vw - 20px);}
+  .stage.d3 .stagebar{display:flex;position:absolute;top:6px;left:6px;z-index:80;}
+  .stage.d3 .stagebar > span{display:none;}
+  </style>
+<meta name="description" content="Free open-source browser arcade with twelve games, rewind controls and a Playground game builder.">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://iamynoui.com/#organization","name":"IAMYNOUI","url":"https://iamynoui.com/","address":{"@type":"PostalAddress","addressCountry":"SG"}},{"@type":"SoftwareApplication","@id":"https://playforkade.com/#website","name":"Forkade","url":"https://playforkade.com/","description":"Free open-source browser arcade with twelve games, rewind controls and a Playground game builder.","publisher":{"@id":"https://iamynoui.com/#organization"},"applicationCategory":"GameApplication","operatingSystem":"Web browser","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}</script>
+
+
+
+
+
+
+
+
+<link rel="canonical" href="https://playforkade.com/echo3d">
+<meta property="og:type" content="website"><meta property="og:title" content="ECHO 3D - FORKADE">
+<meta property="og:description" content="Play it, rewind it, fork it. Free neon arcade starring ECHO.">
+<meta property="og:url" content="https://playforkade.com/echo3d">
+<meta property="og:image" content="https://playforkade.com/og/echo3d.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="ECHO 3D - FORKADE">
+<meta name="twitter:image" content="https://playforkade.com/og/echo3d.png">
+</head>
+<body>
+  <div class="wrap">
+    <div class="head">
+      <h1 class="title">FORKADE</h1>
+      <div class="sub">play it, rewind it, fork it &middot; 12 games (incl. 3D) &middot; one hero &middot; open source &middot; no sign-ups &middot; plays in your browser</div>
+      <div class="chip">&#9199; one twist: hold R or Shift to rewind time whenever you mess up</div>
+      <div class="chip oss"><a href="playground.html" id="osslink">&#9998; open source &mdash; build your own game in the Playground</a> &middot; <a href="https://github.com/YouNoui/forkade" target="_blank" rel="noopener noreferrer">GitHub</a></div>
+      <div class="wallet" id="wallet">
+        <span>&#9670; <b id="w-cores">0</b> cores</span>
+        <span>RANK <b id="w-rank">1</b></span>
+        <span>&#128293; <b id="w-streak">0</b>-day streak</span>
+        <button class="locker" id="open-locker">&#127942; Locker &amp; badges</button>
+        <button class="locker ranks" id="open-ranks">&#127941; Rankings</button>
+      </div>
+      <br><button class="install show" id="install">&#11015; Download / install</button>
+      <div class="dlbox" id="dlbox" hidden>
+        <div id="dlmsg"></div>
+        <a class="dlfile" href="download/forkade.html" download="forkade.html">&#11015; Download as one file (plays offline, double-click to open)</a>
+      </div>
+      <button class="mute" id="mute">&#128266; Sound: on</button>
+      <div class="pname"><label>Player</label><input id="playername" maxlength="14" placeholder="ECHO"></div>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="foot">
+      <a href="https://github.com/YouNoui/forkade" target="_blank" rel="noopener noreferrer">Fork it on GitHub</a><br>
+      Built with HTML5 Canvas + JavaScript &middot; MIT licensed &middot; fork it, extend it, add your own.<br>
+      In every game: hold <b>R</b> or <b>Shift</b> to rewind &middot; <b>P</b> pause &middot; <b>Esc</b> back to menu.
+      <span class="nodata">🔒 Your play stays on this device by default. No cookies or third-party trackers. Rankings and anonymous counts are optional in Settings; only Post shares your nickname and score.</span>
+      <span class="legal"><a href="terms.html">Terms</a> &middot; <a href="privacy.html">Privacy</a> &middot; <a href="guidelines.html">Community rules</a> &middot; <a href="delete.html">Delete my data</a> &middot; <a href="mailto:hello@iamynoui.com">Contact</a> &middot; &copy; 2026 IAMYNOUI</span>
+    </div>
+  </div>
+
+  <div class="modal" id="locker" hidden>
+    <div class="sheet">
+      <button class="x" id="close-locker" aria-label="Close">&times;</button>
+      <h2>LOCKER</h2>
+      <p class="hint">Earn cores in every game: finish rounds, clear levels, beat your best and win badges. Spend them on ECHO skins that show up in every game.</p>
+      <div class="skins" id="skins"></div>
+      <h2>BADGES <span id="badge-count"></span></h2>
+      <div class="badges" id="badges"></div>
+    </div>
+  </div>
+  <div class="modal" id="ranks" hidden>
+    <div class="sheet">
+      <button class="x" id="close-ranks" aria-label="Close">&times;</button>
+      <h2>GLOBAL RANKINGS</h2>
+      <div class="rtabs" id="rgames"></div>
+      <div class="rtabs small"><button data-period="week" class="on">This week</button><button data-period="all">All time</button></div>
+      <ol class="rlist" id="rlist"></ol>
+      <p class="hint" id="rme"></p>
+      <p class="hint">No sign-up needed. Your device gets a random hidden ID and you pick a nickname.
+        Scores only appear here if you tap <b>Post</b> after a game. We only store your nickname, the game and your score.
+        See a rude or fake nickname? Tap &#9873; next to it.
+        <a href="privacy.html">Privacy</a> &middot; <a href="guidelines.html">Rules</a></p>
+      <p class="hint"><button class="forget" id="forget">Remove my scores and nickname</button> <span id="forget-msg"></span></p>
+    </div>
+  </div>
+  <div class="toasts" id="toasts"></div>
+
+  <div class="stage" id="stage">
+    <canvas id="game" width="900" height="560" tabindex="0"></canvas>
+    <iframe id="gframe" title="ECHO 3D" allow="fullscreen; autoplay"></iframe>
+    <div class="rotate">&#8635; Turn your phone sideways for a bigger screen</div>
+    <div class="touchctl" id="touchctl">
+      <div class="pad left">
+        <div class="tbtn u"  data-code="ArrowUp">&#9650;</div>
+        <div class="tbtn l"  data-code="ArrowLeft">&#9664;</div>
+        <div class="tbtn r"  data-code="ArrowRight">&#9654;</div>
+        <div class="tbtn dn" data-code="ArrowDown">&#9660;</div>
+      </div>
+      <div class="side">
+        <div class="tbtn ps"  data-code="KeyP" title="Pause">II</div>
+        <div class="tbtn rw"  data-code="KeyR">REW</div>
+        <div class="tbtn big" data-code="Space">ACT</div>
+      </div>
+    </div>
+    <div class="postbar" id="postbar" hidden>
+      <span id="pb-text"></span>
+      <input id="pb-name" maxlength="14" placeholder="nickname" aria-label="Nickname for the rankings">
+      <button id="pb-post">&#127941; Post to rankings</button>
+      <span id="pb-msg"></span>
+    </div>
+    <div class="stagebar">
+      <span class="back" id="back">&larr; Back to menu (Esc)</span>
+      <span>Move <kbd>WASD</kbd>/<kbd>&larr;&uarr;&darr;&rarr;</kbd></span>
+      <span>Act <kbd>Space</kbd>/<kbd>Click</kbd></span>
+      <span>Rewind <kbd>R</kbd>/<kbd>Shift</kbd></span>
+      <span>Pause <kbd>P</kbd></span>
+    </div>
+  </div>
+
+  <script src="daily.js"></script>
+  <script src="settings.js"></script>
+  <script src="engine.js"></script>
+  <script src="games/skyhop.js"></script>
+  <script src="games/swarm.js"></script>
+  <script src="games/striker.js"></script>
+  <script src="games/breaker.js"></script>
+  <script src="games/trail.js"></script>
+  <script src="games/drift.js"></script>
+  <script src="games/prism.js"></script>
+  <script src="games/wrecker.js"></script>
+  <script src="games/glass.js"></script>
+  <script src="games/demo.js"></script>
+  <script src="games/match.js"></script>
+  <script>
+    const grid = document.getElementById("grid");
+    const stage = document.getElementById("stage");
+    const canvas = document.getElementById("game");
+
+    Forkade.boot(canvas, () => {
+      stage.classList.remove("on", "d3", "portrait-game"); leaveFullscreen();
+      const gf = document.getElementById("gframe"); if (gf) { gf.removeAttribute("srcdoc"); gf.src = "about:blank"; }
+      refreshBest();
+    });
+
+    function refreshBest() {
+      document.querySelectorAll(".best[data-id]").forEach(el => {
+        el.innerHTML = "BEST <b>" + Forkade.scores.get(el.dataset.id) + "</b>";
+      });
+      refreshRewards();
+    }
+    /* ---------- rewards: wallet, stars, locker ---------- */
+    const R = Forkade.rewards;
+    const GAME_NAMES = () => Object.fromEntries([...Forkade.registry.map(g => [g.id, g.meta.title]), ["echo3d", "ECHO 3D"]]);
+    function refreshRewards() {
+      document.getElementById("w-cores").textContent = R.cores();
+      document.getElementById("w-rank").textContent = R.rank();
+      document.getElementById("w-streak").textContent = R.streak();
+      document.querySelectorAll(".stars[data-id]").forEach(el => {
+        const t = R.tierOf(el.dataset.id);
+        el.innerHTML = [0, 1, 2].map(k => `<span class="${k < t ? "on" : "off"}">&#9733;</span>`).join("");
+        el.title = t ? R.TIERS[t - 1].name + " badge" : "no badge yet";
+      });
+      if (!document.getElementById("locker").hidden) renderLocker();
+    }
+    function renderLocker() {
+      const own = R.owned(), eq = R.skin().id, cores = R.cores();
+      document.getElementById("skins").innerHTML = R.SKINS.map(sk => {
+        const has = own.includes(sk.id), bg = sk.color === "rainbow"
+          ? "linear-gradient(135deg,#ff3ea5,#ffb23f,#9dff57,#22e4ff,#a07bff)" : sk.color;
+        const btn = sk.id === eq ? `<button disabled>Equipped</button>`
+          : has ? `<button data-skin="${sk.id}">Equip</button>`
+          : `<button data-skin="${sk.id}" ${cores < sk.cost ? "disabled" : ""}>&#9670; ${sk.cost}</button>`;
+        return `<div class="skin ${sk.id === eq ? "eq" : ""}"><div class="sw" style="background:${bg};color:${sk.color === "rainbow" ? "#a07bff" : sk.color}"></div>${sk.name}${btn}</div>`;
+      }).join("");
+      const names = GAME_NAMES(); let total = 0;
+      document.getElementById("badges").innerHTML = Object.keys(names).map(id => {
+        const t = R.tierOf(id), g = R.goals(id, (Forkade.registry.find(x => x.id === id) || {}).meta); total += t;
+        const next = t < 3 ? `next: ${R.TIERS[t].name.toLowerCase()} at ${g[t]} pts (+${R.TIERS[t].cores} cores)` : "all badges won";
+        const stars = [0, 1, 2].map(k => `<span style="color:${k < t ? "#ffd84a" : "rgba(141,146,189,.35)"}">&#9733;</span>`).join("");
+        return `<div class="badge"><div>${names[id]}<small>${next}</small></div><div>${stars}</div></div>`;
+      }).join("");
+      document.getElementById("badge-count").textContent = `${total} / ${Object.keys(names).length * 3}`;
+    }
+    function toast(text) {
+      const t = document.createElement("div"); t.className = "toast"; t.textContent = text;
+      document.getElementById("toasts").appendChild(t); setTimeout(() => t.remove(), 3200);
+    }
+    document.getElementById("open-locker").addEventListener("click", () => {
+      document.getElementById("locker").hidden = false; renderLocker();
+    });
+    document.getElementById("close-locker").addEventListener("click", () => { document.getElementById("locker").hidden = true; });
+    document.getElementById("locker").addEventListener("click", e => {
+      if (e.target.id === "locker") e.currentTarget.hidden = true;
+      const id = e.target.dataset && e.target.dataset.skin; if (!id) return;
+      if (R.buy(id)) { Forkade.sfx.pickup(); toast("ECHO is now " + R.SKINS.find(s => s.id === id).name + "!"); }
+      refreshRewards(); renderLocker();
+    });
+
+    const gframe = document.getElementById("gframe");
+
+    // phones: go full screen and lock landscape where the browser allows it (Android); iPhone just rotates
+    function phoneFullscreen() {
+      if (!document.body.classList.contains("touch")) return;
+      const el = document.documentElement;
+      if (!document.fullscreenElement && el.requestFullscreen)
+        el.requestFullscreen({ navigationUI: "hide" }).then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock("landscape").catch(() => {})).catch(() => {});
+    }
+    function leaveFullscreen() { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); }
+    function openGame(id, options = {}) {
+      stage.classList.remove("d3", "t-tap", "t-lr");
+      const meta = (Forkade.registry.find(g => g.id === id) || {}).meta || {};
+      if (meta.touch) stage.classList.add("t-" + meta.touch);
+      Forkade.stats.send("play", id);
+      // Preserve portrait orientation for the three adaptive games.
+      if (!["skyhop","striker","breaker"].includes(id)) phoneFullscreen();
+      gframe.src = "about:blank";
+      stage.classList.add("on");
+      canvas.focus();
+      Forkade.play(id, options);
+    }
+    function open3D() {
+      Forkade.sfx.ensure(); phoneFullscreen(); Forkade.board.begin("echo3d"); Forkade.stats.send("play", "echo3d");
+      stage.classList.add("on", "d3");
+      // If the 3D page was inlined (single-file build), run it from srcdoc so it
+      // works with no separate file. Otherwise load the file (folder version).
+      if (window.__ECHO3D_HTML__) { gframe.removeAttribute("src"); gframe.srcdoc = window.__ECHO3D_HTML__; }
+      else { gframe.removeAttribute("srcdoc"); gframe.src = "games3d/echo3d.html"; }
+      gframe.focus();
+    }
+    function closeStage() {
+      stage.classList.remove("on", "d3", "portrait-game"); leaveFullscreen();
+      gframe.removeAttribute("srcdoc"); gframe.src = "about:blank";
+      refreshBest();
+    }
+    document.getElementById("back").addEventListener("click", () => Forkade.stop());
+    // the 3D game lives in an iframe and asks to close via postMessage
+    window.addEventListener("message", e => {
+      if (e.source === gframe.contentWindow && e.data?.t === "forkade-run-start") Forkade.board.begin(e.data.id);
+      if (e.data === "neon-3d-back") closeStage();
+      if (e.data && e.data.t === "forkade-score" && e.data.id === "echo3d" && e.source === gframe.contentWindow) {
+        const got = R.roundEnd("echo3d", e.data.score | 0, !!e.data.best);
+        if (got) toast(`+${got} cores from ECHO 3D`);
+        refreshRewards();
+      }
+    });
+
+    Forkade.registry.forEach((g, i) => {
+      const m = g.meta;
+      const card = document.createElement("div");
+      card.className = "card";
+      card.style.setProperty("--c", m.color);
+      card.innerHTML = `
+        <div class="num">${String(i + 1).padStart(2, "0")}</div>
+        <div class="dot"><span></span></div>
+        <h3 class="name">${m.title}</h3>
+        <div class="genre">${m.genre}</div>
+        <p class="desc">${m.desc}</p>
+        <span class="play">&#9654; Play now</span>
+        <div class="best" data-id="${g.id}">BEST <b>${Forkade.scores.get(g.id)}</b></div>
+        <div class="stars" data-id="${g.id}"></div>`;
+      card.addEventListener("click", () => openGame(g.id));
+      grid.appendChild(card);
+    });
+
+    /* ---------- 3D bonus game (three.js, in an iframe) ---------- */
+    (function add3D() {
+      const i = Forkade.registry.length;
+      const card = document.createElement("div");
+      card.className = "card";
+      card.style.setProperty("--c", "#9dff57");
+      card.innerHTML = `
+        <div class="num">${String(i + 1).padStart(2, "0")}</div>
+        <div class="dot"><span></span></div>
+        <h3 class="name">ECHO 3D <span style="font-size:12px;color:#9dff57">· 3D</span></h3>
+        <div class="genre">3D platformer</div>
+        <p class="desc">Run and jump ECHO across a floating neon obstacle course. Collect cores, reach the goal. Rewind your falls.</p>
+        <span class="play">&#9654; Play now</span>
+        <div class="best" data-id="echo3d">BEST <b>${Forkade.scores.get("echo3d")}</b></div>
+        <div class="stars" data-id="echo3d"></div>`;
+      card.addEventListener("click", open3D);
+      grid.appendChild(card);
+    })();
+
+    /* ---------- build-your-own card -> Playground ---------- */
+    (function addMake() {
+      const href = "playground.html";   // build_dist.py points this at the live site
+      const card = document.createElement("a");
+      card.className = "card make"; card.href = href;
+      card.style.setProperty("--c", "#ff3ea5");
+      card.innerHTML = `
+        <div class="num">+</div>
+        <div class="dot"><span></span></div>
+        <h3 class="name">MAKE YOUR OWN</h3>
+        <div class="genre">Open source &middot; MIT</div>
+        <p class="desc">Every game here is open source. Write your own in the Playground, play it instantly with rewind built in, then submit it to join the arcade.</p>
+        <span class="play">&#9998; Open Playground</span>
+        <div class="best">no install needed</div>`;
+      grid.appendChild(card);
+    })();
+
+    /* ---------- player name ---------- */
+    const nameInput = document.getElementById("playername");
+    try { nameInput.value = localStorage.getItem("neon-player") || ""; } catch (_) {}
+    nameInput.addEventListener("input", () => {
+      try { localStorage.setItem("neon-player", nameInput.value.trim() || "ECHO"); } catch (_) {}
+    });
+
+    /* ---------- touch controls ---------- */
+    const isTouch = matchMedia("(pointer:coarse)").matches || "ontouchstart" in window;
+    if (isTouch) { document.body.classList.add("touch"); document.getElementById("back").innerHTML = "&#10005; Menu"; }
+    document.querySelectorAll("#touchctl .tbtn").forEach(btn => {
+      const code = btn.dataset.code;
+      const down = e => { e.preventDefault(); Forkade.Input.hold(code, true); };
+      const up   = e => { e.preventDefault(); Forkade.Input.hold(code, false); };
+      btn.addEventListener("pointerdown", down);
+      btn.addEventListener("pointerup", up);
+      btn.addEventListener("pointerleave", up);
+      btn.addEventListener("pointercancel", up);
+    });
+
+    /* ---------- mute toggle ---------- */
+    const muteBtn = document.getElementById("mute");
+    function paintMute() {
+      muteBtn.innerHTML = Forkade.sfx.muted ? "🔇 Sound: off" : "🔊 Sound: on";
+    }
+    paintMute();
+    muteBtn.addEventListener("click", () => { Forkade.sfx.toggleMute(); Forkade.sfx.ensure(); paintMute(); });
+
+    // badge toasts raised outside a canvas game (3D, menu) show as DOM toasts
+    R.listeners.push((text) => {
+      const st = document.getElementById("stage").classList;
+      if (text && (!st.contains("on") || st.contains("d3"))) toast(text);   // 2D games draw their own toasts
+    });
+    { const d = R.daily(); if (d && d.cores) setTimeout(() => toast(`Day ${d.streak} streak! +${d.cores} cores`), 600); }
+    refreshRewards();
+    Forkade.stats.send("visit");
+
+    /* ---------- global rankings (opt-in) ---------- */
+    const B = Forkade.board;
+    const rankGames = () => [...Forkade.registry.map(g => ({ id: g.id, t: g.meta.title })), { id: "echo3d", t: "ECHO 3D" }];
+    let rGame = "skyhop", rPeriod = "week";
+    const esc = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    async function loadRanks() {
+      const list = document.getElementById("rlist"), me = document.getElementById("rme");
+      document.getElementById("rgames").innerHTML = rankGames().map(g =>
+        `<button data-game="${g.id}" class="${g.id === rGame ? "on" : ""}">${esc(g.t)}</button>`).join("");
+      document.querySelectorAll("#ranks [data-period]").forEach(b => b.classList.toggle("on", b.dataset.period === rPeriod));
+      list.innerHTML = "<li>Loading&hellip;</li>"; me.textContent = "";
+      try {
+        if (rPeriod === "daily") rGame = ForkadeDaily.challenge().game;
+        const d = await B.top(rGame, rPeriod);
+        list.innerHTML = d.top.length ? d.top.map(r =>
+          `<li class="${r.me ? "me" : ""}"><span class="n">#${r.rank}</span><span class="nm">${esc(r.name)}${r.me ? " (you)" : ""}</span><span class="sc">${r.score}</span>${
+            r.me || r.name === "Player" ? `<span class="rep"></span>` : `<button class="rep" data-rank="${r.rank}" data-name="${esc(r.name)}" title="Report this nickname" aria-label="Report ${esc(r.name)}">&#9873;</button>`}</li>`).join("")
+          : "<li>No scores yet this " + (rPeriod === "week" ? "week" : "time") + ". Be the first!</li>";
+        me.textContent = d.me ? `You're #${d.me.rank} of ${d.count} with ${d.me.score}.` : `${d.count} players ranked. Post a score after any round to join.`;
+      } catch (err) { list.innerHTML = `<li>${esc(err.message)}</li>`; }
+    }
+    document.getElementById("forget").addEventListener("click", async () => {
+      const m = document.getElementById("forget-msg");
+      if (document.getElementById("forget").dataset.sure !== "1") {
+        document.getElementById("forget").dataset.sure = "1"; m.textContent = "Tap again to confirm. This removes all your posted scores."; return;
+      }
+      m.textContent = "Removing\u2026";
+      try { await B.forget(); m.textContent = "Done. Your nickname and scores are gone from the rankings."; loadRanks(); }
+      catch (err) { m.textContent = err.message; }
+      document.getElementById("forget").dataset.sure = "";
+    });
+    document.getElementById("open-ranks").addEventListener("click", () => { document.getElementById("ranks").hidden = false; loadRanks(); });
+    document.getElementById("close-ranks").addEventListener("click", () => { document.getElementById("ranks").hidden = true; });
+    document.getElementById("ranks").addEventListener("click", e => {
+      if (e.target.id === "ranks") e.currentTarget.hidden = true;
+      if (e.target.dataset.game) { rGame = e.target.dataset.game; loadRanks(); }
+      if (e.target.dataset.period) { rPeriod = e.target.dataset.period; loadRanks(); }
+      const rb = e.target.closest && e.target.closest("button.rep");
+      if (rb) {
+        // two taps: first asks, second sends
+        if (rb.dataset.sure !== "1") { document.querySelectorAll("button.rep").forEach(x => { x.dataset.sure = ""; x.textContent = "\u2691"; });
+          rb.dataset.sure = "1"; rb.textContent = "Report?"; return; }
+        rb.disabled = true; rb.textContent = "\u2026";
+        B.report(rGame, rPeriod, +rb.dataset.rank, rb.dataset.name)
+          .then(() => { rb.textContent = "Thanks"; toast("Thanks, we'll take a look."); })
+          .catch(err => { rb.textContent = "\u2691"; rb.disabled = false; toast(err.message); });
+      }
+    });
+    // "post this score?" bar under the game, shown after a round ends
+    const pb = document.getElementById("postbar"), pbName = document.getElementById("pb-name"), pbMsg = document.getElementById("pb-msg");
+    let posted = null, shownRound = null;
+    try { pbName.value = localStorage.getItem("neon-player") || ""; } catch (_) {}
+    ["keydown", "keyup"].forEach(t => pbName.addEventListener(t, e => {
+      if (e.key === "Escape") { pbName.blur(); return; }     // Esc still goes back to the menu
+      e.stopPropagation();                                   // typing a name must not steer or restart the game
+      if (t === "keydown" && e.key === "Enter") document.getElementById("pb-post").click();
+    }));
+    setInterval(() => {
+      const L = B.last, on = stage.classList.contains("on");
+      const show = on && L && L.score >= 0;
+      if (show && (pb.hidden || shownRound !== L)) {
+        shownRound = L;
+        pb.hidden = false; pbMsg.textContent = ""; pbMsg.className = "";
+        const name = (rankGames().find(g => g.id === L.id) || {}).t || L.id;
+        document.getElementById("pb-text").textContent = `${name}: ${L.score} points`;
+      } else if (!show) pb.hidden = true;
+      if (!on) pb.hidden = true;
+    }, 250);
+    document.getElementById("pb-post").addEventListener("click", async () => {
+      const L = B.last; if (!L) return;
+      const name = pbName.value.trim();
+      if (name.length < 2) { pbMsg.textContent = "Pick a nickname first (2-14 letters or numbers)."; pbMsg.className = "err"; pbName.focus(); return; }
+      try { localStorage.setItem("neon-player", name); } catch (_) {}
+      document.getElementById("playername").value = name;
+      pbMsg.textContent = "Posting…"; pbMsg.className = "";
+      try {
+        const r = await B.post(L.id, L.score, name); posted = L;
+        pbMsg.textContent = r.pending ? r.message : `Posted! You're #${r.week.rank} this week and #${r.all.rank} all time (best ${r.all.best}).`;
+        // Keep Share available after posting.
+      } catch (err) { pbMsg.textContent = err.message; pbMsg.className = "err"; }
+    });
+
+    /* ---------- PWA: install button + service worker ---------- */
+    let deferredPrompt = null;
+    const installBtn = document.getElementById("install");
+    window.addEventListener("beforeinstallprompt", e => {
+      e.preventDefault(); deferredPrompt = e; installBtn.classList.add("show");
+    });
+    // one button for everyone: real install prompt where the browser offers it,
+    // clear steps where it doesn't (iPhone/iPad, Firefox...), plus a one-file download
+    const dlbox = document.getElementById("dlbox"), dlmsg = document.getElementById("dlmsg");
+    const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+    if (standalone) installBtn.classList.remove("show");
+    installBtn.addEventListener("click", async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const r = await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        if (r && r.outcome === "accepted") { installBtn.classList.remove("show"); return; }
+      }
+      const ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua) || (ua.includes("Mac") && "ontouchend" in document);
+      dlmsg.innerHTML = ios
+        ? "<b>iPhone / iPad:</b> tap the <b>Share</b> button (square with an arrow) in Safari, then <b>Add to Home Screen</b>. FORKADE then opens full-screen and works offline."
+        : /Android/.test(ua)
+        ? "<b>Android:</b> open the browser menu <b>&#8942;</b> and tap <b>Install app</b> (or <b>Add to Home screen</b>). It then works offline."
+        : "<b>Computer:</b> in Chrome or Edge, click the <b>install</b> icon at the right of the address bar (or menu &rarr; <b>Install FORKADE</b>). Or grab the single file below.";
+      dlbox.hidden = !dlbox.hidden;
+    });
+    window.addEventListener("appinstalled", () => { installBtn.classList.remove("show"); dlbox.hidden = true; });
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () =>
+        navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(reg => reg.update()).catch(() => {}));
+      // a new version took over: refresh once so the newest games load (never in the middle of a game)
+      const hadController = !!navigator.serviceWorker.controller;
+      let refreshPending = false;
+      const refreshNow = () => { try { if (sessionStorage.getItem("forkade-refreshed")) return; sessionStorage.setItem("forkade-refreshed", "1"); } catch (_) {} location.reload(); };
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (!hadController) return;                       // first install: nothing old to replace
+        if (stage.classList.contains("on")) refreshPending = true; else refreshNow();
+      });
+      setInterval(() => { if (refreshPending && !stage.classList.contains("on")) { refreshPending = false; refreshNow(); } }, 1000);
+    }
+  </script>
+  <script src="features.js"></script>
+</body>
+</html>

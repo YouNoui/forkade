@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
+<base href="/">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>FORKADE - open-source neon arcade</title>
@@ -192,7 +193,20 @@
   .rw{width:64px; height:64px; font-size:15px; border-color:var(--violet); color:var(--violet);}
   .u{grid-column:2; grid-row:1;} .l{grid-column:1; grid-row:2;}
   .r{grid-column:3; grid-row:2;} .dn{grid-column:2; grid-row:3;}
-</style>
+
+  #settings label{display:flex;align-items:center;gap:12px;margin:18px 0;font-size:14px;}
+  #settings input[type=checkbox]{width:22px;height:22px;accent-color:var(--cyan);}
+  .settings-button{min-height:36px}.daily{grid-column:1/-1;color:var(--ink);font-family:inherit;text-align:left;}
+  #daily-claim{grid-column:1/-1;justify-self:start;}
+  .reduce-motion *, .reduce-motion *::before,.reduce-motion *::after{animation:none!important;transition:none!important;}
+  .stage.portrait-game #game{width:min(94vw,calc((100dvh - 110px) * 560 / 900));max-height:calc(100dvh - 110px);aspect-ratio:560/900;}
+  body.touch .stage.portrait-game #game{width:min(100vw,calc((100dvh - 90px) * 560 / 900));max-height:calc(100dvh - 90px);}
+  body.touch .stage.portrait-game .rotate{display:none!important;}
+  body.touch .settings-button{font-size:11px;padding:6px;margin-left:6px;}
+  body.touch .postbar{top:auto;bottom:max(85px,env(safe-area-inset-bottom));width:calc(100vw - 20px);}
+  .stage.d3 .stagebar{display:flex;position:absolute;top:6px;left:6px;z-index:80;}
+  .stage.d3 .stagebar > span{display:none;}
+  </style>
 <meta name="description" content="Free open-source browser arcade with twelve games, rewind controls and a Playground game builder.">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://iamynoui.com/#organization","name":"IAMYNOUI","url":"https://iamynoui.com/","address":{"@type":"PostalAddress","addressCountry":"SG"}},{"@type":"SoftwareApplication","@id":"https://playforkade.com/#website","name":"Forkade","url":"https://playforkade.com/","description":"Free open-source browser arcade with twelve games, rewind controls and a Playground game builder.","publisher":{"@id":"https://iamynoui.com/#organization"},"applicationCategory":"GameApplication","operatingSystem":"Web browser","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}</script>
 <link rel="canonical" href="https://playforkade.com/">
@@ -231,7 +245,7 @@
       <a href="https://github.com/YouNoui/forkade" target="_blank" rel="noopener noreferrer">Fork it on GitHub</a><br>
       Built with HTML5 Canvas + JavaScript &middot; MIT licensed &middot; fork it, extend it, add your own.<br>
       In every game: hold <b>R</b> or <b>Shift</b> to rewind &middot; <b>P</b> pause &middot; <b>Esc</b> back to menu.
-      <span class="nodata">&#128274; No accounts, no ads, no tracking cookies. Your progress stays on this device. We only count visits and plays anonymously (no IP addresses kept), and if <i>you</i> tap <b>Post</b>, your nickname and score go on the public rankings.</span>
+      <span class="nodata">🔒 Your play stays on this device by default. No cookies or third-party trackers. Rankings and anonymous counts are optional in Settings; only Post shares your nickname and score.</span>
       <span class="legal"><a href="terms.html">Terms</a> &middot; <a href="privacy.html">Privacy</a> &middot; <a href="guidelines.html">Community rules</a> &middot; <a href="delete.html">Delete my data</a> &middot; <a href="mailto:hello@iamynoui.com">Contact</a> &middot; &copy; 2026 IAMYNOUI</span>
     </div>
   </div>
@@ -295,6 +309,8 @@
     </div>
   </div>
 
+  <script src="daily.js"></script>
+  <script src="settings.js"></script>
   <script src="engine.js"></script>
   <script src="games/skyhop.js"></script>
   <script src="games/swarm.js"></script>
@@ -313,7 +329,7 @@
     const canvas = document.getElementById("game");
 
     Forkade.boot(canvas, () => {
-      stage.classList.remove("on", "d3"); leaveFullscreen();
+      stage.classList.remove("on", "d3", "portrait-game"); leaveFullscreen();
       const gf = document.getElementById("gframe"); if (gf) { gf.removeAttribute("srcdoc"); gf.src = "about:blank"; }
       refreshBest();
     });
@@ -382,19 +398,20 @@
         el.requestFullscreen({ navigationUI: "hide" }).then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock("landscape").catch(() => {})).catch(() => {});
     }
     function leaveFullscreen() { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); }
-    function openGame(id) {
+    function openGame(id, options = {}) {
       stage.classList.remove("d3", "t-tap", "t-lr");
       const meta = (Forkade.registry.find(g => g.id === id) || {}).meta || {};
       if (meta.touch) stage.classList.add("t-" + meta.touch);
       Forkade.stats.send("play", id);
-      phoneFullscreen();
+      // Preserve portrait orientation for the three adaptive games.
+      if (!["skyhop","striker","breaker"].includes(id)) phoneFullscreen();
       gframe.src = "about:blank";
       stage.classList.add("on");
       canvas.focus();
-      Forkade.play(id);
+      Forkade.play(id, options);
     }
     function open3D() {
-      Forkade.sfx.ensure(); phoneFullscreen(); Forkade.stats.send("play", "echo3d");
+      Forkade.sfx.ensure(); phoneFullscreen(); Forkade.board.begin("echo3d"); Forkade.stats.send("play", "echo3d");
       stage.classList.add("on", "d3");
       // If the 3D page was inlined (single-file build), run it from srcdoc so it
       // works with no separate file. Otherwise load the file (folder version).
@@ -403,13 +420,14 @@
       gframe.focus();
     }
     function closeStage() {
-      stage.classList.remove("on", "d3"); leaveFullscreen();
+      stage.classList.remove("on", "d3", "portrait-game"); leaveFullscreen();
       gframe.removeAttribute("srcdoc"); gframe.src = "about:blank";
       refreshBest();
     }
     document.getElementById("back").addEventListener("click", () => Forkade.stop());
     // the 3D game lives in an iframe and asks to close via postMessage
     window.addEventListener("message", e => {
+      if (e.source === gframe.contentWindow && e.data?.t === "forkade-run-start") Forkade.board.begin(e.data.id);
       if (e.data === "neon-3d-back") closeStage();
       if (e.data && e.data.t === "forkade-score" && e.data.id === "echo3d" && e.source === gframe.contentWindow) {
         const got = R.roundEnd("echo3d", e.data.score | 0, !!e.data.best);
@@ -521,6 +539,7 @@
       document.querySelectorAll("#ranks [data-period]").forEach(b => b.classList.toggle("on", b.dataset.period === rPeriod));
       list.innerHTML = "<li>Loading&hellip;</li>"; me.textContent = "";
       try {
+        if (rPeriod === "daily") rGame = ForkadeDaily.challenge().game;
         const d = await B.top(rGame, rPeriod);
         list.innerHTML = d.top.length ? d.top.map(r =>
           `<li class="${r.me ? "me" : ""}"><span class="n">#${r.rank}</span><span class="nm">${esc(r.name)}${r.me ? " (you)" : ""}</span><span class="sc">${r.score}</span>${
@@ -558,7 +577,7 @@
     });
     // "post this score?" bar under the game, shown after a round ends
     const pb = document.getElementById("postbar"), pbName = document.getElementById("pb-name"), pbMsg = document.getElementById("pb-msg");
-    let posted = null;
+    let posted = null, shownRound = null;
     try { pbName.value = localStorage.getItem("neon-player") || ""; } catch (_) {}
     ["keydown", "keyup"].forEach(t => pbName.addEventListener(t, e => {
       if (e.key === "Escape") { pbName.blur(); return; }     // Esc still goes back to the menu
@@ -567,12 +586,13 @@
     }));
     setInterval(() => {
       const L = B.last, on = stage.classList.contains("on");
-      const show = on && L && L.score > 0 && posted !== L;
-      if (show && pb.hidden) {
+      const show = on && L && L.score >= 0;
+      if (show && (pb.hidden || shownRound !== L)) {
+        shownRound = L;
         pb.hidden = false; pbMsg.textContent = ""; pbMsg.className = "";
         const name = (rankGames().find(g => g.id === L.id) || {}).t || L.id;
         document.getElementById("pb-text").textContent = `${name}: ${L.score} points`;
-      } else if (!show && !pb.hidden && posted !== L) pb.hidden = true;
+      } else if (!show) pb.hidden = true;
       if (!on) pb.hidden = true;
     }, 250);
     document.getElementById("pb-post").addEventListener("click", async () => {
@@ -584,8 +604,8 @@
       pbMsg.textContent = "Posting…"; pbMsg.className = "";
       try {
         const r = await B.post(L.id, L.score, name); posted = L;
-        pbMsg.textContent = `Posted! You're #${r.week.rank} this week and #${r.all.rank} all time (best ${r.all.best}).`;
-        setTimeout(() => { if (posted === L) pb.hidden = true; }, 4500);
+        pbMsg.textContent = r.pending ? r.message : `Posted! You're #${r.week.rank} this week and #${r.all.rank} all time (best ${r.all.best}).`;
+        // Keep Share available after posting.
       } catch (err) { pbMsg.textContent = err.message; pbMsg.className = "err"; }
     });
 
@@ -631,5 +651,6 @@
       setInterval(() => { if (refreshPending && !stage.classList.contains("on")) { refreshPending = false; refreshNow(); } }, 1000);
     }
   </script>
+  <script src="features.js"></script>
 </body>
 </html>

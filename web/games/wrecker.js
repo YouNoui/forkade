@@ -23,8 +23,8 @@
       const L = this.level, towers = Math.min(3, 1 + ((L + 1) / 2 | 0));
       let x = 0;
       for (let t = 0; t < towers && x < COLS - 2; t++) {
-        const w = Math.min(COLS - x, 3 + ((Math.random() * 3) | 0) + (towers === 1 ? 3 : 0));
-        const h = Math.min(ROWS, 8 + ((Math.random() * (5 + L * 2)) | 0));
+        const w = Math.min(COLS - x, 3 + ((NE.rng() * 3) | 0) + (towers === 1 ? 3 : 0));
+        const h = Math.min(ROWS, 8 + ((NE.rng() * (5 + L * 2)) | 0));
         const tint = t % 3;
         for (let cx = x; cx < x + w; cx++) for (let r = 0; r < h; r++) {
           const row = ROWS - 1 - r, i = row * COLS + cx;
@@ -35,10 +35,10 @@
         }
         // TNT tucked inside
         for (let k = 0; k < 1 + ((L / 2) | 0); k++) {
-          const cx = x + ((Math.random() * w) | 0), r = 1 + ((Math.random() * Math.max(1, h - 2)) | 0);
+          const cx = x + ((NE.rng() * w) | 0), r = 1 + ((NE.rng() * Math.max(1, h - 2)) | 0);
           g[(ROWS - 1 - r) * COLS + cx] = TNT;
         }
-        x += w + 1 + ((Math.random() * 2) | 0);
+        x += w + 1 + ((NE.rng() * 2) | 0);
       }
       this.initial = g.reduce((n, v) => n + (v ? 1 : 0), 0);
       this.destroyed = 0;

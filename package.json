@@ -1,0 +1,9 @@
+{
+  "name": "forkade",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/*.test.cjs scripts/search-discovery.test.mjs",
+    "test:browser": "node tests/browser.cjs"
+  },
+  "devDependencies": { "playwright": "1.64.1" }
+}

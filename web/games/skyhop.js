@@ -21,7 +21,7 @@
       const cx = Math.max(20 + w / 2, Math.min(this.W - 20 - w / 2, this.lastX + NE.rand(-240, 240)));
       const x = cx - w / 2; this.lastX = cx;
       this.plats.push({ x, y, w, h: 18 });
-      if (Math.random() < 0.5) this.orbs.push({ x: x + w / 2, y: y - 26, on: true });
+      if (NE.rng() < 0.5) this.orbs.push({ x: x + w / 2, y: y - 26, on: true });
     }
     step(dt) {
       const I = this.input;
