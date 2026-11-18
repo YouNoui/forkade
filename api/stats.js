@@ -9,7 +9,7 @@
 // Needs the same Upstash env vars as the rankings, plus STATS_KEY (any long secret) for the owner view.
 
 const crypto = require("crypto");
-const GAMES = ["skyhop", "swarm", "striker", "breaker", "trail", "drift", "prism", "match", "wrecker", "glass", "demo", "echo3d", "playground"];
+const GAMES = ["skyhop", "swarm", "striker", "breaker", "trail", "drift", "prism", "match", "wrecker", "glass", "demo", "echo3d", "rampage", "playground"];
 
 function redis() {
   const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;

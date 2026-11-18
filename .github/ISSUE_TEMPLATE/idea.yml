@@ -1,0 +1,20 @@
+name: Idea
+description: Suggest an improvement to the arcade.
+title: "[Idea] "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would this improve for players?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea and how it would work
+    validations:
+      required: true
+  - type: textarea
+    id: privacy
+    attributes:
+      label: How would it stay local-first and optional?

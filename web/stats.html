@@ -56,7 +56,7 @@
   Counts skip bots and browsers that send Do Not Track / Global Privacy Control, so real numbers are a little higher.</p>
 <script>
   const NAMES = { skyhop: "Sky Hop", swarm: "Neon Swarm", striker: "Sky Striker", breaker: "Pulse Breaker", trail: "Echo Trail",
-    drift: "Driftstorm", prism: "Prism Stacks", match: "Core Match", wrecker: "Tower Wrecker", glass: "Glass City", demo: "Demolition Chain", echo3d: "ECHO 3D", playground: "Playground" };
+    drift: "Driftstorm", prism: "Prism Stacks", match: "Core Match", wrecker: "Tower Wrecker", glass: "Glass City", demo: "Demolition Chain", echo3d: "ECHO 3D", rampage: "RAMPAGE 3D", playground: "Playground" };
   const $ = id => document.getElementById(id), api = (location.protocol === "file:" ? "https://playforkade.com" : "") + "/api/stats";
   try { $("key").value = localStorage.getItem("forkade-stats-key") || ""; } catch (_) {}
   async function load() {

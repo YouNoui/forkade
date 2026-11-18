@@ -257,7 +257,10 @@
   try { document.getElementById("who").textContent = localStorage.getItem("neon-player") || "ECHO"; } catch (_) {}
 
   let prev = performance.now();
+  let settingsPaused=false;
+  addEventListener('message',e=>{if(e.source===parent&&e.data?.t==='forkade-pause')settingsPaused=e.data.paused;});
   function frame(now) {
+    if(settingsPaused){last=now;requestAnimationFrame(frame);return;}
     const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
     const wantRw = keys.KeyR || keys.ShiftLeft || keys.ShiftRight || tk.rw;
 
@@ -355,5 +358,12 @@
   requestAnimationFrame(frame);
 })();
 </script>
-</body>
+<script>
+  const gear=document.createElement('button');gear.textContent='⚙';gear.setAttribute('aria-label','Settings');
+  Object.assign(gear.style,{position:'fixed',right:'max(62px,env(safe-area-inset-right))',top:'max(8px,env(safe-area-inset-top))',zIndex:100,padding:'8px',color:'#22e4ff',background:'#06051a',border:'1px solid #22e4ff',borderRadius:'8px'});
+  gear.onclick=()=>parent.postMessage({t:'forkade-settings-open'},'*');document.body.appendChild(gear);
+  addEventListener('pointerdown',()=>{try{parent.Forkade?.sfx.ensure();}catch(_){}},{passive:true});
+  addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+  document.documentElement.style.overscrollBehavior='none';document.body.style.overscrollBehavior='none';
+  </script></body>
 </html>

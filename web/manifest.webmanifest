@@ -1,7 +1,7 @@
 {
   "name": "FORKADE",
   "short_name": "Forkade",
-  "description": "Six small neon games, one hero, one twist: rewind time. Plays in your browser, installs to your phone.",
+  "description": "Thirteen neon games, one hero, one twist: rewind time. Plays in your browser, installs to your phone.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "fullscreen",

@@ -64,6 +64,10 @@
       "destination": "/entries/echo3d.html"
     },
     {
+      "source": "/rampage",
+      "destination": "/entries/rampage.html"
+    },
+    {
       "source": "/:path*",
       "destination": "/index.html"
     }

@@ -6,10 +6,12 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
  const browser=await (process.env.WEBKIT?webkit:chromium).launch({headless:true,...(process.env.WEBKIT?{}:{channel:'chromium',args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']})});
  try{
   for(const bundle of ['web','dist'])for(const size of [{width:1280,height:900},{width:390,height:844},{width:844,height:390}]){
+   console.log('Matrix',bundle,size.width);
    const context=await browser.newContext({viewport:size,hasTouch:size.width!==1280,isMobile:size.width!==1280,serviceWorkers:'block'}),page=await context.newPage(),errors=[],sent=[];
    page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});page.on('request',r=>{if(r.url().includes('/api/'))sent.push(r.url());});
    const url=base+(bundle==='web'?'/':'/dist/forkade.html');await page.goto(url);await page.waitForFunction(()=>window.Forkade&&document.querySelector('#daily-challenge'));
    assert.equal(sent.length,0,'default play must not send telemetry or tokens');
+   await page.locator('.title').click();if(await page.evaluate(()=>!!(window.AudioContext||window.webkitAudioContext)))assert.equal(await page.evaluate(()=>Forkade.sfx._ac?.state),'running','audio unlocked on first tap');
    const ids=await page.evaluate(()=>Forkade.registry.map(g=>g.id));
    for(const id of ids){
     await page.evaluate(id=>openGame(id),id);await page.waitForTimeout(160);
@@ -33,8 +35,20 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
    await page.locator('#pb-share').click();assert.match(await page.evaluate(()=>window.copied),/I scored 120 in SKY HOP on FORKADE.*https:\/\/playforkade.com\/skyhop/);
    await page.evaluate(()=>Object.defineProperty(navigator,'share',{value:async data=>window.shared=data,configurable:true}));await page.locator('#pb-share').click();assert.match(await page.evaluate(()=>window.shared.text),/120/);
    await page.evaluate(()=>Forkade.stop());
-   await page.evaluate(()=>open3D());await page.waitForTimeout(900);assert.ok(await page.frameLocator('#gframe').locator('canvas').count());await page.screenshot({path:path.join(out,`${bundle}-${size.width}-echo3d.png`)});
+   await page.evaluate(()=>open3D());await page.frameLocator('#gframe').locator('canvas').waitFor({state:'visible',timeout:10000}).catch(async e=>{console.log('3D diagnostic',errors,await page.locator('#stage').getAttribute('class'),await page.locator('#gframe').boundingBox(),page.frames().map(f=>f.url()));throw e;});await page.screenshot({path:path.join(out,`${bundle}-${size.width}-echo3d.png`)});
    await page.evaluate(()=>closeStage());
+   if(await page.locator('.name').filter({hasText:'RAMPAGE 3D'}).count()){
+    await page.evaluate(()=>open3D('rampage'));await page.waitForTimeout(700);
+    const frame=page.frames().find(f=>f!==page.mainFrame());await frame.waitForFunction(()=>window.Rampage);
+    const initial=await frame.evaluate(()=>Rampage.state.time);await frame.locator('#pause').click();await page.waitForTimeout(180);const paused=await frame.evaluate(()=>Rampage.state.time);await page.waitForTimeout(180);assert.equal(await frame.evaluate(()=>Rampage.state.time),paused);await frame.locator('#pause').click();
+    await frame.evaluate(()=>{dispatchEvent(new KeyboardEvent('keydown',{code:'KeyD'}));dispatchEvent(new KeyboardEvent('keydown',{code:'KeyW'}));});await page.waitForTimeout(700);
+    await frame.evaluate(()=>{dispatchEvent(new KeyboardEvent('keyup',{code:'KeyD'}));dispatchEvent(new KeyboardEvent('keyup',{code:'KeyW'}));});
+    await frame.locator('#stomp').click();await page.waitForTimeout(150);assert.ok(await frame.evaluate(()=>Rampage.state.score>0));assert.ok(await frame.evaluate(()=>Rampage.state.chunks.length>0));
+    await page.screenshot({path:path.join(out,`${bundle}-${size.width}-rampage.png`)});
+    const after=await frame.evaluate(()=>Rampage.state.score);await frame.locator('#rewind').hover();await page.mouse.down();await frame.waitForFunction(score=>Rampage.state.score<score,after,{timeout:5000});await page.mouse.up();assert.ok(await frame.evaluate(()=>Rampage.state.score)<after,'rewind restores destruction score');
+    const stick=await frame.locator('#stick').boundingBox();await page.mouse.move(stick.x+stick.width/2,stick.y+stick.height/2);await page.mouse.down();await page.mouse.move(stick.x+stick.width*.8,stick.y+stick.height/2);const x=await frame.evaluate(()=>Rampage.state.x);await frame.waitForFunction(x=>Rampage.state.x>x,x,{timeout:5000});await page.mouse.up();const moved=await frame.evaluate(()=>({x:Rampage.state.x,paused:Rampage.paused,done:Rampage.state.done,time:Rampage.state.time}));assert.ok(moved.x>x,'thumb stick moves ECHO '+JSON.stringify({x,moved,stick}));
+    await page.evaluate(()=>closeStage());
+   }
    if(bundle==='web'){
     await page.goto(base+'/glass');await page.waitForFunction(()=>Forkade.current()?.id==='glass');assert.match(await page.title(),/GLASS CITY/);
     await page.goto(base+'/?game=skyhop');await page.waitForFunction(()=>Forkade.current()?.id==='skyhop');

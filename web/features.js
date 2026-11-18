@@ -76,6 +76,6 @@
     const query = new URLSearchParams(location.search), path = location.pathname.replace(/^\/+|\/+$/g,'');
     const id = query.get('game') || query.get('g') || (query.size===1 && !query.get('daily') ? [...query.keys()][0] : '') || path;
     if (query.has('daily')) { dailyCard.click(); return; }
-    if (id === 'echo3d') open3D(); else if (F.registry.some(g=>g.id===id)) openGame(id);
+    if (['echo3d','rampage'].includes(id)) open3D(id); else if (F.registry.some(g=>g.id===id)) openGame(id);
   }, 0);
 })();

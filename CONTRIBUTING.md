@@ -17,7 +17,7 @@ FORKADE is open source (MIT). Anyone can build a game and send it in.
 - Use the shared look: `Forkade.palette`, `glowRect`, `glowCircle`, `drawEcho`, `text`, `banner`.
 - **Make it your own.** Genres are free to use, but don't copy another game's name, art, characters,
   piece set or exact layout (no Tetris-style 7-tetromino 10×20 well, no brand names).
-- No tracking, no network calls, no ads. FORKADE collects no data and games must keep it that way.
+- No tracking, no network calls, no ads. Casual play stays local; only the shared launcher may send explicitly opted-in rankings or anonymous counts. Game code must not collect data.
 - Plain JavaScript, no build step, no external libraries.
 
 ## Running locally
