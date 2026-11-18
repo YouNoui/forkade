@@ -12,7 +12,8 @@ test('real handlers: consent, run binding, replay, speed, expiry, daily, moderat
   assert.equal((await request(stats,'POST',{e:'play',game:'skyhop'},'/api/stats')).status,204);assert.equal(redis.data.size,0);
   await request(stats,'POST',{e:'play',game:'skyhop',consent:true},'/api/stats');assert.ok(redis.data.size>0);
   let token=await start();now+=10000;
-  assert.equal((await call({game:'skyhop',score:100,name:'Tester',token,pid:other})).status,400);
+  // round tokens carry no player id (privacy); they're single-use and bound to the game
+  assert.equal((await call({game:'glass',score:100,name:'Tester',token,pid:other})).status,400);   // wrong game: rejected, token kept
   assert.equal((await call({game:'skyhop',score:100,name:'Tester',token})).status,200);
   now+=9000;assert.equal((await call({game:'skyhop',score:100,name:'Tester',token})).status,400);
   token=await start();assert.equal((await call({game:'skyhop',score:10000,name:'Tester',token})).status,400);

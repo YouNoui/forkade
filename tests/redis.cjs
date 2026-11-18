@@ -29,7 +29,7 @@ class Redis {
       case 'ZREVRANK':{const i=[...(v||[])].sort((x,y)=>y[1]-x[1]).findIndex(x=>x[0]===a[0]);return i<0?null:i;}
       case 'ZRANGE':{let rows=[...(v||[])].sort((x,y)=>a.includes('REV')?y[1]-x[1]:x[1]-y[1]);rows=rows.slice(Number(a[0]),Number(a[1])<0?undefined:Number(a[1])+1);return a.includes('WITHSCORES')?rows.flatMap(([id,n])=>[id,String(n)]):rows.map(x=>x[0]);}
       case 'ZREMRANGEBYSCORE':if(v)for(const [id,n]of v)if(n<=Number(a[1]))v.delete(id);return 1;
-      case 'EVAL':{const key=a[1],raw=this.get(key);if(!raw)return null;const r=JSON.parse(raw);if(r.player!==a[2]||r.game!==a[3])return null;this.data.delete(key);return raw;}
+      case 'EVAL':{const key=a[1],raw=this.get(key);if(!raw)return null;const r=JSON.parse(raw);if(r.game!==a[3])return null;this.data.delete(key);return raw;}
       default:throw Error('Unsupported Redis command '+op);
     }
   }

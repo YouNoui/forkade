@@ -399,15 +399,16 @@
   };
 
   /* ---------------------------------------------------------- rankings ---- */
-  // Ranked-run consent starts temporary tokens; only Post shares a nickname and score.
+  // Each round gets an anonymous timing token; only tapping Post shares a nickname and score.
   // Identity = a random id made on this device + the nickname they choose.
   const board = {
     api: (typeof location !== "undefined" && location.protocol === "file:" ? "https://playforkade.com" : "") + "/api/leaderboard",
     last: null, run: null, daily: null,
     begin(game, daily = null) {
       this.last = null; this.daily = daily;
-      this.run = settings.ranked ? fetch(this.api, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'start', game, pid: this.pid(), daily }) })
+      // anonymous round token (game + start time only), so a posted score can be checked against time played
+      this.run = (typeof navigator === 'undefined' || navigator.onLine !== false) ? fetch(this.api, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'start', game, daily }) })
         .then(async r => { const j = await r.json(); if (!r.ok) throw Error(j.error); return j; })
         .catch(e => ({ error: e.message })) : null;
     },                                    // { id, score } of the round that just ended
@@ -438,7 +439,7 @@
     },
     async post(game, score, name) {
       const round = this.last;
-      if (!round || !round.run || !settings.ranked) throw Error('Enable ranked runs in Settings, then play a new round. Casual play stays on your device.');
+      if (!round || !round.run) throw Error('Rankings need a connection when the round starts. Play a new round online to post.');
       const run = await round.run;
       if (!run.token) throw Error(run.error || 'No run token. Start a new ranked round online.');
       const r = await fetch(this.api, { method: "POST", headers: { "Content-Type": "application/json" },

@@ -50,7 +50,7 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
    assert.equal(await snap(a),await snap(b),game+' identical daily level');
   }
   // Opt-in run + deliberate Post through the actual handler (only in-memory test data).
-  await a.evaluate(()=>{Forkade.settings.ranked=true;Forkade.settings.save();openGame('skyhop');});await a.waitForFunction(async()=>!!(await Forkade.board.run)?.token);
+  await a.evaluate(()=>{openGame('skyhop');});await a.waitForFunction(async()=>!!(await Forkade.board.run)?.token);
   for(const [k,v]of fixture.db.data)if(k.startsWith('run:')){const run=JSON.parse(v);run.at-=20000;fixture.db.data.set(k,JSON.stringify(run));}
   await a.evaluate(()=>{const g=Forkade.current();g.score=120;g.state='over';});await a.waitForTimeout(400);
   await a.locator('#pb-name').fill('Tester');await a.locator('#pb-post').click();await a.waitForFunction(()=>document.querySelector('#pb-msg').textContent.startsWith('Posted!'));

@@ -176,10 +176,16 @@ module.exports = async function handler(req, res) {
       const b = await readBody(req);
       if (b.action === "report") return report(R, b, req, res, week);
       if (b.action === "moderate") return moderate(R, b, res, week);
+      // round start: anonymous on purpose (no player id), so it runs before the id check
+      if (b.action === 'start') {
+        if (!CAPS[b.game]) return send(res, 400, { error: "Unknown game." });
+        const ip = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "na";
+        const ipHash = crypto.createHash("sha256").update(ip + week).digest("hex").slice(0, 24);   // spam check only, gone in 1s
+        const started = await Runs.start(R, b, ipHash); return send(res, started.status || 200, started);
+      }
       const game = b.game, score = Math.floor(Number(b.score)), name = cleanName(b.name), pid = b.pid;
       if (!CAPS[game]) return send(res, 400, { error: "Unknown game." });
       if (!validPid(pid)) return send(res, 400, { error: "Bad player id." });
-      if (b.action === 'start') { const started = await Runs.start(R,b); return send(res, started.status || 200, started); }
       if (!validName(name)) return send(res, 400, { error: "Pick a nickname: 2-14 letters or numbers, nothing rude." });
       if (!(score > 0 && score <= CAPS[game])) return send(res, 400, { error: "That score doesn't look right." });
 
