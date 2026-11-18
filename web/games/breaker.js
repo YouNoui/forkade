@@ -10,6 +10,7 @@
     }
     // every level is a new wall shape; tougher bricks take 2-3 hits
     buildWall() {
+      this.brickW = (this.W - 80) / 10 - 6;
       const L = this.level, cols = ["cyan", "lime", "amber", "magenta", "violet"];
       const rows = Math.min(8, 4 + Math.ceil(L / 2)), shape = (L - 1) % 5;
       this.bricks = [];
@@ -20,7 +21,7 @@
         if (shape === 3 && Math.abs(mid - 2.5) + Math.abs(row - rows / 2) > rows / 2 + 1) continue; // twin diamonds
         if (shape === 4 && row % 3 === 2 && col % 3 !== 0) continue;         // ladders
         const hp = Math.min(3, 1 + (row < Math.floor((L - 1) / 2) ? 1 : 0) + (L >= 6 && row === 0 ? 1 : 0));
-        this.bricks.push({ x: 60 + col * 78, y: 80 + row * 32, c: P[cols[row % 5]], hp });
+        this.bricks.push({ x: 40 + col * (this.brickW + 6), y: 80 + row * 32, c: P[cols[row % 5]], hp });
       }
       this.speed = 420 + Math.min(260, (L - 1) * 35);
       this.stuck = true; this.bx = this.paddle; this.by = this.H - 70;
@@ -61,7 +62,7 @@
       }
       for (let i = 0; i < this.bricks.length; i++) {
         const br = this.bricks[i];
-        if (Math.abs(this.bx - (br.x + 34)) < 38 && Math.abs(this.by - (br.y + 12)) < 18) {
+        if (Math.abs(this.bx - (br.x + this.brickW / 2)) < this.brickW / 2 + 4 && Math.abs(this.by - (br.y + 12)) < 18) {
           this.bvy *= -1; this.shake.add(2);
           this.particles.emit(this.bx, this.by, br.c, { n: 8, speed: 3 });
           if (--br.hp <= 0) { this.score += 15 * this.level; NE.sfx.pickup(); this.bricks.splice(i, 1); }
@@ -94,9 +95,9 @@
     }
     render(ctx) {
       for (const br of this.bricks) {
-        if (br.hp >= 3) { NE.glowRect(ctx, "#b8bcd8", br.x, br.y, 68, 24, 5); }
-        else NE.glowRect(ctx, br.c, br.x, br.y, 68, 24, 5);
-        if (br.hp === 2) NE.glowRect(ctx, P.white, br.x + 4, br.y + 4, 60, 16, 4, 2);
+        if (br.hp >= 3) { NE.glowRect(ctx, "#b8bcd8", br.x, br.y, this.brickW, 24, 5); }
+        else NE.glowRect(ctx, br.c, br.x, br.y, this.brickW, 24, 5);
+        if (br.hp === 2) NE.glowRect(ctx, P.white, br.x + 4, br.y + 4, this.brickW - 8, 16, 4, 2);
       }
       NE.glowRect(ctx, P.cyan, this.paddle - this.pw / 2, this.H - 68, this.pw, 14, 7);
       NE.drawEcho(ctx, this.paddle, this.H - 86, 12, P.cyan, 1, this.t);

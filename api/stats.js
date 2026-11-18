@@ -16,6 +16,8 @@ function redis() {
   const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) return null;
   return async cmds => {
+    if (process.env.VERCEL_ENV === 'preview') { const prefix = 'preview:' + (process.env.VERCEL_GIT_COMMIT_REF || 'forkade') + ':';
+      cmds = cmds.map(c => [c[0], prefix + c[1], ...c.slice(2)]); }
     const r = await fetch(url.replace(/\/$/, "") + "/pipeline", {
       method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify(cmds),
@@ -50,6 +52,7 @@ module.exports = async function handler(req, res) {
   try {
     if (req.method === "POST") {
       const b = await readBody(req), d = day();
+      if (b.consent !== true || req.headers.dnt === "1" || req.headers["sec-gpc"] === "1") return send(res, 204, {});
       const ip = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
       const ua = String(req.headers["user-agent"] || "").slice(0, 200);
       if (/bot|crawl|spider|preview|headless/i.test(ua)) return send(res, 204, {});

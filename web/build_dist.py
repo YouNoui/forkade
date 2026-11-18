@@ -5,15 +5,15 @@ one file (three.js is inlined, so 3D works offline too)."""
 import re, json, pathlib
 
 here = pathlib.Path(__file__).parent
-html = (here / "index.html").read_text()
+html = (here / "index.html").read_text(encoding="utf-8").replace('<base href="/">', "")
 
 # inline <script src="..."></script>
 def inline(m):
-    return "<script>\n" + (here / m.group(1)).read_text() + "\n</script>"
+    return "<script>\n" + (here / m.group(1)).read_text(encoding="utf-8") + "\n</script>"
 html = re.sub(r'<script src="([^"]+)"></script>', inline, html)
 
 # inline the 3D page so the single file can run it via iframe srcdoc
-echo3d = (here / "games3d" / "echo3d.html").read_text()
+echo3d = (here / "games3d" / "echo3d.html").read_text(encoding="utf-8")
 inject = "<script>window.__ECHO3D_HTML__ = " + json.dumps(echo3d).replace("</", "<\\/") + ";</script>\n</body>"
 html = html.replace("</body>", inject, 1)
 
@@ -22,11 +22,11 @@ html = html.replace('"playground.html"', '"https://playforkade.com/playground.ht
 
 out = here.parent / "dist" / "forkade.html"
 out.parent.mkdir(exist_ok=True)
-out.write_text(html)
+out.write_text(html, encoding="utf-8")
 print("wrote", out, len(html), "bytes")
 
 # also publish it on the site so the Download button can hand it out
 dl = here / "download" / "forkade.html"
 dl.parent.mkdir(exist_ok=True)
-dl.write_text(html)
+dl.write_text(html, encoding="utf-8")
 print("wrote", dl)

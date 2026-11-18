@@ -180,6 +180,7 @@
   // ---- state ----
   const state = { x:0, y:2, z:0, vx:0, vy:0, vz:0, onGround:false, score:0, done:false, win:false, yaw:0 };
   function reset() {
+    if (window.__startedOnce) parent.postMessage({t:"forkade-run-start",id:"echo3d"},"*"); window.__startedOnce=true;
     Object.assign(state, { x:0, y:2.2, z:0, vx:0, vy:0, vz:0, onGround:false, score:0, done:false, win:false });
     coins.forEach(c => { c.got = false; c.mesh.visible = true; });
     rew.frames.length = 0; rew.energy = 1;

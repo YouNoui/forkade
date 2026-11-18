@@ -27,9 +27,9 @@
       this.dropT = 0; this.settleT = 0; this.settling = false; this.state = "play";
     }
     makePiece() {
-      const shape = SHAPES[(Math.random() * SHAPES.length) | 0];
+      const shape = SHAPES[(NE.rng() * SHAPES.length) | 0];
       // each cell gets its own colour - two colours max per shard keeps it readable
-      const a = 1 + ((Math.random() * 4) | 0), b = 1 + ((Math.random() * 4) | 0);
+      const a = 1 + ((NE.rng() * 4) | 0), b = 1 + ((NE.rng() * 4) | 0);
       return shape.map(([x, y], i) => [x, y, i % 2 ? b : a]);
     }
     spawn() {
@@ -136,6 +136,7 @@
     // round "orb" cells - a different look from square blocks
     orb(ctx, px, py, color, r = CELL * 0.42) {
       NE.glowCircle(ctx, color, px, py, r);
+      NE.symbol(ctx, COLORS.indexOf(color), px, py, r * 1.3);
       ctx.save(); ctx.globalAlpha = 0.55; ctx.fillStyle = "#ffffff";
       ctx.beginPath(); ctx.arc(px - r * 0.3, py - r * 0.3, r * 0.28, 0, NE.TAU); ctx.fill(); ctx.restore();
     }

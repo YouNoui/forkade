@@ -15,7 +15,7 @@
     startLevel() {
       const L = this.level;
       this.colors = L <= 2 ? 5 : 6;
-      this.g = Array.from({ length: N }, () => Array.from({ length: N }, () => (Math.random() * this.colors) | 0));
+      this.g = Array.from({ length: N }, () => Array.from({ length: N }, () => (NE.rng() * this.colors) | 0));
       this.removeInitial();
       // tuned so an average level takes ~15-25 moves and the squeeze tightens each level
       this.need = 1500 + (L - 1) * 300;  // points needed THIS level
@@ -61,7 +61,7 @@
         for (let c = 0; c < N; c++) {
           let col = [];
           for (let r = N - 1; r >= 0; r--) if (this.g[r][c] >= 0) col.push(this.g[r][c]);
-          for (let r = N - 1; r >= 0; r--) this.g[r][c] = col.length ? col.shift() : ((Math.random() * this.colors) | 0);
+          for (let r = N - 1; r >= 0; r--) this.g[r][c] = col.length ? col.shift() : ((NE.rng() * this.colors) | 0);
         }
       }
       if (score) { this.score += total; this.got += total; }
@@ -119,6 +119,7 @@
         const v = this.g[r][c]; if (v < 0) continue;
         const x = this.ox + c * CELL, y = this.oy + r * CELL;
         NE.glowRect(ctx, GC[v], x + 5, y + 5, CELL - 10, CELL - 10, 9);
+        NE.symbol(ctx, v, x + CELL/2, y + CELL/2, 24);
       }
       if (this.sel) {
         const x = this.ox + this.sel.c * CELL, y = this.oy + this.sel.r * CELL;

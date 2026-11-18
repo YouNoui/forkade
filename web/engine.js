@@ -20,7 +20,17 @@
   };
   const ECHO_COLOR = palette.cyan;
   const TAU = Math.PI * 2;
-  const rand = (a, b) => a + Math.random() * (b - a);
+  const settings = global.ForkadeSettings || { volume: 0.6, mute: false, reduceMotion: false };
+  let rngState = null;
+  function seed(value) { rngState = value == null ? null : Array.from(String(value)).reduce((h,c) => Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0, 2166136261); }
+  function rng() { if (rngState == null) return Math.random(); let t = rngState = (rngState + 0x6D2B79F5) >>> 0;
+    t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }
+  const rand = (a, b) => a + rng() * (b - a);
+  const fxrand = (a, b) => a + Math.random() * (b - a);
+  function symbol(ctx, index, x, y, size=14) {
+    if (!settings.colourBlind) return;
+    text(ctx, ['●','■','▲','◆','★','+'][index % 6], x, y - size/2, { size, color: '#06051a', align: 'center', glow: false });
+  }
 
   /* ----------------------------------------------------------- drawing --- */
   function glowRect(ctx, color, x, y, w, h, r = 6, line = 0) {
@@ -75,10 +85,10 @@
     emit(x, y, color, { n = 10, speed = 3, life = 0.6, size = 3,
                         angle = null, spread = TAU, gravity = 0 } = {}) {
       for (let i = 0; i < n; i++) {
-        const a = angle == null ? rand(0, TAU) : angle + rand(-spread / 2, spread / 2);
-        const sp = speed * rand(0.3, 1) * 60;
+        const a = angle == null ? fxrand(0, TAU) : angle + fxrand(-spread / 2, spread / 2);
+        const sp = speed * fxrand(0.3, 1) * 60;
         this.p.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
-                      life: life * rand(0.6, 1), max: life, color, size, gravity });
+                      life: life * fxrand(0.6, 1), max: life, color, size, gravity });
       }
     }
     update(dt) {
@@ -98,10 +108,11 @@
   /* -------------------------------------------------------------- shake --- */
   class Shake {
     constructor() { this.a = 0; }
-    add(v) { this.a = Math.min(24, this.a + v); }
+    add(v) { if (settings.reduceMotion) return; this.a = Math.min(24, this.a + v); }
     offset(dt) {
+      if (settings.reduceMotion) { this.a = 0; return [0, 0]; }
       this.a = Math.max(0, this.a - dt * 40);
-      return this.a <= 0 ? [0, 0] : [rand(-this.a, this.a), rand(-this.a, this.a)];
+      return this.a <= 0 ? [0, 0] : [fxrand(-this.a, this.a), fxrand(-this.a, this.a)];
     }
   }
 
@@ -112,12 +123,12 @@
       const cols = [palette.cyan, palette.magenta, palette.violet, palette.dim];
       this.s = [];
       for (let i = 0; i < n; i++)
-        this.s.push([rand(0, w), rand(0, h), rand(0.3, 2.2), cols[i % 4]]);
+        this.s.push([fxrand(0, w), fxrand(0, h), fxrand(0.3, 2.2), cols[i % 4]]);
     }
     update(dt, vx = 0, vy = 14) {
       for (const st of this.s) {
         st[0] -= vx * st[2] * dt; st[1] += vy * st[2] * dt * 0.15;
-        if (st[1] > this.h) { st[1] = 0; st[0] = rand(0, this.w); }
+        if (st[1] > this.h) { st[1] = 0; st[0] = fxrand(0, this.w); }
         if (st[0] < 0) st[0] = this.w; if (st[0] > this.w) st[0] = 0;
       }
     }
@@ -178,7 +189,7 @@
     }
     overlay(ctx, w, h) {
       bar(ctx, 16, h - 26, 150, 12, this.energy, palette.violet, "REWIND");
-      if (this.active) {
+      if (this.active && !settings.reduceMotion) {
         ctx.save(); ctx.fillStyle = "rgba(160,123,255,0.16)"; ctx.fillRect(0, 0, w, h);
         ctx.strokeStyle = "rgba(255,255,255,0.12)";
         for (let i = 0; i < 6; i++) { const y = Math.random() * h;
@@ -232,17 +243,19 @@
   /* ------------------------------------------------------------- sound ---- */
   // Tiny Web Audio synth - no files, everything generated. Mute persists.
   const sfx = {
-    _ac: null, muted: false,
+    _ac: null, _master: null, muted: !!settings.mute,
+    applyVolume() { if (this._master) this._master.gain.value = this.muted ? 0 : settings.volume; },
     _load() { try { this.muted = localStorage.getItem("neon-muted") === "1"; } catch (_) {} },
     ensure() {
       if (!this._ac) { try { this._ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (_) {} }
       if (this._ac && this._ac.state === "suspended") this._ac.resume();
-      return this._ac;
+      if (this._ac && !this._master) { this._master = this._ac.createGain(); this._master.connect(this._ac.destination); }
+      this.applyVolume(); return this._ac;
     },
     toggleMute() {
       this.muted = !this.muted;
       try { localStorage.setItem("neon-muted", this.muted ? "1" : "0"); } catch (_) {}
-      return this.muted;
+      settings.mute = this.muted; if (settings.save) settings.save(); this.applyVolume(); return this.muted;
     },
     _tone(freq, dur, type = "square", gain = 0.12, to = null) {
       if (this.muted) return; const ac = this.ensure(); if (!ac) return;
@@ -251,7 +264,7 @@
       if (to) o.frequency.exponentialRampToValueAtTime(Math.max(1, to), t + dur);
       g.gain.setValueAtTime(gain, t);
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + dur);
+      o.connect(g); g.connect(this._master); o.start(t); o.stop(t + dur);
     },
     _noise(dur, gain = 0.18, cut = 1200) {
       if (this.muted) return; const ac = this.ensure(); if (!ac) return;
@@ -263,7 +276,7 @@
       f.frequency.exponentialRampToValueAtTime(200, t + dur);
       const g = ac.createGain(); g.gain.setValueAtTime(gain, t);
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      src.connect(f); f.connect(g); g.connect(ac.destination); src.start(t);
+      src.connect(f); f.connect(g); g.connect(this._master); src.start(t);
     },
     shoot()  { this._tone(680, 0.08, "square", 0.07, 220); },
     jump()   { this._tone(300, 0.14, "triangle", 0.12, 760); },
@@ -276,7 +289,7 @@
     rewind() { this._tone(900, 0.25, "sine", 0.1, 300); },
     ui()     { this._tone(600, 0.05, "sine", 0.08); },
   };
-  sfx._load();
+  sfx.muted = !!settings.mute;
 
   /* ----------------------------------------------------------- scores ----- */
   // Per-game best score in localStorage. Survives refreshes; no server.
@@ -331,7 +344,11 @@
     // called once when a round ends; returns cores earned
     roundEnd(id, score, newBest, meta) {
       if (!this.enabled || !id) return 0;
-      if (score > 0) board.last = { id, score: Math.floor(score), at: Date.now() };
+      board.last = { id, score: Math.floor(score), at: Date.now(), run: board.run, daily: board.daily };
+      if (board.daily && score > 0) {
+        const key = 'forkade-daily-play:' + board.daily;
+        if (!load(key, false)) { save(key, true); this.add(25); this.daily(); this.toast('Daily played! +25 cores'); }
+      }
       let got = this.add(Math.max(1, Math.sqrt(Math.max(0, score)) * 0.6));
       if (newBest && score > 0) got += this.add(10);
       const g = this.goals(id, meta), b = this.badges(), had = b[id] || 0;
@@ -355,8 +372,8 @@
     },
     // daily streak: call once when the arcade opens
     daily() {
-      const day = d => d.toISOString().slice(0, 10), now = new Date();
-      const st = load("forkade-streak", { last: null, n: 0 }), today = day(now);
+      const day = d => global.ForkadeDaily.date(d.getTime()), now = new Date();
+      const st = load("forkade-streak", { last: null,  n: 0 }), today = day(now);
       if (st.last === today) return null;
       const y = new Date(now); y.setDate(y.getDate() - 1);
       st.n = st.last === day(y) ? st.n + 1 : 1; st.last = today; save("forkade-streak", st);
@@ -372,21 +389,28 @@
   // Skipped entirely when the browser sends Do Not Track or Global Privacy Control.
   const stats = {
     api: (typeof location !== "undefined" && location.protocol === "file:" ? "https://playforkade.com" : "") + "/api/stats",
-    off() { try { return navigator.doNotTrack === "1" || window.doNotTrack === "1" || navigator.globalPrivacyControl === true; } catch (_) { return true; } },
+    off() { try { return !settings.analytics || navigator.doNotTrack === "1" || window.doNotTrack === "1" || navigator.globalPrivacyControl === true; } catch (_) { return true; } },
     send(e, game) {
       if (this.off() || (typeof location !== "undefined" && /^(localhost|127\.)/.test(location.hostname) && !global.__forkadeTestStats)) return;
-      const body = JSON.stringify(game ? { e, game } : { e });
+      const body = JSON.stringify(game ? { e, game, consent: true } : { e, consent: true });
       try { if (navigator.sendBeacon && navigator.sendBeacon(this.api, body)) return; } catch (_) {}
       try { fetch(this.api, { method: "POST", body, keepalive: true }).catch(() => {}); } catch (_) {}
     },
   };
 
   /* ---------------------------------------------------------- rankings ---- */
-  // Opt-in global rankings. Nothing is sent unless the player taps "Post".
+  // Ranked-run consent starts temporary tokens; only Post shares a nickname and score.
   // Identity = a random id made on this device + the nickname they choose.
   const board = {
     api: (typeof location !== "undefined" && location.protocol === "file:" ? "https://playforkade.com" : "") + "/api/leaderboard",
-    last: null,                                    // { id, score } of the round that just ended
+    last: null, run: null, daily: null,
+    begin(game, daily = null) {
+      this.last = null; this.daily = daily;
+      this.run = settings.ranked ? fetch(this.api, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'start', game, pid: this.pid(), daily }) })
+        .then(async r => { const j = await r.json(); if (!r.ok) throw Error(j.error); return j; })
+        .catch(e => ({ error: e.message })) : null;
+    },                                    // { id, score } of the round that just ended
     pid() {
       let id = load("forkade-pid", null);
       if (!id) {
@@ -396,8 +420,8 @@
       }
       return id;
     },
-    async top(game, period = "week") {
-      const r = await fetch(`${this.api}?game=${encodeURIComponent(game)}&period=${period}&pid=${this.pid()}`);
+    async top(game, period = "week", date = "") {
+      const r = await fetch(`${this.api}?game=${encodeURIComponent(game)}&period=${period}&pid=${load("forkade-pid", "") || ""}&date=${encodeURIComponent(date)}`);
       const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Rankings are offline right now.");
       return j;
     },
@@ -413,8 +437,12 @@
       return j;
     },
     async post(game, score, name) {
+      const round = this.last;
+      if (!round || !round.run || !settings.ranked) throw Error('Enable ranked runs in Settings, then play a new round. Casual play stays on your device.');
+      const run = await round.run;
+      if (!run.token) throw Error(run.error || 'No run token. Start a new ranked round online.');
       const r = await fetch(this.api, { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ game, score, name, pid: this.pid() }) });
+        body: JSON.stringify({ game, score, name, pid: this.pid(), token: run.token }) });
       const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Couldn't post right now.");
       return j;
     },
@@ -465,8 +493,8 @@
 
       if (this.state === "play") {
         const snap = this.rewind.step(this.input.rewind(), dt);
-        if (snap != null) this.restore(snap);
-        else { this.step(dt); this.rewind.record(this.snapshot()); }
+        if (snap != null) { this.restore(snap.game); rngState = snap.rng; this.t = snap.t; }
+        else { this.step(dt); const game = this.snapshot(); if (game) this.rewind.record({ game, rng: rngState, t: this.t }); }
         this.particles.update(dt);
       }
 
@@ -535,10 +563,21 @@
     Input._bind(canvas);
     addEventListener("keydown", e => { if (e.code === "Escape") stop(); });
   }
-  function play(id) {
+  function play(id, options = {}) {
     const entry = registry.find(g => g.id === id); if (!entry) return;
     sfx.ensure();                       // unlock audio on this user gesture
-    current = new entry.cls(); current.id = id; current.meta = entry.meta; current.reset(); rewards.toasts = [];
+    seed(options.seed || null);
+    current = new entry.cls(); current.id = id; current.meta = entry.meta;
+    const portrait = ['skyhop', 'striker', 'breaker'].includes(id) && (options.daily ? id === 'skyhop' : innerWidth < innerHeight && innerWidth < 700);
+    current.W = portrait ? 560 : 900; current.H = portrait ? 900 : 560;
+    canvas.width = current.W; canvas.height = current.H;
+    canvas.style.aspectRatio = current.W + '/' + current.H;
+    document.getElementById('stage')?.classList.toggle('portrait-game', portrait);
+    current.stars = new Stars(current.W, current.H);
+    const reset = current.reset.bind(current);
+    current.reset = function () { seed(options.seed || null); this.t = 0; this._prevState = 'play'; this.rewind.frames = []; this.rewind.energy = 1;
+      board.begin(id, options.daily || null); reset(); };
+    current.reset(); rewards.toasts = [];
     if (!running) { running = true; last = performance.now(); requestAnimationFrame(loop); }
   }
   function stop() {
@@ -554,7 +593,7 @@
   }
 
   global.Forkade = {
-    palette, ECHO_COLOR, rand, TAU,
+    palette, ECHO_COLOR, rand, rng, seed, settings, symbol, TAU,
     glowRect, glowCircle, glowLine, drawEcho, fillBg, text, bar, banner,
     Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats,
     register, boot, play, stop, registry,

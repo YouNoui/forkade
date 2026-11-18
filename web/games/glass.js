@@ -19,14 +19,14 @@
     }
     // obstacles live in world space (x along the street)
     spawn() {
-      const r = Math.random(), x = this.nextX, hard = Math.min(1, this.dist / 12000);
+      const r = NE.rng(), x = this.nextX, hard = Math.min(1, this.dist / 12000);
       if (r < 0.55) {
-        const panes = 3 + ((Math.random() * 3) | 0);                         // glass wall: SMASH
+        const panes = 3 + ((NE.rng() * 3) | 0);                         // glass wall: SMASH
         this.obs.push({ x, kind: "glass", h: panes * 34, panes, hit: false });
       } else if (r < 0.85) {
-        this.obs.push({ x, kind: "solid", h: 46 + ((Math.random() * 24) | 0), hit: false });  // JUMP
+        this.obs.push({ x, kind: "solid", h: 46 + ((NE.rng() * 24) | 0), hit: false });  // JUMP
       } else {
-        this.obs.push({ x, kind: "pane", y: this.G - 120 - Math.random() * 60, hit: false });   // bonus in the air
+        this.obs.push({ x, kind: "pane", y: this.G - 120 - NE.rng() * 60, hit: false });   // bonus in the air
       }
       this.nextX = x + NE.rand(300, 470) - hard * 90;
     }
@@ -149,7 +149,7 @@
         ctx.shadowColor = d.c; ctx.shadowBlur = 8; ctx.fillStyle = d.c;
         ctx.beginPath(); ctx.moveTo(-d.s / 2, d.s / 2); ctx.lineTo(d.s / 2, d.s / 3); ctx.lineTo(0, -d.s / 2); ctx.fill(); ctx.restore();
       }
-      if (!(this.inv > 0 && Math.floor(this.inv * 12) % 2)) {
+      if (NE.settings.reduceMotion || !(this.inv > 0 && Math.floor(this.inv * 12) % 2)) {
         if (this.dash > 0) NE.glowCircle(ctx, P.cyan, ECHO_X + 18, this.y, 20, 3);
         NE.drawEcho(ctx, ECHO_X, this.y, 16, NE.palette.cyan, 1, this.t);
       }
