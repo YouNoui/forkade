@@ -44,6 +44,8 @@ def build():
         d.text((70,568),'playforkade.com/'+ident,font=font(22),fill='#a07bff')
         im.convert('RGB').save(WEB/'og'/f'{ident}.png',optimize=True)
         doc=(WEB/'index.html').read_text(encoding='utf-8')
+        doc=re.sub(r'<meta\s+(?:property|name)="(?:og:|twitter:)[^"]*"[^>]*>', '', doc)
+        doc=re.sub(r'<link\s+rel="canonical"[^>]*>', '', doc)
         doc=re.sub(r'<title>.*?</title>',f'<title>{html.escape(title)} - FORKADE</title>',doc,count=1)
         meta=f'''<link rel="canonical" href="https://playforkade.com/{ident}">
 <meta property="og:type" content="website"><meta property="og:title" content="{html.escape(title)} - FORKADE">
