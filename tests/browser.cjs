@@ -45,7 +45,7 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
     await frame.evaluate(()=>{dispatchEvent(new KeyboardEvent('keyup',{code:'KeyD'}));dispatchEvent(new KeyboardEvent('keyup',{code:'KeyW'}));});
     await frame.locator('#stomp').click();await page.waitForTimeout(150);assert.ok(await frame.evaluate(()=>Rampage.state.score>0));assert.ok(await frame.evaluate(()=>Rampage.state.chunks.length>0));
     await page.screenshot({path:path.join(out,`${bundle}-${size.width}-rampage.png`)});
-    const after=await frame.evaluate(()=>Rampage.state.score);await frame.locator('#rewind').hover();await page.mouse.down();await page.waitForTimeout(700);await page.mouse.up();assert.ok(await frame.evaluate(()=>Rampage.state.score)<after,'rewind restores destruction score');
+    const after=await frame.evaluate(()=>Rampage.state.score);await frame.locator('#rewind').hover();await page.mouse.down();await frame.waitForFunction(score=>Rampage.state.score<score,after,{timeout:5000});await page.mouse.up();assert.ok(await frame.evaluate(()=>Rampage.state.score)<after,'rewind restores destruction score');
     const stick=await frame.locator('#stick').boundingBox();await page.mouse.move(stick.x+stick.width/2,stick.y+stick.height/2);await page.mouse.down();await page.mouse.move(stick.x+stick.width*.8,stick.y+stick.height/2);const x=await frame.evaluate(()=>Rampage.state.x);await frame.waitForFunction(x=>Rampage.state.x>x,x,{timeout:5000});await page.mouse.up();const moved=await frame.evaluate(()=>({x:Rampage.state.x,paused:Rampage.paused,done:Rampage.state.done,time:Rampage.state.time}));assert.ok(moved.x>x,'thumb stick moves ECHO '+JSON.stringify({x,moved,stick}));
     await page.evaluate(()=>closeStage());
    }

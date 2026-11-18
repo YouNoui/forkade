@@ -10,3 +10,12 @@
 - Rankings and anonymous counting default off. Ranked-run consent starts temporary tokens, while Post remains a separate explicit action. Preview storage keys are prefixed by branch, so preview tests do not write production boards.
 - Build sequence: `python tools/make_legal.py`, `python tools/build_previews.py`, `python web/build_dist.py`. PNG generation needs `pip install -r tools/requirements.txt`; browser tests need `npm ci` and `npx playwright install chromium webkit`.
 - Static metadata and PNG contents can be verified directly; external social platforms may retain old cached previews until they refresh.
+
+## PR B: RAMPAGE, iPhone and community
+
+- Chromium **and WebKit** pass the complete six-layout matrix (12 combinations total) with zero console errors. RAMPAGE tests exercise timed play, pause, keyboard movement, thumb-stick movement, stomp/destruction/chunks and rewinding score. Both 3D games render in folder and single-file builds.
+- `node tests/offline.cjs`: Chromium and WebKit both load the `file://` single-file build with networking disabled; Sky Hop, ECHO 3D and RAMPAGE render with zero network requests or console errors.
+- Chromium verifies AudioContext is running after the first user gesture. **Windows Playwright WebKit exposes neither AudioContext nor webkitAudioContext**: it verifies graceful silent play, layout and controls, but cannot validate audible playback. A physical iPhone's audio and OS Add to Home Screen installation are not claimed as tested. Apple metadata, touch icon, manifest, safe areas and scroll locking are included.
+- WebKit testing found and fixed an iframe navigation race; game switches now use a fresh 3D iframe. Tests also found stale round-result overlays intercepting touch controls; the shared fix is in PR A. The animation loop is cancelled on stop to prevent duplicate loops on fast restarts.
+- PR A preview: real Redis start token, explicit post, read-back, deletion and replay rejection passed in its preview-only namespace. Deep-link HTML and PNG returned successfully. No production scores were written.
+- Run `npm run test:preview` only with a protected branch preview URL in `FORKADE_PREVIEW_URL`; set `RAMPAGE=1` for PR B. Temporary preview test scores are removed in cleanup. Never supply a production URL.
