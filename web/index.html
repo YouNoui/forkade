@@ -577,7 +577,7 @@
     });
     // "post this score?" bar under the game, shown after a round ends
     const pb = document.getElementById("postbar"), pbName = document.getElementById("pb-name"), pbMsg = document.getElementById("pb-msg");
-    let posted = null;
+    let posted = null, shownRound = null;
     try { pbName.value = localStorage.getItem("neon-player") || ""; } catch (_) {}
     ["keydown", "keyup"].forEach(t => pbName.addEventListener(t, e => {
       if (e.key === "Escape") { pbName.blur(); return; }     // Esc still goes back to the menu
@@ -587,11 +587,12 @@
     setInterval(() => {
       const L = B.last, on = stage.classList.contains("on");
       const show = on && L && L.score >= 0;
-      if (show && pb.hidden) {
+      if (show && (pb.hidden || shownRound !== L)) {
+        shownRound = L;
         pb.hidden = false; pbMsg.textContent = ""; pbMsg.className = "";
         const name = (rankGames().find(g => g.id === L.id) || {}).t || L.id;
         document.getElementById("pb-text").textContent = `${name}: ${L.score} points`;
-      } else if (!show && !pb.hidden && posted !== L) pb.hidden = true;
+      } else if (!show) pb.hidden = true;
       if (!on) pb.hidden = true;
     }, 250);
     document.getElementById("pb-post").addEventListener("click", async () => {
