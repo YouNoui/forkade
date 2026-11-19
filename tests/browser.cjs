@@ -8,7 +8,7 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
   for(const bundle of ['web','dist'])for(const size of [{width:1280,height:900},{width:390,height:844},{width:844,height:390}]){
    console.log('Matrix',bundle,size.width);
    const context=await browser.newContext({viewport:size,hasTouch:size.width!==1280,isMobile:size.width!==1280,serviceWorkers:'block'}),page=await context.newPage(),errors=[],sent=[];
-   page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});page.on('request',r=>{if(r.url().includes('/api/'))sent.push(r.url());});
+   page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});page.on('request',r=>{if(r.url().includes('/api/'))sent.push({url:r.url(),body:r.postData()||''});});
    const url=base+(bundle==='web'?'/':'/dist/forkade.html');await page.goto(url);await page.waitForFunction(()=>window.Forkade&&document.querySelector('#daily-challenge'));
    assert.equal(sent.length,0,'default play must not send telemetry or tokens');
    await page.locator('.title').click();if(await page.evaluate(()=>!!(window.AudioContext||window.webkitAudioContext)))assert.equal(await page.evaluate(()=>Forkade.sfx._ac?.state),'running','audio unlocked on first tap');
@@ -24,7 +24,9 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
     }
     await page.evaluate(()=>Forkade.stop());
    }
-   assert.equal(sent.length,0,'casual rounds remain local');
+   // casual rounds only fetch an anonymous round token: game (+ daily flag), never a player id, name or score
+   for(const r of sent){assert.ok(r.url.includes('/api/leaderboard'),'only round tokens: '+r.url);const b=JSON.parse(r.body||'{}');
+    assert.equal(b.action,'start');assert.ok(!('pid' in b)&&!('name' in b)&&!('score' in b),'round token is anonymous: '+r.body);}
    await page.getByRole('button',{name:'⚙ Settings',exact:true}).first().click();
    await page.locator('[data-setting=colourBlind]').check();await page.locator('[data-setting=reduceMotion]').check();await page.locator('[data-setting=mute]').check();
    await page.locator('[data-setting=volume]').fill('0.25');await page.getByRole('button',{name:'Close settings'}).click();await page.reload();
@@ -70,6 +72,29 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
   await a.locator('#pb-name').fill('Tester');await a.locator('#pb-post').click();await a.waitForFunction(()=>document.querySelector('#pb-msg').textContent.startsWith('Posted!'));
   await a.goto(base+'/stats.html');await a.locator('#key').fill('owner-test');await a.locator('#go').click();await a.locator('#out').waitFor({state:'visible'});
   await a.close();await b.close();
+  // install bar (playbook section 11): iPhone Safari sheet, Chrome prompt, 3-day snooze, hidden in games and when installed
+  for(const [name,ua,size] of [['iphone','Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',{width:390,height:844}],['chrome','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36',{width:1280,height:900}]]){
+   const ctx=await browser.newContext({viewport:size,userAgent:ua,serviceWorkers:'block'}),pg=await ctx.newPage();await pg.goto(base);await pg.waitForFunction(()=>window.Forkade);
+   const shown=()=>pg.evaluate(()=>{const b=document.getElementById('installbar');return !b.hidden&&b.getBoundingClientRect().height>0;});
+   if(name==='chrome'){assert.equal(await shown(),false,'no bar before beforeinstallprompt');
+    await pg.evaluate(()=>{const e=new Event('beforeinstallprompt');window.__p=0;e.prompt=()=>{window.__p++;};e.userChoice=Promise.resolve({outcome:'dismissed'});dispatchEvent(e);});}
+   assert.equal(await shown(),true,name+': install bar shows');
+   const r=await pg.evaluate(()=>{const b=document.getElementById('installbar').getBoundingClientRect(),w=document.querySelector('.wrap').getBoundingClientRect();return {h:b.height,below:w.top>=b.bottom-1};});
+   assert.ok(r.h<=56&&r.below,name+': slim and pushes content down');
+   await pg.locator('#ib-go').click();
+   if(name==='iphone'){assert.ok(await pg.locator('#ios-install').isVisible(),'Share -> Add to Home Screen sheet');await pg.locator('#ios-install-close').click();}
+   else {assert.equal(await pg.evaluate(()=>window.__p),1,'Install calls prompt()');
+    // a dismissed prompt can't be reused, so the bar hides until the browser offers a new one (next visit)
+    assert.equal(await shown(),false,'no dead Install button after a dismissed prompt');
+    await pg.evaluate(()=>{const e=new Event('beforeinstallprompt');e.prompt=()=>{};e.userChoice=Promise.resolve({outcome:'dismissed'});dispatchEvent(e);});}
+   await pg.evaluate(()=>openGame('skyhop'));await pg.waitForTimeout(250);assert.equal(await shown(),false,'never inside a game');await pg.keyboard.press('Escape');await pg.waitForTimeout(300);
+   await pg.locator('#ib-x').click();assert.equal(await shown(),false,'x hides it');
+   assert.ok(await pg.evaluate(()=>Number(localStorage.getItem('forkade-install-snooze'))-Date.now()>2.9*864e5),'snoozed for 3 days');
+   await ctx.close();
+  }
+  { const ctx=await browser.newContext({viewport:{width:390,height:844},userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',serviceWorkers:'block'});
+    await ctx.addInitScript(()=>Object.defineProperty(navigator,'standalone',{get:()=>true}));const pg=await ctx.newPage();await pg.goto(base);await pg.waitForFunction(()=>window.Forkade);
+    assert.equal(await pg.evaluate(()=>document.getElementById('installbar').hidden),true,'hidden once installed');await ctx.close(); }
   fs.writeFileSync(path.join(out,'report'+(process.env.WEBKIT?'-webkit':'')+'.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report));
  }finally{await browser.close();fixture.app.close();fixture.restore();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
