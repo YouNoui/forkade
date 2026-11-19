@@ -142,6 +142,27 @@
     color:var(--red); border:1px solid rgba(255,79,110,.6);}
   .sheet a, .foot .legal a{color:var(--cyan);}
   .foot .legal{display:block; margin-top:10px; font-size:12px;}
+  /* ---- install bar ---- */
+  .installbar{position:relative; z-index:90; display:flex; align-items:center; gap:10px; padding:8px max(12px,env(safe-area-inset-right)) 8px max(12px,env(safe-area-inset-left));
+    padding-top:max(8px,env(safe-area-inset-top)); background:rgba(13,10,42,.96); border-bottom:1px solid rgba(34,228,255,.45); font-size:13px;}
+  .installbar[hidden]{display:none;}
+  .installbar img{border-radius:7px; flex:none;}
+  .installbar .ib-text{flex:1; min-width:0; color:var(--ink); line-height:1.35;}
+  .installbar .ib-go{flex:none; font-family:inherit; font-weight:800; font-size:13px; cursor:pointer; border-radius:9px; padding:7px 14px;
+    background:var(--cyan); color:#06051a; border:0;}
+  .installbar .ib-x{flex:none; font-family:inherit; font-size:20px; line-height:1; cursor:pointer; width:32px; height:32px; border-radius:8px;
+    background:transparent; color:var(--dim); border:0;}
+  .installbar button:focus-visible{outline:2px solid var(--amber); outline-offset:2px;}
+  body.playing .installbar{display:none !important;}   /* never inside a game */
+  .installbar .ib-text b{color:var(--cyan); font-weight:800;}
+  @media (max-width:560px){
+    .installbar{gap:8px; font-size:12px; padding-top:max(6px,env(safe-area-inset-top)); padding-bottom:6px;}
+    .installbar .ib-dash{display:none;} .installbar .ib-sub{display:block; color:var(--dim); font-size:11px;}
+    .installbar .ib-go{padding:6px 12px;}
+  }
+  .toasts{top:calc(16px + var(--ibh, 0px)) !important;}   /* toasts sit below the install bar */
+  .ios-steps{margin:0; padding-left:20px; font-size:14px; line-height:1.8;}
+  .ios-sheet{max-width:420px;}
   .nodata{display:inline-block; margin-top:10px; color:var(--lime); opacity:.85;}
 
   /* ---- in-game stage ---- */
@@ -225,6 +246,24 @@
 <meta name="twitter:image" content="https://playforkade.com/icons/icon-512.png">
 <link rel="icon" href="data:image/png;base64,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"></head>
 <body>
+  <!-- install bar (playbook section 11): slim, pushes the page down, menu only -->
+  <div class="installbar" id="installbar" role="region" aria-label="Install FORKADE" hidden>
+    <img src="icons/icon-192.png" alt="" width="28" height="28">
+    <span class="ib-text"><b>Install FORKADE</b><span class="ib-dash"> &mdash; </span><span class="ib-sub">faster, works like an app</span></span>
+    <button class="ib-go" id="ib-go" type="button" aria-label="Install FORKADE">Install</button>
+    <button class="ib-x" id="ib-x" type="button" aria-label="Hide the install bar for 3 days">&times;</button>
+  </div>
+  <div class="modal" id="ios-install" hidden role="dialog" aria-modal="true" aria-labelledby="ios-install-title">
+    <div class="sheet ios-sheet">
+      <button class="x" id="ios-install-close" type="button" aria-label="Close">&times;</button>
+      <h2 id="ios-install-title">INSTALL FORKADE</h2>
+      <ol class="ios-steps">
+        <li>Tap <b>Share</b> <span aria-hidden="true">(the square with an arrow &#8679;)</span> in Safari&rsquo;s toolbar.</li>
+        <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
+        <li>Tap <b>Add</b>. FORKADE opens full screen and works offline.</li>
+      </ol>
+    </div>
+  </div>
   <div class="wrap">
     <div class="head">
       <h1 class="title">FORKADE</h1>
@@ -2922,6 +2961,41 @@
       dlbox.hidden = !dlbox.hidden;
     });
     window.addEventListener("appinstalled", () => { installBtn.classList.remove("show"); dlbox.hidden = true; });
+
+    /* ---------- install bar (playbook section 11) ---------- */
+    (function installBar() {
+      const bar = document.getElementById("installbar"), sheet = document.getElementById("ios-install");
+      const KEY = "forkade-install-snooze";   // until-timestamp; the ✕ hides the bar for 3 days
+      const installed = () => matchMedia("(display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui)").matches
+        || navigator.standalone === true;
+      const snoozed = () => { try { return Date.now() < Number(localStorage.getItem(KEY) || 0); } catch (_) { return false; } };
+      const ua = navigator.userAgent;
+      const iosSafari = (/iPhone|iPad|iPod/.test(ua) || (ua.includes("Macintosh") && navigator.maxTouchPoints > 1))
+        && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(ua);
+      let prompt = null, gone = false;
+      const can = () => !gone && !installed() && !snoozed() && (prompt || iosSafari);
+      const show = () => { bar.hidden = !can();
+        document.documentElement.style.setProperty('--ibh', bar.hidden ? '0px' : bar.offsetHeight + 'px'); };
+      addEventListener("beforeinstallprompt", e => { e.preventDefault(); prompt = e; deferredPrompt = e; show(); });
+      addEventListener("appinstalled", () => { gone = true; sheet.hidden = true; show(); });
+      document.getElementById("ib-go").addEventListener("click", async () => {
+        if (prompt) {
+          const p = prompt; prompt = null; deferredPrompt = null; p.prompt();   // a prompt can only be used once
+          const r = await p.userChoice.catch(() => null);
+          if (r && r.outcome === "accepted") gone = true;
+          show();
+        } else if (iosSafari) { sheet.hidden = false; document.getElementById("ios-install-close").focus(); }
+      });
+      document.getElementById("ib-x").addEventListener("click", () => {
+        try { localStorage.setItem(KEY, String(Date.now() + 3 * 864e5)); } catch (_) {}
+        show();
+      });
+      const closeSheet = () => { sheet.hidden = true; document.getElementById("ib-go").focus(); };
+      document.getElementById("ios-install-close").addEventListener("click", closeSheet);
+      sheet.addEventListener("click", e => { if (e.target === sheet) closeSheet(); });
+      addEventListener("keydown", e => { if (e.key === "Escape" && !sheet.hidden) closeSheet(); });
+      show();
+    })();
 
     if (false /* single-file build */) {
       window.addEventListener("load", () =>
