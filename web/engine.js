@@ -150,6 +150,7 @@
   }
 
   /* ---------------------------------------------------------------- hud --- */
+  function easeOutBack(x) { const c = 1.70158; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); }
   function text(ctx, s, x, y, { size = 22, color = palette.ink, align = "left",
                                glow = true, bold = true } = {}) {
     ctx.save();
@@ -365,7 +366,17 @@
         sfx.win();
       }
       if (tier > had) { b[id] = tier; save("forkade-badges", b); }
+      got += this.starter();
       return got;
+    },
+    // starter goal: try 3 different games -> +30 cores, once. The visit itself counts as step 1 of 4.
+    STARTER: 30,
+    tried() { return [...new Set(registry.map(g => g.id).concat(["echo3d", "rampage"]))].filter(id => scores.get(id) > 0).length; },
+    starter() {
+      if (load("forkade-starter", false) || this.tried() < 3) return 0;
+      save("forkade-starter", true); const n = this.add(this.STARTER);
+      if (n) { this.toast(`STARTER GOAL DONE  +${n} cores`, palette.cyan); sfx.win(); }
+      return n;
     },
     owned() { return load("forkade-skins", ["classic"]); },
     skin() { const id = load("forkade-skin", "classic"); return SKINS.find(s => s.id === id) || SKINS[0]; },
@@ -543,12 +554,17 @@
       if (this.state === "pause") banner(ctx, this.W, this.H, "PAUSED", "P resume   ESC menu");
       // best-score line under any game-over / win banner
       if ((this.state === "over" || this.state === "win") && this.id) {
-        const b = scores.get(this.id);
+        const b = scores.get(this.id), still = !!settings.reduceMotion, t = this._overT || 0;
+        // new best pops in (overshoot, then settles); cores roll up instead of appearing
+        const pop = still || !this.newBest ? 1 : easeOutBack(Math.min(1, t / 0.45));
         text(ctx, (this.newBest ? "★ NEW BEST  " : "BEST  ") + b,
-             this.W / 2, this.H / 2 + 52, { size: 16,
+             this.W / 2, this.H / 2 + 52 - (pop - 1) * 6, { size: Math.max(1, Math.round(16 * (this.newBest ? 0.6 + 0.4 * pop : 1))),
              color: this.newBest ? palette.amber : palette.dim, align: "center" });
-        if (this.earned) text(ctx, `+${this.earned} cores   (total ${rewards.cores()})`, this.W / 2, this.H / 2 + 76,
-             { size: 16, color: palette.lime, align: "center" });
+        if (this.earned) {
+          const k = still ? 1 : 1 - Math.pow(1 - Math.min(1, Math.max(0, t - 0.15) / 0.6), 3);
+          const shown = Math.round(this.earned * k), total = rewards.cores() - this.earned + shown;
+          text(ctx, `+${shown} cores   (total ${total})`, this.W / 2, this.H / 2 + 76, { size: 16, color: palette.lime, align: "center" });
+        }
       }
       // reward toasts, top centre
       let ty = 70;

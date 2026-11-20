@@ -65,7 +65,16 @@
   a.card{display:block; text-decoration:none; color:inherit;}
   .card.make{border-style:dashed;}
   .wallet{display:flex; flex-wrap:wrap; justify-content:center; gap:10px 16px; margin-top:14px; font-size:13px; color:var(--dim);}
-  .wallet b{color:var(--lime);}
+  .wallet b{color:var(--lime); font-variant-numeric:tabular-nums;}
+  .streak{display:inline-flex; align-items:center; gap:8px;}
+  .sdots{display:inline-flex; gap:4px;} .sdots i{width:9px; height:9px; border-radius:50%; border:1px solid rgba(255,178,63,.55);}
+  .sdots i.on{background:var(--amber); border-color:var(--amber); box-shadow:0 0 8px var(--amber);}
+  .sdots i.next{border-style:dashed;}
+  .goal{max-width:420px; margin:12px auto 0; font-size:12px; color:var(--dim); text-align:left;}
+  .goal .g-t{display:flex; justify-content:space-between; gap:10px; margin-bottom:5px;} .goal .g-t b{color:var(--ink,#fff); font-weight:800;}
+  .goal .g-bar{height:6px; border-radius:3px; background:rgba(141,146,189,.18); overflow:hidden;}
+  .goal .g-bar i{display:block; height:100%; width:0; border-radius:3px; background:var(--cyan); box-shadow:0 0 10px var(--cyan); transition:width .6s cubic-bezier(.2,.8,.2,1);}
+  html.reduce-motion .goal .g-bar i{transition:none;}
   .wallet .locker{cursor:pointer; font-family:inherit; font-weight:800; font-size:13px; color:var(--amber);
     border:1px solid var(--amber); border-radius:10px; padding:5px 12px; background:rgba(255,178,63,.06);}
   .stars{position:absolute; right:20px; bottom:42px; font-size:14px; letter-spacing:2px;}
@@ -289,10 +298,11 @@
       <div class="wallet" id="wallet">
         <span>&#9670; <b id="w-cores">0</b> cores</span>
         <span>RANK <b id="w-rank">1</b></span>
-        <span>&#128293; <b id="w-streak">0</b>-day streak</span>
+        <span class="streak" id="w-streakbox" title=""><span>&#128293; <b id="w-streak">0</b>-day streak</span><span class="sdots" id="w-sdots" aria-hidden="true"></span><span id="w-tmr" style="font-size:11px"></span></span>
         <button class="locker" id="open-locker">&#127942; Locker &amp; badges</button>
         <button class="locker ranks" id="open-ranks">&#127941; Rankings</button>
       </div>
+      <div class="goal" id="goal" hidden><div class="g-t"><span id="g-name"></span><span id="g-num"></span></div><div class="g-bar" role="progressbar" aria-labelledby="g-name" id="g-bar"><i id="g-fill"></i></div><div id="g-hint" style="margin-top:5px"></div></div>
       <br><button class="install show" id="install">&#11015; Download / install</button>
       <div class="dlbox" id="dlbox" hidden>
         <div id="dlmsg"></div>
@@ -404,10 +414,53 @@
     /* ---------- rewards: wallet, stars, locker ---------- */
     const R = Forkade.rewards;
     const GAME_NAMES = () => Object.fromEntries([...Forkade.registry.map(g => [g.id, g.meta.title]), ["echo3d", "ECHO 3D"], ["rampage", "RAMPAGE 3D"]]);
+    // numbers roll to their new value instead of jumping
+    function roll(el, to) {
+      const from = +el.dataset.v || 0; el.dataset.v = to;
+      if (from === to || Forkade.settings.reduceMotion || !el.dataset.seen) { el.dataset.seen = 1; el.textContent = to; return; }
+      const t0 = performance.now(), dur = Math.min(900, 300 + Math.abs(to - from) * 8);
+      cancelAnimationFrame(+el.dataset.raf || 0);
+      const tick = now => { const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+        el.textContent = Math.round(from + (to - from) * e); if (k < 1) el.dataset.raf = requestAnimationFrame(tick); };
+      el.dataset.raf = requestAnimationFrame(tick);
+    }
+    function refreshGoal() {
+      const box = document.getElementById("goal"), names = GAME_NAMES();
+      let name, num, frac, hint = "";
+      if (!localStorage.getItem("forkade-starter")) {
+        const n = Math.min(3, R.tried());            // opening the arcade already counts as step 1 of 4
+        name = "<b>Starter goal</b> &middot; try 3 different games"; num = `${n + 1} / 4`; frac = (n + 1) / 4;
+        hint = `&#9670; +${R.STARTER} cores when done`;
+      } else {
+        let best = null;
+        for (const id of Object.keys(names)) {
+          const t = R.tierOf(id); if (t >= 3) continue;
+          const g = R.goals(id, (Forkade.registry.find(x => x.id === id) || {}).meta), have = Forkade.scores.get(id), f = have / g[t];
+          if (have > 0 && f < 1 && (!best || f > best.f)) best = { id, t, goal: g[t], have, f };
+        }
+        if (!best) { box.hidden = true; return; }
+        name = `<b>Next badge</b> &middot; ${names[best.id]} ${R.TIERS[best.t].name.toLowerCase()}`;
+        num = `${best.have.toLocaleString()} / ${best.goal.toLocaleString()}`; frac = best.f;
+        hint = `best score so far &middot; &#9670; +${R.TIERS[best.t].cores} cores`;
+      }
+      box.hidden = false;
+      document.getElementById("g-name").innerHTML = name; document.getElementById("g-num").textContent = num;
+      document.getElementById("g-hint").innerHTML = hint;
+      const pct = Math.round(Math.max(0, Math.min(1, frac)) * 100);
+      document.getElementById("g-bar").setAttribute("aria-valuenow", pct);
+      requestAnimationFrame(() => { document.getElementById("g-fill").style.width = pct + "%"; });
+    }
     function refreshRewards() {
-      document.getElementById("w-cores").textContent = R.cores();
+      roll(document.getElementById("w-cores"), R.cores());
       document.getElementById("w-rank").textContent = R.rank();
-      document.getElementById("w-streak").textContent = R.streak();
+      const sn = R.streak();
+      document.getElementById("w-streak").textContent = sn;
+      // last 7 days: filled = played, dashed = tomorrow (what you'd lose by skipping)
+      const on = Math.min(6, sn);
+      document.getElementById("w-sdots").innerHTML = Array.from({ length: 7 }, (_, i) => `<i class="${i < on ? "on" : i === on ? "next" : ""}"></i>`).join("");
+      document.getElementById("w-tmr").textContent = `tomorrow +${10 * Math.min(7, sn + 1)}`;
+      document.getElementById("w-streakbox").title = `Come back tomorrow to make it ${sn + 1} days: +${10 * Math.min(7, sn + 1)} cores`;
+      try { refreshGoal(); } catch (_) {}
       document.querySelectorAll(".stars[data-id]").forEach(el => {
         const t = R.tierOf(el.dataset.id);
         el.innerHTML = [0, 1, 2].map(k => `<span class="${k < t ? "on" : "off"}">&#9733;</span>`).join("");
@@ -594,6 +647,7 @@
     R.listeners.push((text) => {
       const st = document.getElementById("stage").classList;
       if (text && (!st.contains("on") || st.contains("d3"))) toast(text);   // 2D games draw their own toasts
+      if (!text) refreshRewards();                                         // cores changed: roll the wallet
     });
     { const d = R.daily(); if (d && d.cores) setTimeout(() => toast(`Day ${d.streak} streak! +${d.cores} cores`), 600); }
     refreshRewards();
