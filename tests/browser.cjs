@@ -80,6 +80,14 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
   await a.evaluate(()=>document.getElementById('close-ranks').click());
   await a.goto(base+'/stats.html');await a.locator('#key').fill('owner-test');await a.locator('#go').click();await a.locator('#out').waitFor({state:'visible'});
   await a.close();await b.close();
+  // goal gradient: a new player starts at 1/4 (the visit counts), 3 different games pays +30 once, then the next badge shows
+  { const pg=await browser.newPage({viewport:{width:390,height:844}});await pg.goto(base);await pg.waitForFunction(()=>window.Forkade);
+   assert.match(await pg.locator('#goal').innerText(),/Starter goal[\s\S]*1 \/ 4/);assert.equal(await pg.locator('#w-sdots i.on').count(),1,'today counts in the streak');
+   const r=await pg.evaluate(()=>{const R=Forkade.rewards,c=R.cores();['skyhop','glass','prism'].forEach(id=>Forkade.scores.submit(id,40));return {got:R.starter(),again:R.starter(),diff:R.cores()-c};});
+   assert.deepEqual(r,{got:30,again:0,diff:30},'starter goal pays once');
+   await pg.evaluate(()=>{Forkade.rewards.add(1);});await pg.waitForTimeout(1200);
+   assert.match(await pg.locator('#goal').innerText(),/Next badge/);assert.equal(await pg.locator('#w-cores').textContent(),String(await pg.evaluate(()=>Forkade.rewards.cores())),'counter settles on the real total');
+   await pg.close(); }
   // install bar (playbook section 11): iPhone Safari sheet, Chrome prompt, 3-day snooze, hidden in games and when installed
   for(const [name,ua,size] of [['iphone','Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',{width:390,height:844}],['chrome','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36',{width:1280,height:900}]]){
    const ctx=await browser.newContext({viewport:size,userAgent:ua,serviceWorkers:'block'}),pg=await ctx.newPage();await pg.goto(base);await pg.waitForFunction(()=>window.Forkade);
