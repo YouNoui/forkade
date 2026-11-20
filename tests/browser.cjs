@@ -69,7 +69,15 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
   await a.evaluate(()=>{openGame('skyhop');});await a.waitForFunction(async()=>!!(await Forkade.board.run)?.token);
   for(const [k,v]of fixture.db.data)if(k.startsWith('run:')){const run=JSON.parse(v);run.at-=20000;fixture.db.data.set(k,JSON.stringify(run));}
   await a.evaluate(()=>{const g=Forkade.current();g.score=120;g.state='over';});await a.waitForTimeout(400);
-  await a.locator('#pb-name').fill('Tester');await a.locator('#pb-post').click();await a.waitForFunction(()=>document.querySelector('#pb-msg').textContent.startsWith('Posted!'));
+  await a.locator('#pb-name').fill('Tester');await a.evaluate(()=>{const b=document.getElementById('pb-post');b.click();b.click();b.click();});await a.waitForFunction(()=>document.querySelector('#pb-msg').textContent.startsWith('Posted!'));
+  await a.waitForTimeout(300);assert.ok(await a.locator('#pb-post').isDisabled(),'post locks after one tap');assert.match(await a.locator('#pb-msg').textContent(),/^Posted!/,'extra taps never overwrite the success');
+  // rankings: 10 placeholder rows while loading, a deadline, and a Retry button instead of an endless spinner
+  await a.evaluate(()=>{window.__realFetch=fetch;window.fetch=(u,o)=>String(u).includes('/api/leaderboard?')?new Promise((_,rej)=>o.signal.addEventListener('abort',()=>rej(Object.assign(new Error('a'),{name:'AbortError'})))):window.__realFetch(u,o);document.getElementById('pb-post');});
+  await a.keyboard.press('Escape');await a.waitForTimeout(300);await a.evaluate(()=>document.getElementById('open-ranks').click());
+  assert.equal(await a.locator('#rlist li.sk').count(),10,'space reserved while loading');
+  await a.locator('#r-retry').waitFor({timeout:9000});assert.match(await a.locator('#rlist').textContent(),/too long/);
+  await a.evaluate(()=>{window.fetch=window.__realFetch;});await a.locator('#r-retry').click();await a.waitForFunction(()=>/Tester/.test(document.querySelector('#rlist').textContent));
+  await a.evaluate(()=>document.getElementById('close-ranks').click());
   await a.goto(base+'/stats.html');await a.locator('#key').fill('owner-test');await a.locator('#go').click();await a.locator('#out').waitFor({state:'visible'});
   await a.close();await b.close();
   // install bar (playbook section 11): iPhone Safari sheet, Chrome prompt, 3-day snooze, hidden in games and when installed
