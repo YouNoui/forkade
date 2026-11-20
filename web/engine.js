@@ -407,6 +407,14 @@
   /* ---------------------------------------------------------- rankings ---- */
   // Each round gets an anonymous timing token; only tapping Post shares a nickname and score.
   // Identity = a random id made on this device + the nickname they choose.
+  // Every rankings request gets a deadline, so nothing waits forever on a bad connection.
+  async function timedFetch(url, opts = {}, ms = 7000) {
+    const ctl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const t = ctl && setTimeout(() => ctl.abort(), ms);
+    try { return await fetch(url, ctl ? Object.assign({}, opts, { signal: ctl.signal }) : opts); }
+    catch (e) { throw new Error(e && e.name === "AbortError" ? "That took too long. Check your connection and try again." : "You look offline. Check your connection and try again."); }
+    finally { if (t) clearTimeout(t); }
+  }
   const board = {
     api: (typeof location !== "undefined" && location.protocol === "file:" ? "https://playforkade.com" : "") + "/api/leaderboard",
     last: null, run: null, daily: null,
@@ -428,27 +436,27 @@
       return id;
     },
     async top(game, period = "week", date = "") {
-      const r = await fetch(`${this.api}?game=${encodeURIComponent(game)}&period=${period}&pid=${load("forkade-pid", "") || ""}&date=${encodeURIComponent(date)}`);
+      const r = await timedFetch(`${this.api}?game=${encodeURIComponent(game)}&period=${period}&pid=${load("forkade-pid", "") || ""}&date=${encodeURIComponent(date)}`);
       const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Rankings are offline right now.");
       return j;
     },
     async report(game, period, rank, name) {
-      const r = await fetch(this.api, { method: "POST", headers: { "Content-Type": "application/json" },
+      const r = await timedFetch(this.api, { method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "report", game, period, rank, name, pid: this.pid() }) });
       const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Couldn't send the report.");
       return j;
     },
     async forget() {       // "Remove my scores": deletes nickname + every score for this device's id
-      const r = await fetch(this.api, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pid: this.pid() }) });
+      const r = await timedFetch(this.api, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pid: this.pid() }) });
       const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Couldn't remove right now.");
       return j;
     },
     async post(game, score, name) {
       const round = this.last;
       if (!round || !round.run) throw Error('Rankings need a connection when the round starts. Play a new round online to post.');
-      const run = await round.run;
+      const run = await Promise.race([round.run, new Promise(res => setTimeout(() => res({ error: 'That took too long. Check your connection and play a new round to post.' }), 7000))]);
       if (!run.token) throw Error(run.error || 'No run token. Start a new ranked round online.');
-      const r = await fetch(this.api, { method: "POST", headers: { "Content-Type": "application/json" },
+      const r = await timedFetch(this.api, { method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ game, score, name, pid: this.pid(), token: run.token }) });
       const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Couldn't post right now.");
       return j;

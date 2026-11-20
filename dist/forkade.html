@@ -103,6 +103,14 @@
   .rlist button.rep, .rlist span.rep{width:62px; text-align:center; font-family:inherit; font-size:12px; cursor:pointer; border-radius:7px;
     padding:2px 6px; background:transparent; color:var(--dim); border:1px solid transparent;}
   .rlist button.rep:hover, .rlist button.rep[data-sure="1"]{color:var(--red); border-color:rgba(255,79,110,.6);}
+  .rlist li.sk{height:20px; box-sizing:content-box; position:relative; overflow:hidden;}
+  .rlist li.sk::after{content:""; position:absolute; left:10px; right:10px; top:13px; height:10px; border-radius:5px;
+    background:linear-gradient(90deg,rgba(141,146,189,.10),rgba(141,146,189,.22),rgba(141,146,189,.10)); background-size:200% 100%; animation:skel 1.2s linear infinite;}
+  @keyframes skel{from{background-position:200% 0} to{background-position:0 0}}
+  html.reduce-motion .rlist li.sk::after{animation:none}
+  .rlist li.msg{display:block; text-align:center; padding:18px 10px; color:var(--dim);}
+  .rlist li.msg button{margin-left:8px; font:inherit; font-weight:800; color:var(--cyan); background:transparent; border:1px solid var(--cyan); border-radius:8px; padding:4px 12px; cursor:pointer; min-height:32px;}
+  #pb-post:disabled{opacity:.55; cursor:default;}
   .rlist li.me{background:rgba(157,255,87,.08); border-radius:8px;}
   .rlist li:nth-child(1) .n{color:#ffd84a;} .rlist li:nth-child(2) .n{color:#d8dcf0;} .rlist li:nth-child(3) .n{color:#e0a060;}
   .postbar{position:relative; z-index:70; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px;
@@ -798,6 +806,14 @@
   /* ---------------------------------------------------------- rankings ---- */
   // Each round gets an anonymous timing token; only tapping Post shares a nickname and score.
   // Identity = a random id made on this device + the nickname they choose.
+  // Every rankings request gets a deadline, so nothing waits forever on a bad connection.
+  async function timedFetch(url, opts = {}, ms = 7000) {
+    const ctl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const t = ctl && setTimeout(() => ctl.abort(), ms);
+    try { return await fetch(url, ctl ? Object.assign({}, opts, { signal: ctl.signal }) : opts); }
+    catch (e) { throw new Error(e && e.name === "AbortError" ? "That took too long. Check your connection and try again." : "You look offline. Check your connection and try again."); }
+    finally { if (t) clearTimeout(t); }
+  }
   const board = {
     api: (typeof location !== "undefined" && location.protocol === "file:" ? "https://playforkade.com" : "") + "/api/leaderboard",
     last: null, run: null, daily: null,
@@ -819,27 +835,27 @@
       return id;
     },
     async top(game, period = "week", date = "") {
-      const r = await fetch(`${this.api}?game=${encodeURIComponent(game)}&period=${period}&pid=${load("forkade-pid", "") || ""}&date=${encodeURIComponent(date)}`);
+      const r = await timedFetch(`${this.api}?game=${encodeURIComponent(game)}&period=${period}&pid=${load("forkade-pid", "") || ""}&date=${encodeURIComponent(date)}`);
       const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Rankings are offline right now.");
       return j;
     },
     async report(game, period, rank, name) {
-      const r = await fetch(this.api, { method: "POST", headers: { "Content-Type": "application/json" },
+      const r = await timedFetch(this.api, { method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "report", game, period, rank, name, pid: this.pid() }) });
       const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Couldn't send the report.");
       return j;
     },
     async forget() {       // "Remove my scores": deletes nickname + every score for this device's id
-      const r = await fetch(this.api, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pid: this.pid() }) });
+      const r = await timedFetch(this.api, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pid: this.pid() }) });
       const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Couldn't remove right now.");
       return j;
     },
     async post(game, score, name) {
       const round = this.last;
       if (!round || !round.run) throw Error('Rankings need a connection when the round starts. Play a new round online to post.');
-      const run = await round.run;
+      const run = await Promise.race([round.run, new Promise(res => setTimeout(() => res({ error: 'That took too long. Check your connection and play a new round to post.' }), 7000))]);
       if (!run.token) throw Error(run.error || 'No run token. Start a new ranked round online.');
-      const r = await fetch(this.api, { method: "POST", headers: { "Content-Type": "application/json" },
+      const r = await timedFetch(this.api, { method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ game, score, name, pid: this.pid(), token: run.token }) });
       const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Couldn't post right now.");
       return j;
@@ -2862,17 +2878,26 @@
       document.getElementById("rgames").innerHTML = rankGames().map(g =>
         `<button data-game="${g.id}" class="${g.id === rGame ? "on" : ""}">${esc(g.t)}</button>`).join("");
       document.querySelectorAll("#ranks [data-period]").forEach(b => b.classList.toggle("on", b.dataset.period === rPeriod));
-      list.innerHTML = "<li>Loading&hellip;</li>"; me.textContent = "";
+      // keep the list's final size while loading, so nothing jumps when the rows arrive
+      list.innerHTML = '<li class="sk"></li>'.repeat(10); list.setAttribute("aria-busy", "true"); me.textContent = "Loading rankings\u2026";
+      const seq = ++ranksSeq;
       try {
         if (rPeriod === "daily") rGame = ForkadeDaily.challenge().game;
         const d = await B.top(rGame, rPeriod);
+        if (seq !== ranksSeq) return;           // a newer tab was picked meanwhile
+        list.removeAttribute("aria-busy");
         list.innerHTML = d.top.length ? d.top.map(r =>
           `<li class="${r.me ? "me" : ""}"><span class="n">#${r.rank}</span><span class="nm">${esc(r.name)}${r.me ? " (you)" : ""}</span><span class="sc">${r.score}</span>${
             r.me || r.name === "Player" ? `<span class="rep"></span>` : `<button class="rep" data-rank="${r.rank}" data-name="${esc(r.name)}" title="Report this nickname" aria-label="Report ${esc(r.name)}">&#9873;</button>`}</li>`).join("")
           : "<li>No scores yet this " + (rPeriod === "week" ? "week" : "time") + ". Be the first!</li>";
         me.textContent = d.me ? `You're #${d.me.rank} of ${d.count} with ${d.me.score}.` : `${d.count} players ranked. Post a score after any round to join.`;
-      } catch (err) { list.innerHTML = `<li>${esc(err.message)}</li>`; }
+      } catch (err) {
+        if (seq !== ranksSeq) return;
+        list.removeAttribute("aria-busy"); me.textContent = "";
+        list.innerHTML = `<li class="msg">${esc(err.message)}<button type="button" id="r-retry">Retry</button></li>`;
+      }
     }
+    let ranksSeq = 0;
     document.getElementById("forget").addEventListener("click", async () => {
       const m = document.getElementById("forget-msg");
       if (document.getElementById("forget").dataset.sure !== "1") {
@@ -2889,6 +2914,7 @@
       if (e.target.id === "ranks") e.currentTarget.hidden = true;
       if (e.target.dataset.game) { rGame = e.target.dataset.game; loadRanks(); }
       if (e.target.dataset.period) { rPeriod = e.target.dataset.period; loadRanks(); }
+      if (e.target.id === "r-retry") loadRanks();
       const rb = e.target.closest && e.target.closest("button.rep");
       if (rb) {
         // two taps: first asks, second sends
@@ -2902,7 +2928,7 @@
     });
     // "post this score?" bar under the game, shown after a round ends
     const pb = document.getElementById("postbar"), pbName = document.getElementById("pb-name"), pbMsg = document.getElementById("pb-msg");
-    let posted = null, shownRound = null;
+    let posted = null, shownRound = null, posting = false;
     try { pbName.value = localStorage.getItem("neon-player") || ""; } catch (_) {}
     ["keydown", "keyup"].forEach(t => pbName.addEventListener(t, e => {
       if (e.key === "Escape") { pbName.blur(); return; }     // Esc still goes back to the menu
@@ -2915,6 +2941,7 @@
       if (show && (pb.hidden || shownRound !== L)) {
         shownRound = L;
         pb.hidden = false; pbMsg.textContent = ""; pbMsg.className = "";
+        { const b = document.getElementById("pb-post"); b.disabled = false; b.innerHTML = "&#127941; Post to rankings"; }
         const name = (rankGames().find(g => g.id === L.id) || {}).t || L.id;
         document.getElementById("pb-text").textContent = `${name}: ${L.score} points`;
       } else if (!show) pb.hidden = true;
@@ -2926,12 +2953,16 @@
       if (name.length < 2) { pbMsg.textContent = "Pick a nickname first (2-14 letters or numbers)."; pbMsg.className = "err"; pbName.focus(); return; }
       try { localStorage.setItem("neon-player", name); } catch (_) {}
       document.getElementById("playername").value = name;
-      pbMsg.textContent = "Posting…"; pbMsg.className = "";
+      if (posting || posted === L) return;          // one tap, one post
+      const btn = document.getElementById("pb-post"), label = btn.innerHTML;
+      posting = true; btn.disabled = true; btn.textContent = "Posting\u2026";
+      pbMsg.textContent = ""; pbMsg.className = "";
       try {
         const r = await B.post(L.id, L.score, name); posted = L;
         pbMsg.textContent = r.pending ? r.message : `Posted! You're #${r.week.rank} this week and #${r.all.rank} all time (best ${r.all.best}).`;
-        // Keep Share available after posting.
-      } catch (err) { pbMsg.textContent = err.message; pbMsg.className = "err"; }
+        btn.textContent = "\u2713 Posted";            // stays locked for this round; Share stays available
+      } catch (err) { pbMsg.textContent = err.message; pbMsg.className = "err"; btn.innerHTML = label; btn.disabled = false; }
+      finally { posting = false; }
     });
 
     /* ---------- PWA: install button + service worker ---------- */
