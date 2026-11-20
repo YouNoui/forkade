@@ -64,6 +64,10 @@
   .chip.oss a{color:var(--magenta); text-decoration:none;}
   a.card{display:block; text-decoration:none; color:inherit;}
   .card.make{border-style:dashed;}
+  .card.start{border-color:var(--cyan); box-shadow:0 0 0 1px var(--cyan), 0 0 26px -6px var(--cyan);}
+  .card.start{padding-top:50px;}
+  .card .starttag{position:absolute; top:14px; left:20px; white-space:nowrap; background:var(--cyan); color:#05040f; font-size:11px; font-weight:900;
+    letter-spacing:.12em; padding:4px 10px; border-radius:6px;}
   .wallet{display:flex; flex-wrap:wrap; justify-content:center; gap:10px 16px; margin-top:14px; font-size:13px; color:var(--dim);}
   .wallet b{color:var(--lime); font-variant-numeric:tabular-nums;}
   .streak{display:inline-flex; align-items:center; gap:8px;}
@@ -75,8 +79,10 @@
   .goal .g-bar{height:6px; border-radius:3px; background:rgba(141,146,189,.18); overflow:hidden;}
   .goal .g-bar i{display:block; height:100%; width:0; border-radius:3px; background:var(--cyan); box-shadow:0 0 10px var(--cyan); transition:width .6s cubic-bezier(.2,.8,.2,1);}
   html.reduce-motion .goal .g-bar i{transition:none;}
-  .wallet .locker{cursor:pointer; font-family:inherit; font-weight:800; font-size:13px; color:var(--amber);
-    border:1px solid var(--amber); border-radius:10px; padding:5px 12px; background:rgba(255,178,63,.06);}
+  /* colour roles: cyan = the action to take, amber/lime = rewards you hold, neutral = everything else */
+  .wallet .locker{cursor:pointer; font-family:inherit; font-weight:800; font-size:13px; color:var(--ink,#fff);
+    border:1px solid rgba(120,130,170,.5); border-radius:10px; padding:5px 12px; background:rgba(20,24,46,.4); min-height:36px;}
+  .wallet .locker:hover{border-color:var(--cyan);}
   .stars{position:absolute; right:20px; bottom:42px; font-size:14px; letter-spacing:2px;}
   .stars .on{color:#ffd84a; text-shadow:0 0 8px #ffd84a;} .stars .off{color:rgba(141,146,189,.35);}
   .modal{position:fixed; inset:0; z-index:200; background:rgba(3,2,14,.78); display:flex; align-items:flex-start;
@@ -101,7 +107,7 @@
   .toast{background:rgba(6,5,26,.92); border:1px solid var(--lime); color:var(--lime); border-radius:12px;
     padding:10px 16px; font-size:14px; font-weight:800; box-shadow:0 0 24px -8px var(--lime); animation:tin .25s ease-out;}
   @keyframes tin{from{opacity:0; transform:translateY(-8px);} to{opacity:1; transform:none;}}
-  .wallet .ranks{color:var(--cyan); border-color:var(--cyan); background:rgba(34,228,255,.06);}
+
   .rtabs{display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 10px;}
   .rtabs button{font-family:inherit; font-size:12px; font-weight:800; cursor:pointer; border-radius:8px; padding:6px 10px;
     background:transparent; color:var(--dim); border:1px solid rgba(141,146,189,.4);}
@@ -236,6 +242,8 @@
   #settings input[type=checkbox]{width:22px;height:22px;accent-color:var(--cyan);}
   .settings-button{min-height:36px}.daily{grid-column:1/-1;color:var(--ink);font-family:inherit;text-align:left;}
   #daily-claim{grid-column:1/-1;justify-self:start;}
+  #settings .saved{margin-left:auto; white-space:nowrap; flex:none; font-size:12px; font-weight:800; color:var(--lime); opacity:0; transition:opacity .2s;}
+  #settings .saved.on{opacity:1;}
   .reduce-motion *, .reduce-motion *::before,.reduce-motion *::after{animation:none!important;transition:none!important;}
   .stage.portrait-game #game{width:min(94vw,calc((100dvh - 110px) * 560 / 900));max-height:calc(100dvh - 110px);aspect-ratio:560/900;}
   body.touch .stage.portrait-game #game{width:min(100vw,calc((100dvh - 90px) * 560 / 900));max-height:calc(100dvh - 90px);}
@@ -548,6 +556,8 @@
       }
     });
 
+    // first visit: one clear place to start instead of 12 equal choices (gone after the first game)
+    const START_ID = "skyhop", isNew = R.tried() === 0;
     Forkade.registry.forEach((g, i) => {
       const m = g.meta;
       const card = document.createElement("div");
@@ -562,6 +572,7 @@
         <span class="play">&#9654; Play now</span>
         <div class="best" data-id="${g.id}">BEST <b>${Forkade.scores.get(g.id)}</b></div>
         <div class="stars" data-id="${g.id}"></div>`;
+      if (isNew && g.id === START_ID) { card.classList.add("start"); card.insertAdjacentHTML("afterbegin", '<span class="starttag">START HERE &middot; ONE TAP TO JUMP</span>'); }
       card.addEventListener("click", () => openGame(g.id));
       grid.appendChild(card);
     });
