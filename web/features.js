@@ -36,6 +36,10 @@
   });
   settings.addEventListener('input', e => { const key = e.target.dataset.setting; if (!key) return;
     S[key] = e.target.type === 'range' ? +e.target.value : e.target.checked; S.save(); F.sfx.ensure(); paintMute();
+    // say it's saved, right where the change happened
+    const label = e.target.closest('label'); let tick = label.querySelector('.saved');
+    if (!tick) { tick = document.createElement('span'); tick.className = 'saved'; tick.setAttribute('role', 'status'); label.appendChild(tick); }
+    tick.textContent = '✓ Saved'; tick.classList.add('on'); clearTimeout(tick._t); tick._t = setTimeout(() => tick.classList.remove('on'), 1600);
   });
   for (const parent of [document.querySelector('.wallet'), document.querySelector('.stagebar')]) {
     const btn = document.createElement('button'); btn.className = 'mute settings-button'; btn.textContent = '⚙ Settings'; btn.onclick = showSettings; parent.appendChild(btn);

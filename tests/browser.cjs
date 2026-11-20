@@ -88,6 +88,13 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
    await pg.evaluate(()=>{Forkade.rewards.add(1);});await pg.waitForTimeout(1200);
    assert.match(await pg.locator('#goal').innerText(),/Next badge/);assert.equal(await pg.locator('#w-cores').textContent(),String(await pg.evaluate(()=>Forkade.rewards.cores())),'counter settles on the real total');
    await pg.close(); }
+  // first visit: one 'Start here' card; settings say Saved
+  { const pg=await browser.newPage({viewport:{width:390,height:844}});await pg.goto(base);await pg.waitForFunction(()=>window.Forkade);
+   assert.equal(await pg.locator('.card.start').count(),1,'one start card for new players');assert.match(await pg.locator('.card.start').innerText(),/START HERE[\s\S]*SKY HOP/i);
+   await pg.evaluate(()=>document.querySelector('.settings-button').click());await pg.locator('[data-setting=colourBlind]').click();
+   assert.match(await pg.locator('#settings .saved.on').innerText(),/Saved/);await pg.keyboard.press('Escape');
+   await pg.evaluate(()=>{Forkade.scores.submit('glass',10);});await pg.reload();await pg.waitForFunction(()=>window.Forkade);
+   assert.equal(await pg.locator('.card.start').count(),0,'gone once they have played');await pg.close(); }
   // install bar (playbook section 11): iPhone Safari sheet, Chrome prompt, 3-day snooze, hidden in games and when installed
   for(const [name,ua,size] of [['iphone','Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',{width:390,height:844}],['chrome','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36',{width:1280,height:900}]]){
    const ctx=await browser.newContext({viewport:size,userAgent:ua,serviceWorkers:'block'}),pg=await ctx.newPage();await pg.goto(base);await pg.waitForFunction(()=>window.Forkade);
