@@ -20,6 +20,25 @@ Fork: https://github.com/YouNoui/forkade. MIT licensed; bundled third-party noti
 
 **Phones:** Sky Hop, Sky Striker and Pulse Breaker have tall portrait layouts. Other 2D games recommend landscape. Safari unlocks audio on a user gesture; add the arcade using Share → Add to Home Screen. Both 3D games work offline and use thumb-stick controls.
 
+## Design
+
+FORKADE follows the IAMYNOUI UX playbook with colour trio **B**:
+
+| Role | Token | Value | Used for |
+|---|---|---|---|
+| Ink / base | `--base` (+ `--panel`, `--panel2`, `--line`, `--text`, `--muted`) | `#0b0a10` | page, panels, text |
+| Brand | `--brand` | cyan `#22e1ff` | title, links, badges, progress, selected tabs |
+| Pop | `--pop` with `--pop-ink` text | yellow `#ffd84d` | only the one main action per screen |
+| Status | `--ok`, `--danger` | `#4ade80`, `#ff5a6e` | success / destructive only |
+
+Games keep their own colours (card `--c`, skins, canvas palettes, 3D worlds); everything around them uses the trio.
+Tokens live in `web/index.html` `:root`; never hard-code a hex in UI.
+
+Buttons use one set of classes: `.btn` (secondary), `.btn-pop` (main), `.btn-dark`, `.btn-link`, `.btn-danger`
+(always confirmed with `UI.confirm`). Every button is at least 44px tall and has all states via `UI.busy(btn, "Posting…")`,
+`UI.done(btn, "Posted")` and `UI.reset(btn)`. Success moments use `UI.burst(el)` (once per screen). On phones every pop-up is
+a bottom sheet (swipe down, tap outside, ✕ or Esc). Motion is off under `prefers-reduced-motion` and the Reduce motion setting.
+
 ## Community games
 
 Build an original ECHO game in the [Playground](https://playforkade.com/playground.html), then follow [CONTRIBUTING.md](CONTRIBUTING.md). Use our GitHub templates for bugs, ideas and game submissions. Read the [community code](CODE_OF_CONDUCT.md); contributions must preserve local-first play, opt-in services and MIT-compatible licensing. Games are reviewed before joining the arcade.

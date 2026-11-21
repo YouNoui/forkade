@@ -50,10 +50,12 @@
     tick.textContent = '✓ Saved'; tick.classList.add('on'); clearTimeout(tick._t); tick._t = setTimeout(() => tick.classList.remove('on'), 1600);
   });
   for (const parent of [document.querySelector('.wallet .wbtns') || document.querySelector('.wallet'), document.querySelector('.stagebar')]) {
-    const btn = document.createElement('button'); btn.className = 'mute settings-button'; btn.textContent = '⚙ Settings'; btn.onclick = showSettings; parent.appendChild(btn);
+    const btn = document.createElement('button'); btn.className = 'btn mute settings-button'; btn.textContent = '⚙ Settings'; btn.onclick = showSettings; parent.appendChild(btn);
   }
   window.addEventListener('message', e => { if (e.source===gframe.contentWindow && e.data?.t==='forkade-settings-open') showSettings(); });
-  const share = document.createElement('button'); share.id='pb-share'; share.textContent='Share'; document.getElementById('pb-post').after(share);
+  const share = document.createElement('button'); share.id='pb-share'; share.className='btn'; share.textContent='Share'; document.getElementById('pb-post').after(share);
+  const again = document.createElement('button'); again.id='pb-again'; again.className='btn btn-link'; again.textContent='\u21bb Play again';
+  again.onclick = () => { const L = F.board.last; if (L) openGame(L.id); }; share.after(again);
   share.onclick = async () => {
     const L = F.board.last; if (!L) return;
     const name = GAME_NAMES()[L.id] || L.id, url = 'https://playforkade.com/' + L.id;
@@ -62,9 +64,9 @@
       else { await navigator.clipboard.writeText(text); toast('Score link copied!'); }
     } catch (e) { if (e.name !== 'AbortError') toast('Could not share. Copy this link: ' + url); }
   };
-  const dailyCard = document.createElement('button'); dailyCard.className='card daily'; dailyCard.id='daily-challenge'; dailyCard.style.setProperty('--c','#ffb23f');
+  const dailyCard = document.createElement('button'); dailyCard.className='card daily'; dailyCard.id='daily-challenge'; dailyCard.style.setProperty('--c','var(--brand)');
   grid.prepend(dailyCard);
-  const claim = document.createElement('button'); claim.className='mute'; claim.id='daily-claim'; claim.textContent="Claim yesterday's top-10 bonus"; dailyCard.after(claim);
+  const claim = document.createElement('button'); claim.className='btn'; claim.id='daily-claim'; claim.textContent="Claim yesterday's top-10 bonus"; dailyCard.after(claim);
   // only players who have posted can be in a top 10: hide the button for everyone else
   try { if (!localStorage.getItem('forkade-pid')) claim.hidden = true; } catch (_) {}
   // first visit: the Start here card comes before everything else
@@ -78,13 +80,15 @@
   dailyCard.onclick = () => { const d=D.challenge(); openGame(d.game, { seed:d.seed, daily:d.date }); };
   claim.onclick = async () => {
     const d=D.challenge(Date.now()-86400000), key='forkade-daily-top10:'+d.date;
+    UI.busy(claim, 'Checking\u2026');
     try {
       if (localStorage.getItem(key)) return toast('Already claimed for '+d.date+'.');
       if (!localStorage.getItem('forkade-pid')) return toast('Post a daily score first to enter the top 10.');
       const result=await F.board.top(d.game,'daily',d.date);
       if (!result.me || result.me.rank > 10) return toast('No top-10 finish on '+d.date+'.');
-      localStorage.setItem(key,'1'); F.rewards.add(75); refreshRewards(); toast('Daily top 10! +75 cores');
+      localStorage.setItem(key,'1'); F.rewards.add(75); refreshRewards(); toast('Daily top 10! +75 cores'); UI.burst(claim);
     } catch(e) { toast(e.message); }
+    finally { UI.reset(claim); }
   };
   const dailyTab = document.createElement('button'); dailyTab.dataset.period='daily'; dailyTab.textContent='Daily'; document.querySelector('#ranks .rtabs.small').appendChild(dailyTab);
   // Delay until the distribution has installed its inline 3D pages.

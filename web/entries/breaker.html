@@ -72,9 +72,11 @@
   .card.make{border-style:dashed;}
   .card.start{border:2px solid var(--pop); box-shadow:5px 5px 0 var(--pop);}
   .card.start:hover{box-shadow:7px 7px 0 var(--pop);}
+  .card.daily, #daily-claim{order:-2;} .card.start{order:-1;}
+  @media (max-width:600px){ .card.start{order:-3;} }
   .card.start .play, .card.daily .dplay{background:var(--pop); color:var(--pop-ink); border:2px solid var(--pop-ink); font-weight:900; box-shadow:3px 3px 0 var(--brand);}
   .card.start{padding-top:50px;}
-  .card .starttag{position:absolute; top:14px; left:20px; white-space:nowrap; background:var(--pop); color:var(--pop-ink); font-size:11px; font-weight:900;
+  .card .starttag{position:absolute; top:14px; left:20px; white-space:nowrap; background:var(--brand); color:var(--pop-ink); font-size:11px; font-weight:900;
     letter-spacing:.12em; padding:4px 10px; border-radius:6px;}
   .wallet{display:flex; flex-wrap:wrap; justify-content:center; gap:10px 16px; margin-top:14px; font-size:13px; color:var(--dim);}
   .wallet b{color:var(--lime); font-variant-numeric:tabular-nums;}
@@ -153,7 +155,7 @@
   body.touch #gframe{width:100vw; height:100dvh; border-radius:0;}
   body.touch .stagebar{position:fixed; left:max(8px,env(safe-area-inset-left)); top:8px; z-index:80; gap:0;}
   body.touch .stagebar > span:not(.back){display:none;}
-  body.touch .back{padding:6px 10px; font-size:12px; background:rgba(6,5,26,.7);}
+  body.touch .back{padding:6px 12px; font-size:13px; background:rgba(11,10,16,.8);}
   body.touch .postbar{position:fixed; top:8px; left:50%; transform:translateX(-50%); width:min(560px,calc(100vw - 120px)); margin:0; z-index:85; padding:8px;}
   body.touch .touchctl .pad{grid-template-columns:repeat(3,46px); grid-template-rows:repeat(3,46px); gap:4px;
     left:max(10px,env(safe-area-inset-left)); bottom:max(10px,env(safe-area-inset-bottom));}
@@ -220,8 +222,7 @@
     border:1px solid rgba(120,130,170,.5); border-radius:10px; padding:8px 12px; width:170px; text-align:center;}
   .pname label{color:var(--dim); font-size:12px; margin-right:8px;}
   .stagebar{display:flex; gap:18px; align-items:center; color:var(--dim); font-size:13px; flex-wrap:wrap; justify-content:center;}
-  .back{cursor:pointer; color:var(--cyan); border:1px solid var(--cyan); border-radius:10px;
-    padding:8px 16px; font-weight:700; background:rgba(34,225,255,.05);}
+  .back{font-size:13px;} body.touch .kbdhint{display:none;}
   kbd{background:var(--panel2); border:1px solid var(--line); border-radius:5px; padding:1px 7px; color:var(--ink);}
 
   /* ---- install button ---- */
@@ -254,7 +255,7 @@
   .u{grid-column:2; grid-row:1;} .l{grid-column:1; grid-row:2;}
   .r{grid-column:3; grid-row:2;} .dn{grid-column:2; grid-row:3;}
 
-  #settings label{display:flex;align-items:center;gap:12px;margin:18px 0;font-size:14px;}
+  #settings label{display:flex;align-items:center;gap:12px;margin:8px 0;min-height:44px;font-size:14px;cursor:pointer;}
   #settings input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand);}
   #settings input[type=range]{accent-color:var(--brand); min-height:44px;}
   .settings-button{min-height:36px}.daily{grid-column:1/-1;color:var(--ink);font-family:inherit;text-align:left;}
@@ -262,6 +263,51 @@
   #settings .saved{margin-left:auto; white-space:nowrap; flex:none; font-size:12px; font-weight:800; color:var(--lime); opacity:0; transition:opacity .2s;}
   #settings .saved.on{opacity:1;}
 
+
+  /* game over on phones: one full-width bar at the bottom, within thumb reach */
+  @media (max-width:600px){
+    body.touch .postbar{top:auto; bottom:var(--kb,0px); left:0; right:0; transform:none; width:100%; max-width:none; margin:0;
+      border-radius:18px 18px 0 0; border:0; border-top:1px solid var(--line); padding:12px 14px calc(12px + env(safe-area-inset-bottom));
+      box-shadow:0 -12px 30px -12px #000; justify-content:stretch;}
+    body.touch .postbar #pb-text{flex:1 0 100%; text-align:center; font-weight:800; color:var(--text);}
+    body.touch .postbar input{flex:1 1 120px; width:auto; min-height:44px;}
+    body.touch .postbar #pb-post{flex:0 0 auto;} body.touch .postbar #pb-share, body.touch .postbar #pb-again{flex:1 1 40%;}
+    body.touch .postbar #pb-msg{flex:1 0 100%; text-align:center;}
+    body.touch.pb-open .touchctl{display:none !important;}
+  }
+  .postbar #pb-again{background:transparent; border-color:transparent; color:var(--brand); box-shadow:none;}
+  body.playing .toasts{top:calc(64px + var(--ibh,0px)) !important;}
+  [hidden]{display:none !important;}
+  /* ---- shared buttons (UX playbook §4): one look, every state ---- */
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:8px 16px; border-radius:12px;
+    font-family:inherit; font-weight:800; font-size:14px; line-height:1.2; cursor:pointer; text-decoration:none;
+    background:var(--panel2); color:var(--text); border:1px solid var(--line);}
+  .btn:hover{border-color:var(--brand);}
+  .btn-pop{background:var(--pop); color:var(--pop-ink); border:2px solid var(--pop-ink); box-shadow:3px 3px 0 var(--brand);}
+  .btn-pop:hover{border-color:var(--pop-ink); box-shadow:4px 4px 0 var(--brand);}
+  .btn-pop:active:not(:disabled){box-shadow:1px 1px 0 var(--brand);}
+  .btn-dark{background:var(--base); color:var(--text); border-color:var(--text);}
+  .btn-link{background:transparent; border-color:transparent; color:var(--brand); padding-left:8px; padding-right:8px;}
+  .btn-link:hover{border-color:transparent; text-decoration:underline;}
+  .btn-danger{background:transparent; color:var(--danger); border-color:rgba(255,90,110,.6);}
+  .btn-danger:hover{border-color:var(--danger);}
+  .btn:disabled{opacity:.55; cursor:not-allowed; box-shadow:none;}
+  .btn.done{opacity:1; color:var(--ok); border-color:rgba(74,222,128,.5); background:transparent;}
+  .btn.busy{opacity:.85; cursor:progress;}
+  .btn.busy::before{content:""; width:14px; height:14px; border-radius:50%; border:2px solid currentColor; border-right-color:transparent;
+    animation:bspin .7s linear infinite; flex:none;}
+  @keyframes bspin{to{transform:rotate(360deg);}}
+  html.reduce-motion .btn.busy::before{animation:none; border-right-color:currentColor; opacity:.5;}
+  .why{display:block; font-size:11px; color:var(--muted); margin-top:4px;}
+  /* confirm sheet */
+  #confirm .sheet{max-width:440px;} #confirm h2{margin:0 0 8px; font-size:18px; letter-spacing:.04em;}
+  #confirm p{color:var(--muted); font-size:14px; margin:0 0 18px;} #confirm .row{display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;}
+  @media (max-width:600px){ #confirm .row .btn{flex:1;} }
+  /* success burst: one moment, ~1s */
+  .burst{position:fixed; width:0; height:0; pointer-events:none; z-index:400;}
+  .burst i{position:absolute; left:-4px; top:-4px; width:8px; height:8px; border-radius:50%; background:var(--c);
+    animation:burst .9s cubic-bezier(.15,.7,.3,1) forwards;}
+  @keyframes burst{0%{transform:translate(0,0) scale(1); opacity:1;} 100%{transform:translate(var(--x),var(--y)) scale(.3); opacity:0;}}
   /* ---- UX playbook: buttons, taps, sheets ---- */
   button, .play, .foot a, .dlfile{transition:transform .16s ease, background-color .16s ease, border-color .16s ease, box-shadow .16s ease, color .16s ease;}
   button:active:not(:disabled), .card:active .play{transform:translateY(1px);}
@@ -270,7 +316,7 @@
   .rlist li.msg button, .forget, .ib-go{min-height:44px;}
   .sheet .x{min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center; right:8px; top:6px;}
   .rlist button.rep{min-height:36px;}
-  .foot a{display:inline-block; padding:12px 4px; margin:-12px 0;}
+  .foot a, .sheet .hint a{display:inline-block; padding:14px 4px; margin:-14px 0;}
   .foot{line-height:2.2;}
   #settings label.nick{justify-content:flex-start;} #settings label.nick input{flex:1; min-width:0; max-width:220px; min-height:44px;
     font-family:inherit; font-size:15px; color:var(--text); background:var(--base); border:1px solid var(--line); border-radius:10px; padding:8px 12px;}
@@ -279,7 +325,7 @@
   .card.daily .dplay{margin-top:4px;}
   .grid:has(.card.start) .card.daily .dplay{background:rgba(255,255,255,.03); color:var(--text); border:1px solid var(--line); box-shadow:none; font-weight:700;}
   .toasts{top:auto !important; bottom:calc(18px + env(safe-area-inset-bottom));}
-  body.playing .toasts{bottom:auto !important; top:calc(16px + var(--ibh,0px)) !important;}
+  body.playing .toasts{bottom:auto !important;}
   @keyframes tin{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;}}
   /* phones: pop-ups are bottom sheets (tap outside, ✕, Esc or swipe down to close) */
   .sheet .grab{display:none;}
@@ -363,7 +409,7 @@
     </div>
     <div class="grid" id="grid"></div>
     <div class="offline">
-      <button class="install show" id="install">&#11015; Play offline / install</button>
+      <button class="btn install show" id="install">&#11015; Play offline / install</button>
       <div class="dlbox" id="dlbox" hidden>
         <div id="dlmsg"></div>
         <a class="dlfile" href="download/forkade.html" download="forkade.html">&#11015; Download as one file (plays offline, double-click to open)</a>
@@ -400,7 +446,7 @@
         Scores only appear here if you tap <b>Post</b> after a game. We only store your nickname, the game and your score.
         See a rude or fake nickname? Tap &#9873; next to it.
         <a href="privacy.html">Privacy</a> &middot; <a href="guidelines.html">Rules</a></p>
-      <p class="hint"><button class="forget" id="forget">Remove my scores and nickname</button> <span id="forget-msg"></span></p>
+      <p class="hint"><button class="btn btn-danger forget" id="forget">Remove my scores</button> <span id="forget-msg"></span></p>
     </div>
   </div>
   <div class="toasts" id="toasts"></div>
@@ -424,12 +470,12 @@
     </div>
     <div class="postbar" id="postbar" hidden>
       <span id="pb-text"></span>
-      <input id="pb-name" maxlength="14" placeholder="nickname" aria-label="Nickname for the rankings">
-      <button id="pb-post">&#127941; Post to rankings</button>
+      <input id="pb-name" maxlength="14" placeholder="nickname" aria-label="Nickname for the rankings" autocomplete="nickname" spellcheck="false">
+      <button id="pb-post" class="btn btn-pop">&#127941; Post score</button>
       <span id="pb-msg"></span>
     </div>
     <div class="stagebar">
-      <span class="back" id="back">&larr; Back to menu (Esc)</span>
+      <button class="btn back" id="back" type="button">&larr; Menu <span class="kbdhint">(Esc)</span></button>
       <span>Move <kbd>WASD</kbd>/<kbd>&larr;&uarr;&darr;&rarr;</kbd></span>
       <span>Act <kbd>Space</kbd>/<kbd>Click</kbd></span>
       <span>Rewind <kbd>R</kbd>/<kbd>Shift</kbd></span>
@@ -437,6 +483,12 @@
     </div>
   </div>
 
+  <div class="modal" id="confirm" hidden role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <section class="sheet"><button class="x" id="confirm-x" aria-label="Cancel">&times;</button>
+      <h2 id="confirm-title"></h2><p id="confirm-text"></p>
+      <div class="row"><button class="btn" id="confirm-no" type="button">Cancel</button><button class="btn" id="confirm-yes" type="button"></button></div>
+    </section>
+  </div>
   <script src="daily.js"></script>
   <script src="settings.js"></script>
   <script src="engine.js"></script>
@@ -452,6 +504,34 @@
   <script src="games/demo.js"></script>
   <script src="games/match.js"></script>
   <script>
+    // ---- UI kit (UX playbook §3–§5): button states, confirm sheet, success burst ----
+    window.UI = {
+      busy(b, label) { if (!b.dataset.label) b.dataset.label = b.innerHTML; b.classList.remove("done"); b.classList.add("busy"); b.disabled = true; b.textContent = label; },
+      done(b, label) { b.classList.remove("busy"); b.classList.add("done"); b.disabled = true; b.textContent = "\u2713 " + label; },
+      reset(b) { b.classList.remove("busy", "done"); if (b.dataset.label) b.innerHTML = b.dataset.label; delete b.dataset.label; b.disabled = false; },
+      confirm({ title, text, ok, danger = true }) {
+        const m = document.getElementById("confirm"), yes = document.getElementById("confirm-yes");
+        document.getElementById("confirm-title").textContent = title; document.getElementById("confirm-text").textContent = text;
+        yes.textContent = ok; yes.className = "btn " + (danger ? "btn-danger" : "btn-pop");
+        m.hidden = false; setTimeout(() => document.getElementById("confirm-no").focus(), 30);
+        return new Promise(res => {
+          const end = v => { m.hidden = true; m.onclick = null; document.removeEventListener("keydown", esc, true); res(v); };
+          const esc = e => { if (e.key === "Escape") { e.stopPropagation(); end(false); } };
+          document.addEventListener("keydown", esc, true);
+          m.onclick = e => { if (e.target === m || e.target.id === "confirm-no" || e.target.id === "confirm-x") end(false); else if (e.target === yes) end(true); };
+        });
+      },
+      burst(el) {
+        const still = document.documentElement.classList.contains("reduce-motion") || matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (still || !el) return;
+        const r = el.getBoundingClientRect(), b = document.createElement("div"); b.className = "burst";
+        b.style.left = (r.left + r.width / 2) + "px"; b.style.top = (r.top + r.height / 2) + "px";
+        for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2, d = 50 + (i % 3) * 22, d2 = document.createElement("i");
+          d2.style.setProperty("--x", Math.cos(a) * d + "px"); d2.style.setProperty("--y", Math.sin(a) * d + "px");
+          d2.style.setProperty("--c", i % 2 ? "var(--pop)" : "var(--brand)"); b.appendChild(d2); }
+        document.body.appendChild(b); setTimeout(() => b.remove(), 1000);
+      }
+    };
     const grid = document.getElementById("grid");
     const stage = document.getElementById("stage");
     const canvas = document.getElementById("game");
@@ -529,10 +609,11 @@
       const own = R.owned(), eq = R.skin().id, cores = R.cores();
       document.getElementById("skins").innerHTML = R.SKINS.map(sk => {
         const has = own.includes(sk.id), bg = sk.color === "rainbow"
-          ? "linear-gradient(135deg,#ff3ea5,#ffb23f,#9dff57,#22e4ff,#a07bff)" : sk.color;
-        const btn = sk.id === eq ? `<button disabled>Equipped</button>`
-          : has ? `<button data-skin="${sk.id}">Equip</button>`
-          : `<button data-skin="${sk.id}" ${cores < sk.cost ? "disabled" : ""}>&#9670; ${sk.cost}</button>`;
+          ? "linear-gradient(135deg,#ff3ea5,#ffb23f,#9dff57,#22e4ff,#a07bff)" : sk.color;   /* skin = game colour, not UI */
+        const btn = sk.id === eq ? `<button class="btn done" disabled>&#10003; Equipped</button>`
+          : has ? `<button class="btn" data-skin="${sk.id}">Equip</button>`
+          : cores < sk.cost ? `<button class="btn" disabled aria-describedby="why-${sk.id}">&#9670; ${sk.cost}</button><small class="why" id="why-${sk.id}">Need ${sk.cost - cores} more cores</small>`
+          : `<button class="btn btn-pop" data-skin="${sk.id}">&#9670; ${sk.cost} Buy</button>`;
         return `<div class="skin ${sk.id === eq ? "eq" : ""}"><div class="sw" style="background:${bg};color:${sk.color === "rainbow" ? "#a07bff" : sk.color}"></div>${sk.name}${btn}</div>`;
       }).join("");
       const names = GAME_NAMES(); let total = 0;
@@ -705,13 +786,20 @@
         if (y0 !== null && dy > 90) { const x = sheet.querySelector(".x"); if (x) x.click(); } y0 = null; });
     }
     window.addEventListener("load", () => document.querySelectorAll(".modal .sheet").forEach(sheetify));
+    // Esc closes the top pop-up (before it can reach the game or the menu)
+    document.addEventListener("keydown", e => {
+      if (e.key !== "Escape") return;
+      const open = [...document.querySelectorAll(".modal:not([hidden])")].pop(); if (!open) return;
+      const x = open.querySelector(".x"); if (x) { e.stopPropagation(); e.preventDefault(); x.click(); }
+    }, true);
     // sound lives in Settings now (one place for every option)
     function paintMute() {}
 
     // badge toasts raised outside a canvas game (3D, menu) show as DOM toasts
     R.listeners.push((text) => {
       const st = document.getElementById("stage").classList;
-      if (text && (!st.contains("on") || st.contains("d3"))) toast(text);   // 2D games draw their own toasts
+      if (text && (!st.contains("on") || st.contains("d3"))) { toast(text);   // 2D games draw their own toasts
+        if (/BADGE|STARTER|TOP 10/i.test(text)) UI.burst(document.querySelector("#toasts .toast:last-child")); }
       if (!text) refreshRewards();                                         // cores changed: roll the wallet
     });
     { const d = R.daily(); if (d && d.cores) setTimeout(() => toast(`Day ${d.streak} streak! +${d.cores} cores`), 600); }
@@ -744,19 +832,18 @@
       } catch (err) {
         if (seq !== ranksSeq) return;
         list.removeAttribute("aria-busy"); me.textContent = "";
-        list.innerHTML = `<li class="msg">${esc(err.message)}<button type="button" id="r-retry">Retry</button></li>`;
+        list.innerHTML = `<li class="msg">${esc(err.message)}<button type="button" class="btn" id="r-retry">Retry</button></li>`;
       }
     }
     let ranksSeq = 0;
     document.getElementById("forget").addEventListener("click", async () => {
-      const m = document.getElementById("forget-msg");
-      if (document.getElementById("forget").dataset.sure !== "1") {
-        document.getElementById("forget").dataset.sure = "1"; m.textContent = "Tap again to confirm. This removes all your posted scores."; return;
-      }
-      m.textContent = "Removing\u2026";
-      try { await B.forget(); m.textContent = "Done. Your nickname and scores are gone from the rankings."; loadRanks(); }
-      catch (err) { m.textContent = err.message; }
-      document.getElementById("forget").dataset.sure = "";
+      const m = document.getElementById("forget-msg"), btn = document.getElementById("forget");
+      const ok = await UI.confirm({ title: "Remove your scores?", ok: "Remove",
+        text: "This removes every score you posted and your nickname from the rankings. Your cores, badges and skins on this device stay." });
+      if (!ok) return;
+      m.textContent = ""; UI.busy(btn, "Removing\u2026");
+      try { await B.forget(); UI.done(btn, "Removed"); m.textContent = "Your nickname and scores are gone from the rankings."; loadRanks(); }
+      catch (err) { UI.reset(btn); m.textContent = err.message; }
     });
     document.getElementById("open-ranks").addEventListener("click", () => { document.getElementById("ranks").hidden = false; loadRanks(); });
     document.getElementById("close-ranks").addEventListener("click", () => { document.getElementById("ranks").hidden = true; });
@@ -767,13 +854,12 @@
       if (e.target.id === "r-retry") loadRanks();
       const rb = e.target.closest && e.target.closest("button.rep");
       if (rb) {
-        // two taps: first asks, second sends
-        if (rb.dataset.sure !== "1") { document.querySelectorAll("button.rep").forEach(x => { x.dataset.sure = ""; x.textContent = "\u2691"; });
-          rb.dataset.sure = "1"; rb.textContent = "Report?"; return; }
-        rb.disabled = true; rb.textContent = "\u2026";
-        B.report(rGame, rPeriod, +rb.dataset.rank, rb.dataset.name)
-          .then(() => { rb.textContent = "Thanks"; toast("Thanks, we'll take a look."); })
-          .catch(err => { rb.textContent = "\u2691"; rb.disabled = false; toast(err.message); });
+        UI.confirm({ title: "Report " + rb.dataset.name + "?", ok: "Report",
+          text: "Use this for rude or fake nicknames or impossible scores. After 3 reports the nickname is hidden as \u201cPlayer\u201d until we review it." })
+          .then(ok => { if (!ok) return; rb.disabled = true; rb.textContent = "\u2026";
+            B.report(rGame, rPeriod, +rb.dataset.rank, rb.dataset.name)
+              .then(() => { rb.textContent = "\u2713"; toast("Thanks, we'll take a look."); })
+              .catch(err => { rb.textContent = "\u2691"; rb.disabled = false; toast(err.message); }); });
       }
     });
     // "post this score?" bar under the game, shown after a round ends
@@ -791,12 +877,17 @@
       if (show && (pb.hidden || shownRound !== L)) {
         shownRound = L;
         pb.hidden = false; pbMsg.textContent = ""; pbMsg.className = "";
-        { const b = document.getElementById("pb-post"); b.disabled = false; b.innerHTML = "&#127941; Post to rankings"; }
+        { const b = document.getElementById("pb-post"); UI.reset(b); b.innerHTML = "&#127941; Post score"; }
         const name = (rankGames().find(g => g.id === L.id) || {}).t || L.id;
         document.getElementById("pb-text").textContent = `${name}: ${L.score} points`;
       } else if (!show) pb.hidden = true;
       if (!on) pb.hidden = true;
+      document.body.classList.toggle("pb-open", !pb.hidden);
     }, 250);
+    // keep the game-over bar above the phone keyboard while typing a nickname
+    if (window.visualViewport) { const vv = window.visualViewport, kb = () => document.documentElement.style.setProperty("--kb",
+        Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop)) + "px");
+      vv.addEventListener("resize", kb); vv.addEventListener("scroll", kb); }
     document.getElementById("pb-post").addEventListener("click", async () => {
       const L = B.last; if (!L) return;
       const name = pbName.value.trim();
@@ -805,13 +896,13 @@
       { const pn = document.getElementById("playername"); if (pn) pn.value = name; }
       if (posting || posted === L) return;          // one tap, one post
       const btn = document.getElementById("pb-post"), label = btn.innerHTML;
-      posting = true; btn.disabled = true; btn.textContent = "Posting\u2026";
+      posting = true; UI.busy(btn, "Posting\u2026");
       pbMsg.textContent = ""; pbMsg.className = "";
       try {
         const r = await B.post(L.id, L.score, name); posted = L;
         pbMsg.textContent = r.pending ? r.message : `Posted! You're #${r.week.rank} this week and #${r.all.rank} all time (best ${r.all.best}).`;
-        btn.textContent = "\u2713 Posted";            // stays locked for this round; Share stays available
-      } catch (err) { pbMsg.textContent = err.message; pbMsg.className = "err"; btn.innerHTML = label; btn.disabled = false; }
+        UI.done(btn, "Posted"); UI.burst(btn);      // stays locked for this round; Share stays available
+      } catch (err) { pbMsg.textContent = err.message; pbMsg.className = "err"; UI.reset(btn); btn.innerHTML = label; }
       finally { posting = false; }
     });
 
