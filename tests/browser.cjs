@@ -78,7 +78,16 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
   await a.locator('#r-retry').waitFor({timeout:9000});assert.match(await a.locator('#rlist').textContent(),/too long/);
   await a.evaluate(()=>{window.fetch=window.__realFetch;});await a.locator('#r-retry').click();await a.waitForFunction(()=>/Tester/.test(document.querySelector('#rlist').textContent));
   await a.evaluate(()=>document.getElementById('close-ranks').click());
+  // destructive actions are confirmed in a sheet: Cancel changes nothing
+  await a.evaluate(()=>document.getElementById('open-ranks').click());await a.waitForFunction(()=>/Tester/.test(document.querySelector('#rlist').textContent));
+  await a.evaluate(()=>document.getElementById('forget').click());assert.equal(await a.locator('#confirm').isHidden(),false,'remove asks first');
+  assert.match(await a.locator('#confirm-text').innerText(),/removes every score you posted/);await a.locator('#confirm-no').click();
+  assert.ok(await a.locator('#confirm').isHidden());assert.match(await a.locator('#rlist').textContent(),/Tester/,'cancel keeps scores');
+  await a.evaluate(()=>document.getElementById('close-ranks').click());
   await a.goto(base+'/stats.html');await a.locator('#key').fill('owner-test');await a.locator('#go').click();await a.locator('#out').waitFor({state:'visible'});
+  await a.goto(base);await a.waitForFunction(()=>window.Forkade);await a.evaluate(()=>document.getElementById('open-ranks').click());await a.waitForTimeout(800);
+  await a.evaluate(()=>document.getElementById('forget').click());await a.locator('#confirm-yes').click();
+  await a.waitForFunction(()=>/Removed/.test(document.getElementById('forget').textContent));
   await a.close();await b.close();
   // goal gradient: a new player starts at 1/4 (the visit counts), 3 different games pays +30 once, then the next badge shows
   { const pg=await browser.newPage({viewport:{width:390,height:844}});await pg.goto(base);await pg.waitForFunction(()=>window.Forkade);
@@ -88,6 +97,31 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
    await pg.evaluate(()=>{Forkade.rewards.add(1);});await pg.waitForTimeout(1200);
    assert.match(await pg.locator('#goal').innerText(),/Next badge/);assert.equal(await pg.locator('#w-cores').textContent(),String(await pg.evaluate(()=>Forkade.rewards.cores())),'counter settles on the real total');
    await pg.close(); }
+  // UX playbook at 390: one yellow main action on screen, 44px taps, bottom sheets, CSP clean (headers come from vercel.json)
+  { const ctx=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true});const pg=await ctx.newPage();const csp=[];
+   await pg.exposeFunction('__csp',v=>csp.push(v));await pg.addInitScript(()=>{document.addEventListener('securitypolicyviolation',e=>window.__csp(e.violatedDirective+' '+e.blockedURI));
+     try{localStorage.setItem('forkade-install-snooze',String(Date.now()+9e9))}catch(_){}});
+   const pops=()=>pg.evaluate(()=>[...document.querySelectorAll('body *')].filter(e=>{const r=e.getBoundingClientRect();return r.width>40&&r.height>20&&r.top>=0&&r.bottom<=innerHeight&&getComputedStyle(e).backgroundColor==='rgb(255, 216, 77)';}).length);
+   const small=()=>pg.evaluate(()=>[...document.querySelectorAll('button,a,input')].filter(e=>e.getClientRects().length&&!e.closest('[hidden]')&&getComputedStyle(e).visibility!=='hidden'&&e.getBoundingClientRect().height<44).map(e=>e.id||e.textContent.trim().slice(0,20)));
+   await pg.goto(base);await pg.waitForFunction(()=>window.Forkade);await pg.waitForTimeout(400);
+   assert.equal(await pops(),1,'new player: one main action on the first screen');assert.deepEqual(await small(),[],'44px taps on home');
+   await pg.evaluate(()=>{Forkade.scores.submit('glass',10);});await pg.reload();await pg.waitForFunction(()=>window.Forkade);await pg.waitForTimeout(400);
+   assert.equal(await pops(),1,'returning player: one main action (Daily)');
+   const bottom=async id=>{const r=await pg.evaluate(i=>{const s=document.querySelector('#'+i+' .sheet').getBoundingClientRect();return Math.round(innerHeight-s.bottom);},id);assert.ok(Math.abs(r)<=2,id+' is a bottom sheet');};
+   await pg.evaluate(()=>document.getElementById('open-locker').click());await pg.waitForTimeout(350);await bottom('locker');
+   await pg.keyboard.press('Escape');await pg.waitForTimeout(150);assert.ok(await pg.locator('#locker').isHidden(),'Esc closes');
+   await pg.evaluate(()=>document.getElementById('open-ranks').click());await pg.waitForTimeout(350);await bottom('ranks');
+   await pg.mouse.click(195,20);await pg.waitForTimeout(150);assert.ok(await pg.locator('#ranks').isHidden(),'tap outside closes');
+   await pg.evaluate(()=>document.querySelector('.wbtns .settings-button').click());await pg.waitForTimeout(350);
+   await pg.evaluate(()=>{const s=document.querySelector('#settings .sheet'),t=(type,y)=>s.dispatchEvent(new TouchEvent(type,{bubbles:true,touches:type==='touchend'?[]:[new Touch({identifier:1,target:s,clientX:200,clientY:y})]}));
+     s.scrollTop=0;t('touchstart',300);t('touchmove',420);t('touchend',0);});await pg.waitForTimeout(150);
+   assert.ok(await pg.locator('#settings').isHidden(),'swipe down closes');
+   await pg.evaluate(()=>open3D());await pg.frameLocator('#gframe').locator('canvas').waitFor({state:'visible',timeout:15000});
+   await pg.evaluate(()=>closeStage());
+   await pg.goto(base+'/playground.html');await pg.locator('button.run').first().click();await pg.waitForTimeout(600);
+   assert.match(await pg.locator('#log').innerText(),/Running/,'Playground runs player code under its CSP');
+   await pg.goto(base+'/delete.html');await pg.locator('#wipe').click();assert.equal(await pg.locator('#cf').isHidden(),false,'clear asks first');await pg.locator('#cf-no').click();
+   assert.deepEqual(csp,[],'no CSP violations');await ctx.close(); }
   // first visit: one 'Start here' card; settings say Saved
   { const pg=await browser.newPage({viewport:{width:390,height:844}});await pg.goto(base);await pg.waitForFunction(()=>window.Forkade);
    assert.equal(await pg.locator('.card.start').count(),1,'one start card for new players');assert.match(await pg.locator('.card.start').innerText(),/START HERE[\s\S]*SKY HOP/i);
