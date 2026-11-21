@@ -5,6 +5,7 @@
   settings.innerHTML = `<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="settings-title">
     <button class="x" id="close-settings" aria-label="Close settings">×</button><h2 id="settings-title">SETTINGS</h2>
     <p class="hint">Your progress and settings stay on this device. No cookies, ads or third-party trackers. Your nickname and score only leave this device when you tap Post.</p>
+    <label class="nick">Nickname <input id="playername" maxlength="14" placeholder="ECHO" autocomplete="nickname" spellcheck="false"></label>
     <label><input type="checkbox" data-setting="mute"> Mute sound</label>
     <label>Volume <input aria-label="Volume" type="range" min="0" max="1" step="0.05" data-setting="volume"></label>
     <label><input type="checkbox" data-setting="reduceMotion"> Reduce motion, shake and flashes</label>
@@ -26,6 +27,13 @@
     gframe.contentWindow?.postMessage({ t:'forkade-pause', paused:false }, '*');
     previousFocus?.focus();
   }
+  // nickname: prefilled, autosaved, shown only when you Post a score
+  const nick = document.getElementById('playername');
+  try { nick.value = localStorage.getItem('neon-player') || ''; } catch (_) {}
+  nick.addEventListener('input', () => { try { localStorage.setItem('neon-player', nick.value.trim() || 'ECHO'); } catch (_) {}
+    const label = nick.closest('label'); let tick = label.querySelector('.saved');
+    if (!tick) { tick = document.createElement('span'); tick.className = 'saved'; tick.setAttribute('role', 'status'); label.appendChild(tick); }
+    tick.textContent = '✓ Saved'; tick.classList.add('on'); clearTimeout(tick._t); tick._t = setTimeout(() => tick.classList.remove('on'), 1600); });
   document.getElementById('close-settings').onclick = closeSettings;
   settings.addEventListener('click', e => { if (e.target === settings) closeSettings(); });
   settings.addEventListener('keydown', e => {
@@ -41,7 +49,7 @@
     if (!tick) { tick = document.createElement('span'); tick.className = 'saved'; tick.setAttribute('role', 'status'); label.appendChild(tick); }
     tick.textContent = '✓ Saved'; tick.classList.add('on'); clearTimeout(tick._t); tick._t = setTimeout(() => tick.classList.remove('on'), 1600);
   });
-  for (const parent of [document.querySelector('.wallet'), document.querySelector('.stagebar')]) {
+  for (const parent of [document.querySelector('.wallet .wbtns') || document.querySelector('.wallet'), document.querySelector('.stagebar')]) {
     const btn = document.createElement('button'); btn.className = 'mute settings-button'; btn.textContent = '⚙ Settings'; btn.onclick = showSettings; parent.appendChild(btn);
   }
   window.addEventListener('message', e => { if (e.source===gframe.contentWindow && e.data?.t==='forkade-settings-open') showSettings(); });
@@ -57,10 +65,14 @@
   const dailyCard = document.createElement('button'); dailyCard.className='card daily'; dailyCard.id='daily-challenge'; dailyCard.style.setProperty('--c','#ffb23f');
   grid.prepend(dailyCard);
   const claim = document.createElement('button'); claim.className='mute'; claim.id='daily-claim'; claim.textContent="Claim yesterday's top-10 bonus"; dailyCard.after(claim);
+  // only players who have posted can be in a top 10: hide the button for everyone else
+  try { if (!localStorage.getItem('forkade-pid')) claim.hidden = true; } catch (_) {}
+  // first visit: the Start here card comes before everything else
+  { const start = grid.querySelector('.card.start'); if (start) grid.prepend(start); }
   function dailyPaint() {
     const d = D.challenge(), seconds = Math.max(0, Math.floor((d.next-Date.now())/1000));
     const countdown = [Math.floor(seconds/3600), Math.floor(seconds/60)%60, seconds%60].map(x=>String(x).padStart(2,'0')).join(':');
-    dailyCard.innerHTML = `<h3 class="name">DAILY CHALLENGE</h3><div>${GAME_NAMES()[d.game]}</div><p class="desc">Same seed. Same level. +25 local cores for finishing. Resets at midnight Singapore.</p><span>Next in ${countdown}</span>`;
+    dailyCard.innerHTML = `<h3 class="name">DAILY CHALLENGE</h3><div>${GAME_NAMES()[d.game]}</div><p class="desc">Same seed. Same level. +25 local cores for finishing. Resets at midnight Singapore.</p><span class="play dplay">&#9654; Play today's</span> <span class="dnext">Next in ${countdown}</span>`;
   }
   dailyPaint(); setInterval(dailyPaint,1000);
   dailyCard.onclick = () => { const d=D.challenge(); openGame(d.game, { seed:d.seed, daily:d.date }); };

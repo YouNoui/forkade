@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>FORKADE - open-source neon arcade</title>
-<meta name="theme-color" content="#06051a">
+<meta name="theme-color" content="#0b0a10">
 
 
 
@@ -15,33 +15,39 @@
 <meta name="apple-mobile-web-app-title" content="Forkade">
 <style>
   :root{
-    --bg:#06051a; --bg2:#16113d; --ink:#f1f3ff; --dim:#8d92bd;
-    --cyan:#22e4ff; --magenta:#ff3ea5; --lime:#9dff57; --amber:#ffb23f;
-    --violet:#a07bff; --red:#ff4f6e;
+    /* FORKADE trio (UX playbook, option B): ink base + brand cyan + pop yellow. Games keep their own colours. */
+    --base:#0b0a10; --panel:#15131d; --panel2:#1d1a28; --line:rgba(150,156,190,.32);
+    --text:#f1f3ff; --muted:#9a9fc4;
+    --brand:#22e1ff; --brand-soft:rgba(34,225,255,.10); --brand-glow:rgba(34,225,255,.45);
+    --pop:#ffd84d; --pop-ink:#14121a;
+    --ok:#4ade80; --danger:#ff5a6e;
+    /* legacy names map onto the trio so nothing off-palette survives */
+    --bg:var(--base); --bg2:var(--panel); --ink:var(--text); --dim:var(--muted);
+    --cyan:var(--brand); --magenta:var(--brand); --lime:var(--brand); --amber:var(--brand);
+    --violet:var(--line); --red:var(--danger);
   }
   *{box-sizing:border-box;}
   body{
     margin:0; font-family:"Consolas","SF Mono",ui-monospace,monospace;
-    background:radial-gradient(1200px 600px at 50% -10%,#2a1650 0%,var(--bg) 60%);
+    background:radial-gradient(1200px 600px at 50% -10%,#10303a 0%,var(--base) 60%);
     color:var(--ink); min-height:100vh;
   }
   .wrap{padding:48px 20px 64px;}
   .head{text-align:center; max-width:760px; margin:0 auto 38px;}
   .title{
     font-size:clamp(34px,7vw,64px); font-weight:800; letter-spacing:4px; margin:0; color:var(--cyan);
-    text-shadow:0 0 12px rgba(34,228,255,.7),0 0 34px rgba(34,228,255,.35);
+    text-shadow:0 0 12px rgba(34,225,255,.7),0 0 34px rgba(34,225,255,.35);
   }
   .sub{color:var(--dim); font-size:15px; margin-top:12px; letter-spacing:1px;}
   .chip{display:inline-block; margin-top:16px; padding:7px 16px; border-radius:20px;
-    border:1px solid var(--violet); color:var(--violet); font-size:13px;
-    box-shadow:0 0 14px rgba(160,123,255,.35) inset;}
+    border:1px solid var(--line); color:var(--muted); font-size:13px;}
   .grid{display:grid; gap:18px; max-width:1040px; margin:0 auto;
     grid-template-columns:repeat(auto-fit,minmax(280px,1fr));}
   .card{position:relative; border-radius:16px; padding:22px 20px 20px;
-    background:linear-gradient(160deg,var(--bg2),#0a0c1a);
+    background:linear-gradient(160deg,var(--panel2),var(--panel));
     border:1px solid rgba(120,130,160,.25); overflow:hidden; cursor:pointer;
-    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;}
-  .card:hover{transform:translateY(-6px); box-shadow:0 0 28px -4px var(--c); border-color:var(--c);}
+    transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;}
+  .card:hover{transform:translateY(-3px); box-shadow:0 0 28px -4px var(--c); border-color:var(--c);}
   .num{position:absolute; top:14px; right:18px; font-size:34px; font-weight:800; color:var(--c); opacity:.22;}
   .dot{width:46px; height:46px; border-radius:12px; margin-bottom:14px;
     background:var(--c); box-shadow:0 0 18px var(--c); display:flex; align-items:center; justify-content:center;}
@@ -64,14 +70,16 @@
   .chip.oss a{color:var(--magenta); text-decoration:none;}
   a.card{display:block; text-decoration:none; color:inherit;}
   .card.make{border-style:dashed;}
-  .card.start{border-color:var(--cyan); box-shadow:0 0 0 1px var(--cyan), 0 0 26px -6px var(--cyan);}
+  .card.start{border:2px solid var(--pop); box-shadow:5px 5px 0 var(--pop);}
+  .card.start:hover{box-shadow:7px 7px 0 var(--pop);}
+  .card.start .play, .card.daily .dplay{background:var(--pop); color:var(--pop-ink); border:2px solid var(--pop-ink); font-weight:900; box-shadow:3px 3px 0 var(--brand);}
   .card.start{padding-top:50px;}
-  .card .starttag{position:absolute; top:14px; left:20px; white-space:nowrap; background:var(--cyan); color:#05040f; font-size:11px; font-weight:900;
+  .card .starttag{position:absolute; top:14px; left:20px; white-space:nowrap; background:var(--pop); color:var(--pop-ink); font-size:11px; font-weight:900;
     letter-spacing:.12em; padding:4px 10px; border-radius:6px;}
   .wallet{display:flex; flex-wrap:wrap; justify-content:center; gap:10px 16px; margin-top:14px; font-size:13px; color:var(--dim);}
   .wallet b{color:var(--lime); font-variant-numeric:tabular-nums;}
   .streak{display:inline-flex; align-items:center; gap:8px;}
-  .sdots{display:inline-flex; gap:4px;} .sdots i{width:9px; height:9px; border-radius:50%; border:1px solid rgba(255,178,63,.55);}
+  .sdots{display:inline-flex; gap:4px;} .sdots i{width:9px; height:9px; border-radius:50%; border:1px solid var(--line);}
   .sdots i.on{background:var(--amber); border-color:var(--amber); box-shadow:0 0 8px var(--amber);}
   .sdots i.next{border-style:dashed;}
   .goal{max-width:420px; margin:12px auto 0; font-size:12px; color:var(--dim); text-align:left;}
@@ -84,12 +92,12 @@
     border:1px solid rgba(120,130,170,.5); border-radius:10px; padding:5px 12px; background:rgba(20,24,46,.4); min-height:36px;}
   .wallet .locker:hover{border-color:var(--cyan);}
   .stars{position:absolute; right:20px; bottom:42px; font-size:14px; letter-spacing:2px;}
-  .stars .on{color:#ffd84a; text-shadow:0 0 8px #ffd84a;} .stars .off{color:rgba(141,146,189,.35);}
+  .stars .on{color:var(--brand); text-shadow:0 0 8px var(--brand-glow);} .stars .off{color:rgba(141,146,189,.35);}
   .modal{position:fixed; inset:0; z-index:200; background:rgba(3,2,14,.78); display:flex; align-items:flex-start;
     justify-content:center; overflow:auto; padding:30px 14px;}
   .modal[hidden]{display:none;}
-  .sheet{position:relative; width:min(760px,100%); background:#0d0a2a; border:1px solid var(--violet);
-    border-radius:18px; padding:22px; box-shadow:0 0 60px -10px var(--violet);}
+  .sheet{position:relative; width:min(760px,100%); background:var(--panel); border:1px solid var(--line);
+    border-radius:18px; padding:22px; box-shadow:0 20px 60px -20px #000;}
   .sheet h2{margin:6px 0 10px; letter-spacing:3px; color:var(--cyan); font-size:18px;}
   .sheet .hint{color:var(--dim); font-size:13px; line-height:1.6; margin:0 0 14px;}
   .sheet .x{position:absolute; right:14px; top:10px; font-size:28px; background:none; border:0; color:var(--dim); cursor:pointer;}
@@ -104,14 +112,14 @@
   .badge{display:flex; justify-content:space-between; gap:8px; border:1px solid rgba(141,146,189,.25); border-radius:10px; padding:9px 12px;}
   .badge small{display:block; color:var(--dim); font-size:11px; margin-top:2px;}
   .toasts{position:fixed; left:50%; top:16px; transform:translateX(-50%); z-index:300; display:flex; flex-direction:column; gap:8px; pointer-events:none;}
-  .toast{background:rgba(6,5,26,.92); border:1px solid var(--lime); color:var(--lime); border-radius:12px;
+  .toast{background:rgba(11,10,16,.94); border:1px solid var(--lime); color:var(--lime); border-radius:12px;
     padding:10px 16px; font-size:14px; font-weight:800; box-shadow:0 0 24px -8px var(--lime); animation:tin .25s ease-out;}
   @keyframes tin{from{opacity:0; transform:translateY(-8px);} to{opacity:1; transform:none;}}
 
   .rtabs{display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 10px;}
   .rtabs button{font-family:inherit; font-size:12px; font-weight:800; cursor:pointer; border-radius:8px; padding:6px 10px;
     background:transparent; color:var(--dim); border:1px solid rgba(141,146,189,.4);}
-  .rtabs button.on{color:var(--cyan); border-color:var(--cyan); background:rgba(34,228,255,.08);}
+  .rtabs button.on{color:var(--cyan); border-color:var(--cyan); background:rgba(34,225,255,.08);}
   .rlist{list-style:none; margin:0; padding:0; font-size:14px; min-height:60px;}
   .rlist li{display:flex; gap:12px; padding:8px 10px; border-bottom:1px solid rgba(141,146,189,.15);}
   .rlist li .n{width:34px; color:var(--dim);} .rlist li .nm{flex:1;} .rlist li .sc{color:var(--lime); font-weight:800;}
@@ -126,20 +134,21 @@
   .rlist li.msg{display:block; text-align:center; padding:18px 10px; color:var(--dim);}
   .rlist li.msg button{margin-left:8px; font:inherit; font-weight:800; color:var(--cyan); background:transparent; border:1px solid var(--cyan); border-radius:8px; padding:4px 12px; cursor:pointer; min-height:32px;}
   #pb-post:disabled{opacity:.55; cursor:default;}
-  .rlist li.me{background:rgba(157,255,87,.08); border-radius:8px;}
-  .rlist li:nth-child(1) .n{color:#ffd84a;} .rlist li:nth-child(2) .n{color:#d8dcf0;} .rlist li:nth-child(3) .n{color:#e0a060;}
+  .rlist li.me{background:var(--brand-soft); border-radius:8px;}
+  .rlist li:nth-child(-n+3) .n{color:var(--brand); font-weight:800;}
   .postbar{position:relative; z-index:70; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px;
     margin:10px auto 0; padding:10px 12px; max-width:900px; border:1px solid var(--cyan); border-radius:12px;
-    background:rgba(6,5,26,.92); font-size:13px;}
+    background:rgba(11,10,16,.94); font-size:13px;}
   .postbar[hidden]{display:none;}
   .postbar input{font-family:inherit; font-size:14px; width:150px; padding:7px 10px; border-radius:8px;
-    border:1px solid rgba(141,146,189,.5); background:#0d0a2a; color:var(--ink);}
+    border:1px solid var(--line); background:var(--base); color:var(--ink);}
   .postbar button{font-family:inherit; font-weight:800; font-size:13px; cursor:pointer; border-radius:8px; padding:8px 12px;
-    background:var(--cyan); color:#06051a; border:0;}
+    background:var(--panel2); color:var(--text); border:1px solid var(--line);}
+  .postbar #pb-post{background:var(--pop); color:var(--pop-ink); border:2px solid var(--pop-ink); box-shadow:3px 3px 0 var(--brand);}
   .postbar #pb-msg{width:100%; text-align:center; color:var(--lime);}
   .postbar #pb-msg.err{color:var(--red);}
   /* ---- phones: full-screen game, small see-through controls on top ---- */
-  body.touch .stage.on{padding:0; gap:0; background:#020110; touch-action:none;}
+  body.touch .stage.on{padding:0; gap:0; background:var(--base); touch-action:none;}
   body.touch #game{width:min(100vw, calc(100dvh * 900 / 560)); max-height:100dvh; border:0; border-radius:0; box-shadow:none;}
   body.touch #gframe{width:100vw; height:100dvh; border-radius:0;}
   body.touch .stagebar{position:fixed; left:max(8px,env(safe-area-inset-left)); top:8px; z-index:80; gap:0;}
@@ -167,13 +176,13 @@
   .foot .legal{display:block; margin-top:10px; font-size:12px;}
   /* ---- install bar ---- */
   .installbar{position:relative; z-index:90; display:flex; align-items:center; gap:10px; padding:8px max(12px,env(safe-area-inset-right)) 8px max(12px,env(safe-area-inset-left));
-    padding-top:max(8px,env(safe-area-inset-top)); background:rgba(13,10,42,.96); border-bottom:1px solid rgba(34,228,255,.45); font-size:13px;}
+    padding-top:max(8px,env(safe-area-inset-top)); background:rgba(11,10,16,.96); border-bottom:1px solid rgba(34,225,255,.45); font-size:13px;}
   .installbar[hidden]{display:none;}
   .installbar img{border-radius:7px; flex:none;}
   .installbar .ib-text{flex:1; min-width:0; color:var(--ink); line-height:1.35;}
   .installbar .ib-go{flex:none; font-family:inherit; font-weight:800; font-size:13px; cursor:pointer; border-radius:9px; padding:7px 14px;
-    background:var(--cyan); color:#06051a; border:0;}
-  .installbar .ib-x{flex:none; font-family:inherit; font-size:20px; line-height:1; cursor:pointer; width:32px; height:32px; border-radius:8px;
+    background:transparent; color:var(--brand); border:1px solid var(--brand); min-height:44px;}
+  .installbar .ib-x{flex:none; font-family:inherit; font-size:20px; line-height:1; cursor:pointer; width:44px; height:44px; border-radius:8px;
     background:transparent; color:var(--dim); border:0;}
   .installbar button:focus-visible{outline:2px solid var(--amber); outline-offset:2px;}
   body.playing .installbar{display:none !important;}   /* never inside a game */
@@ -182,11 +191,18 @@
     .installbar{gap:8px; font-size:12px; padding-top:max(6px,env(safe-area-inset-top)); padding-bottom:6px;}
     .installbar .ib-dash{display:none;} .installbar .ib-sub{display:block; color:var(--dim); font-size:11px;}
     .installbar .ib-go{padding:6px 12px;}
+    .installbar{padding-top:max(2px,env(safe-area-inset-top)); padding-bottom:2px;}
   }
+  /* 44px tap areas without making the bar taller: the X and Install reach past the bar's padding */
+  .installbar .ib-x, .installbar .ib-go{margin:-4px 0;}
   .toasts{top:calc(16px + var(--ibh, 0px)) !important;}   /* toasts sit below the install bar */
   .ios-steps{margin:0; padding-left:20px; font-size:14px; line-height:1.8;}
   .ios-sheet{max-width:420px;}
-  .nodata{display:inline-block; margin-top:10px; color:var(--lime); opacity:.85;}
+  .nodata{display:inline-block; margin-top:10px; color:var(--muted);}
+  .privacy-line{margin-top:10px; font-size:12px; color:var(--muted);}
+  .wbtns{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; width:100%;}
+  .offline{text-align:center; margin-top:28px;}
+  .wbtns .settings-button{font-weight:800; color:var(--text); font-size:13px; border-radius:10px; padding:5px 12px;}
 
   /* ---- in-game stage ---- */
   .stage{position:fixed; inset:0; background:rgba(4,6,14,.96); display:none;
@@ -195,7 +211,7 @@
   #game{width:min(94vw,900px); aspect-ratio:900/560; border-radius:14px;
     border:1px solid rgba(120,130,160,.3); box-shadow:0 0 50px -10px var(--cyan); background:var(--bg); touch-action:none;}
   #gframe{width:min(100vw,1100px); height:min(86vh,720px); border:0; border-radius:14px;
-    box-shadow:0 0 50px -10px var(--cyan); background:#06051a; display:none;}
+    box-shadow:0 0 50px -10px var(--cyan); background:var(--base); display:none;}
   .stage.d3 #game{display:none;} .stage.d3 .stagebar{display:none;}
   .stage.d3 #gframe{display:block;}
   body.touch .stage.on.d3 .touchctl{display:none;}
@@ -205,17 +221,17 @@
   .pname label{color:var(--dim); font-size:12px; margin-right:8px;}
   .stagebar{display:flex; gap:18px; align-items:center; color:var(--dim); font-size:13px; flex-wrap:wrap; justify-content:center;}
   .back{cursor:pointer; color:var(--cyan); border:1px solid var(--cyan); border-radius:10px;
-    padding:8px 16px; font-weight:700; background:rgba(34,228,255,.05);}
-  kbd{background:#1a1d33; border:1px solid #2d3252; border-radius:5px; padding:1px 7px; color:var(--ink);}
+    padding:8px 16px; font-weight:700; background:rgba(34,225,255,.05);}
+  kbd{background:var(--panel2); border:1px solid var(--line); border-radius:5px; padding:1px 7px; color:var(--ink);}
 
   /* ---- install button ---- */
   .install{display:none; margin:18px auto 0; cursor:pointer; color:var(--cyan);
     border:1px solid var(--cyan); border-radius:12px; padding:10px 20px; font-weight:800;
-    letter-spacing:1px; background:rgba(34,228,255,.06); box-shadow:0 0 20px -6px var(--cyan);
+    letter-spacing:1px; background:rgba(34,225,255,.06); box-shadow:0 0 20px -6px var(--cyan);
     font-family:inherit; font-size:14px;}
   .install.show{display:inline-block;}
   .dlbox{max-width:520px; margin:12px auto 0; padding:14px 16px; border:1px solid var(--cyan); border-radius:14px;
-    background:rgba(34,228,255,.05); font-size:13px; line-height:1.6; color:var(--ink); text-align:left;}
+    background:rgba(34,225,255,.05); font-size:13px; line-height:1.6; color:var(--ink); text-align:left;}
   .dlbox .dlfile{display:inline-block; margin-top:10px; color:var(--lime); font-weight:700; text-decoration:none;}
 
   /* ---- touch controls (phones only) ---- */
@@ -230,7 +246,7 @@
     display:flex; align-items:center; justify-content:center; border-radius:14px;
     background:rgba(20,24,46,.72); border:1px solid rgba(120,130,170,.5); color:var(--ink);
     font-size:22px; font-weight:800; backdrop-filter:blur(2px);}
-  .tbtn:active{background:rgba(34,228,255,.25); border-color:var(--cyan);}
+  .tbtn:active{background:rgba(34,225,255,.25); border-color:var(--cyan);}
   .pad .tbtn{width:56px; height:56px;}
   .big{width:82px; height:82px; font-size:16px; border-color:var(--cyan); color:var(--cyan);}
   .ps{width:48px; height:48px; font-size:14px; border-color:var(--dim); color:var(--dim);}
@@ -239,11 +255,44 @@
   .r{grid-column:3; grid-row:2;} .dn{grid-column:2; grid-row:3;}
 
   #settings label{display:flex;align-items:center;gap:12px;margin:18px 0;font-size:14px;}
-  #settings input[type=checkbox]{width:22px;height:22px;accent-color:var(--cyan);}
+  #settings input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand);}
+  #settings input[type=range]{accent-color:var(--brand); min-height:44px;}
   .settings-button{min-height:36px}.daily{grid-column:1/-1;color:var(--ink);font-family:inherit;text-align:left;}
   #daily-claim{grid-column:1/-1;justify-self:start;}
   #settings .saved{margin-left:auto; white-space:nowrap; flex:none; font-size:12px; font-weight:800; color:var(--lime); opacity:0; transition:opacity .2s;}
   #settings .saved.on{opacity:1;}
+
+  /* ---- UX playbook: buttons, taps, sheets ---- */
+  button, .play, .foot a, .dlfile{transition:transform .16s ease, background-color .16s ease, border-color .16s ease, box-shadow .16s ease, color .16s ease;}
+  button:active:not(:disabled), .card:active .play{transform:translateY(1px);}
+  .card.start:active .play, .card.daily:active .dplay, .postbar #pb-post:active:not(:disabled){box-shadow:1px 1px 0 var(--brand);}
+  .wallet .locker, .mute, .install, #daily-claim, .rtabs button, .skin button, .postbar button, .postbar input,
+  .rlist li.msg button, .forget, .ib-go{min-height:44px;}
+  .sheet .x{min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center; right:8px; top:6px;}
+  .rlist button.rep{min-height:36px;}
+  .foot a{display:inline-block; padding:12px 4px; margin:-12px 0;}
+  .foot{line-height:2.2;}
+  #settings label.nick{justify-content:flex-start;} #settings label.nick input{flex:1; min-width:0; max-width:220px; min-height:44px;
+    font-family:inherit; font-size:15px; color:var(--text); background:var(--base); border:1px solid var(--line); border-radius:10px; padding:8px 12px;}
+  #settings label.nick input:focus{outline:2px solid var(--brand); outline-offset:1px;}
+  .card.daily{border-color:var(--line);} .card.daily .dnext{font-size:12px; color:var(--muted); margin-left:10px;}
+  .card.daily .dplay{margin-top:4px;}
+  .grid:has(.card.start) .card.daily .dplay{background:rgba(255,255,255,.03); color:var(--text); border:1px solid var(--line); box-shadow:none; font-weight:700;}
+  .toasts{top:auto !important; bottom:calc(18px + env(safe-area-inset-bottom));}
+  body.playing .toasts{bottom:auto !important; top:calc(16px + var(--ibh,0px)) !important;}
+  @keyframes tin{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;}}
+  /* phones: pop-ups are bottom sheets (tap outside, ✕, Esc or swipe down to close) */
+  .sheet .grab{display:none;}
+  @media (max-width:600px){
+    .modal{align-items:flex-end; padding:0; overflow:hidden;}
+    .modal .sheet{width:100%; max-height:88dvh; overflow:auto; overscroll-behavior:contain; border-radius:20px 20px 0 0; border-bottom:0;
+      padding:26px 18px calc(22px + env(safe-area-inset-bottom)); animation:sheetup .26s cubic-bezier(.2,.8,.2,1);}
+    .sheet .grab{display:block; position:absolute; top:8px; left:50%; width:44px; height:5px; margin-left:-22px; border-radius:3px; background:var(--line);}
+    .modal .ios-sheet, .modal > .sheet{margin:0;}
+  }
+  @keyframes sheetup{from{transform:translateY(40px); opacity:.4;} to{transform:none; opacity:1;}}
+  html.reduce-motion .modal .sheet{animation:none;}
+  @media (prefers-reduced-motion:reduce){ .modal .sheet, .toast{animation:none;} button, .card{transition:none;} }
   .reduce-motion *, .reduce-motion *::before,.reduce-motion *::after{animation:none!important;transition:none!important;}
   .stage.portrait-game #game{width:min(94vw,calc((100dvh - 110px) * 560 / 900));max-height:calc(100dvh - 110px);aspect-ratio:560/900;}
   body.touch .stage.portrait-game #game{width:min(100vw,calc((100dvh - 90px) * 560 / 900));max-height:calc(100dvh - 90px);}
@@ -269,7 +318,7 @@
 <meta property="og:image" content="https://playforkade.com/icons/icon-512.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://playforkade.com/icons/icon-512.png">
-<link rel="icon" href="data:image/png;base64,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"></head>
+<link rel="icon" href="data:image/png;base64,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"></head>
 <body>
   <!-- install bar (playbook section 11): slim, pushes the page down, menu only -->
   <div class="installbar" id="installbar" role="region" aria-label="Install FORKADE" hidden>
@@ -292,28 +341,28 @@
   <div class="wrap">
     <div class="head">
       <h1 class="title">FORKADE</h1>
-      <div class="sub">play it, rewind it, fork it &middot; 13 games (incl. 3D) &middot; one hero &middot; open source &middot; no sign-ups &middot; plays in your browser</div>
-      <div class="chip">&#9199; one twist: hold R or Shift to rewind time whenever you mess up</div>
-      <div class="chip oss"><a href="https://playforkade.com/playground.html" id="osslink">&#9998; open source &mdash; build your own game in the Playground</a> &middot; <a href="https://github.com/YouNoui/forkade" target="_blank" rel="noopener noreferrer">GitHub</a></div>
+      <div class="sub">13 arcade games &middot; rewind any mistake &middot; no sign-ups</div>
+      <div class="chip" id="rewindtip">&#9199; Mess up? Hold <b>R</b> or <b>Shift</b> to rewind time.</div>
+      <div class="privacy-line">&#128274; Nothing tracked. Your progress stays on this device.</div>
       <div class="wallet" id="wallet">
         <span>&#9670; <b id="w-cores">0</b> cores</span>
         <span>RANK <b id="w-rank">1</b></span>
         <span class="streak" id="w-streakbox" title=""><span>&#128293; <b id="w-streak">0</b>-day streak</span><span class="sdots" id="w-sdots" aria-hidden="true"></span><span id="w-tmr" style="font-size:11px"></span></span>
-        <button class="locker" id="open-locker">&#127942; Locker &amp; badges</button>
-        <button class="locker ranks" id="open-ranks">&#127941; Rankings</button>
+        <span class="wbtns"><button class="locker" id="open-locker">&#127942; Locker</button>
+        <button class="locker ranks" id="open-ranks">&#127941; Rankings</button></span>
       </div>
       <div class="goal" id="goal" hidden><div class="g-t"><span id="g-name"></span><span id="g-num"></span></div><div class="g-bar" role="progressbar" aria-labelledby="g-name" id="g-bar"><i id="g-fill"></i></div><div id="g-hint" style="margin-top:5px"></div></div>
-      <br><button class="install show" id="install">&#11015; Download / install</button>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="offline">
+      <button class="install show" id="install">&#11015; Play offline / install</button>
       <div class="dlbox" id="dlbox" hidden>
         <div id="dlmsg"></div>
         <a class="dlfile" href="download/forkade.html" download="forkade.html">&#11015; Download as one file (plays offline, double-click to open)</a>
       </div>
-      <button class="mute" id="mute">&#128266; Sound: on</button>
-      <div class="pname"><label>Player</label><input id="playername" maxlength="14" placeholder="ECHO"></div>
     </div>
-    <div class="grid" id="grid"></div>
     <div class="foot">
-      <a href="https://github.com/YouNoui/forkade" target="_blank" rel="noopener noreferrer">Fork it on GitHub</a><br>
+      <a href="https://playforkade.com/playground.html" id="osslink">&#9998; Build your own game</a> &middot; <a href="https://github.com/YouNoui/forkade" target="_blank" rel="noopener noreferrer">Fork it on GitHub</a><br>
       Built with HTML5 Canvas + JavaScript &middot; MIT licensed &middot; fork it, extend it, add your own.<br>
       In every game: hold <b>R</b> or <b>Shift</b> to rewind &middot; <b>P</b> pause &middot; <b>Esc</b> back to menu.
       <span class="nodata">🔒 Your play stays on this device by default. No cookies or third-party trackers. Rankings and anonymous counts are optional in Settings; only Post shares your nickname and score.</span>
@@ -2775,7 +2824,7 @@
       document.getElementById("badges").innerHTML = Object.keys(names).map(id => {
         const t = R.tierOf(id), g = R.goals(id, (Forkade.registry.find(x => x.id === id) || {}).meta); total += t;
         const next = t < 3 ? `next: ${R.TIERS[t].name.toLowerCase()} at ${g[t]} pts (+${R.TIERS[t].cores} cores)` : "all badges won";
-        const stars = [0, 1, 2].map(k => `<span style="color:${k < t ? "#ffd84a" : "rgba(141,146,189,.35)"}">&#9733;</span>`).join("");
+        const stars = [0, 1, 2].map(k => `<span style="color:${k < t ? "var(--brand)" : "rgba(141,146,189,.35)"}">&#9733;</span>`).join("");
         return `<div class="badge"><div>${names[id]}<small>${next}</small></div><div>${stars}</div></div>`;
       }).join("");
       document.getElementById("badge-count").textContent = `${total} / ${Object.keys(names).length * 3}`;
@@ -2912,15 +2961,12 @@
     })();
 
     /* ---------- player name ---------- */
-    const nameInput = document.getElementById("playername");
-    try { nameInput.value = localStorage.getItem("neon-player") || ""; } catch (_) {}
-    nameInput.addEventListener("input", () => {
-      try { localStorage.setItem("neon-player", nameInput.value.trim() || "ECHO"); } catch (_) {}
-    });
+    // nickname lives in Settings now (features.js); one place to change it
 
     /* ---------- touch controls ---------- */
     const isTouch = matchMedia("(pointer:coarse)").matches || "ontouchstart" in window;
-    if (isTouch) { document.body.classList.add("touch"); document.getElementById("back").innerHTML = "&#10005; Menu"; }
+    if (isTouch) { document.getElementById("rewindtip").innerHTML = "&#9199; Mess up? Hold <b>REW</b> to rewind time.";
+      document.body.classList.add("touch"); document.getElementById("back").innerHTML = "&#10005; Menu"; }
     document.querySelectorAll("#touchctl .tbtn").forEach(btn => {
       const code = btn.dataset.code;
       const down = e => { e.preventDefault(); Forkade.Input.hold(code, true); };
@@ -2932,12 +2978,20 @@
     });
 
     /* ---------- mute toggle ---------- */
-    const muteBtn = document.getElementById("mute");
-    function paintMute() {
-      muteBtn.innerHTML = Forkade.sfx.muted ? "🔇 Sound: off" : "🔊 Sound: on";
+    // bottom sheets: a grab handle, and swipe down to close (phones)
+    function sheetify(sheet) {
+      if (!sheet || sheet.dataset.sheet) return; sheet.dataset.sheet = 1;
+      const g = document.createElement("i"); g.className = "grab"; g.setAttribute("aria-hidden", "true"); sheet.prepend(g);
+      let y0 = null, dy = 0;
+      sheet.addEventListener("touchstart", e => { y0 = sheet.scrollTop <= 0 ? e.touches[0].clientY : null; dy = 0; }, { passive: true });
+      sheet.addEventListener("touchmove", e => { if (y0 === null) return; dy = Math.max(0, e.touches[0].clientY - y0);
+        sheet.style.transform = dy ? `translateY(${dy}px)` : ""; }, { passive: true });
+      sheet.addEventListener("touchend", () => { sheet.style.transform = "";
+        if (y0 !== null && dy > 90) { const x = sheet.querySelector(".x"); if (x) x.click(); } y0 = null; });
     }
-    paintMute();
-    muteBtn.addEventListener("click", () => { Forkade.sfx.toggleMute(); Forkade.sfx.ensure(); paintMute(); });
+    window.addEventListener("load", () => document.querySelectorAll(".modal .sheet").forEach(sheetify));
+    // sound lives in Settings now (one place for every option)
+    function paintMute() {}
 
     // badge toasts raised outside a canvas game (3D, menu) show as DOM toasts
     R.listeners.push((text) => {
@@ -3033,7 +3087,7 @@
       const name = pbName.value.trim();
       if (name.length < 2) { pbMsg.textContent = "Pick a nickname first (2-14 letters or numbers)."; pbMsg.className = "err"; pbName.focus(); return; }
       try { localStorage.setItem("neon-player", name); } catch (_) {}
-      document.getElementById("playername").value = name;
+      { const pn = document.getElementById("playername"); if (pn) pn.value = name; }
       if (posting || posted === L) return;          // one tap, one post
       const btn = document.getElementById("pb-post"), label = btn.innerHTML;
       posting = true; btn.disabled = true; btn.textContent = "Posting\u2026";
@@ -3131,6 +3185,7 @@
   settings.innerHTML = `<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="settings-title">
     <button class="x" id="close-settings" aria-label="Close settings">×</button><h2 id="settings-title">SETTINGS</h2>
     <p class="hint">Your progress and settings stay on this device. No cookies, ads or third-party trackers. Your nickname and score only leave this device when you tap Post.</p>
+    <label class="nick">Nickname <input id="playername" maxlength="14" placeholder="ECHO" autocomplete="nickname" spellcheck="false"></label>
     <label><input type="checkbox" data-setting="mute"> Mute sound</label>
     <label>Volume <input aria-label="Volume" type="range" min="0" max="1" step="0.05" data-setting="volume"></label>
     <label><input type="checkbox" data-setting="reduceMotion"> Reduce motion, shake and flashes</label>
@@ -3152,6 +3207,13 @@
     gframe.contentWindow?.postMessage({ t:'forkade-pause', paused:false }, '*');
     previousFocus?.focus();
   }
+  // nickname: prefilled, autosaved, shown only when you Post a score
+  const nick = document.getElementById('playername');
+  try { nick.value = localStorage.getItem('neon-player') || ''; } catch (_) {}
+  nick.addEventListener('input', () => { try { localStorage.setItem('neon-player', nick.value.trim() || 'ECHO'); } catch (_) {}
+    const label = nick.closest('label'); let tick = label.querySelector('.saved');
+    if (!tick) { tick = document.createElement('span'); tick.className = 'saved'; tick.setAttribute('role', 'status'); label.appendChild(tick); }
+    tick.textContent = '✓ Saved'; tick.classList.add('on'); clearTimeout(tick._t); tick._t = setTimeout(() => tick.classList.remove('on'), 1600); });
   document.getElementById('close-settings').onclick = closeSettings;
   settings.addEventListener('click', e => { if (e.target === settings) closeSettings(); });
   settings.addEventListener('keydown', e => {
@@ -3167,7 +3229,7 @@
     if (!tick) { tick = document.createElement('span'); tick.className = 'saved'; tick.setAttribute('role', 'status'); label.appendChild(tick); }
     tick.textContent = '✓ Saved'; tick.classList.add('on'); clearTimeout(tick._t); tick._t = setTimeout(() => tick.classList.remove('on'), 1600);
   });
-  for (const parent of [document.querySelector('.wallet'), document.querySelector('.stagebar')]) {
+  for (const parent of [document.querySelector('.wallet .wbtns') || document.querySelector('.wallet'), document.querySelector('.stagebar')]) {
     const btn = document.createElement('button'); btn.className = 'mute settings-button'; btn.textContent = '⚙ Settings'; btn.onclick = showSettings; parent.appendChild(btn);
   }
   window.addEventListener('message', e => { if (e.source===gframe.contentWindow && e.data?.t==='forkade-settings-open') showSettings(); });
@@ -3183,10 +3245,14 @@
   const dailyCard = document.createElement('button'); dailyCard.className='card daily'; dailyCard.id='daily-challenge'; dailyCard.style.setProperty('--c','#ffb23f');
   grid.prepend(dailyCard);
   const claim = document.createElement('button'); claim.className='mute'; claim.id='daily-claim'; claim.textContent="Claim yesterday's top-10 bonus"; dailyCard.after(claim);
+  // only players who have posted can be in a top 10: hide the button for everyone else
+  try { if (!localStorage.getItem('forkade-pid')) claim.hidden = true; } catch (_) {}
+  // first visit: the Start here card comes before everything else
+  { const start = grid.querySelector('.card.start'); if (start) grid.prepend(start); }
   function dailyPaint() {
     const d = D.challenge(), seconds = Math.max(0, Math.floor((d.next-Date.now())/1000));
     const countdown = [Math.floor(seconds/3600), Math.floor(seconds/60)%60, seconds%60].map(x=>String(x).padStart(2,'0')).join(':');
-    dailyCard.innerHTML = `<h3 class="name">DAILY CHALLENGE</h3><div>${GAME_NAMES()[d.game]}</div><p class="desc">Same seed. Same level. +25 local cores for finishing. Resets at midnight Singapore.</p><span>Next in ${countdown}</span>`;
+    dailyCard.innerHTML = `<h3 class="name">DAILY CHALLENGE</h3><div>${GAME_NAMES()[d.game]}</div><p class="desc">Same seed. Same level. +25 local cores for finishing. Resets at midnight Singapore.</p><span class="play dplay">&#9654; Play today's</span> <span class="dnext">Next in ${countdown}</span>`;
   }
   dailyPaint(); setInterval(dailyPaint,1000);
   dailyCard.onclick = () => { const d=D.challenge(); openGame(d.game, { seed:d.seed, daily:d.date }); };
