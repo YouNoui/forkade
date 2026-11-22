@@ -13,7 +13,7 @@ Controls are compact/translucent on touch, with no keyboard hint. Reduce motion 
 - Rebuilt RAMPAGE/Rumble, per-game entry pages and single-file distribution. Service worker v40.
 - `phase1-1.mp4` and four `phase1-1-N.png` frames live outside git in `C:\Users\Younes\Desktop\shared process\echo-rumble`. 51 seconds at 390x844, five real-time excerpts with actual captured game audio, no speed-up. Scripted real keyboard inputs won with 3,237 points; no injected score or time jumps. Full source/timeline retained in phase1-1-source.
 - Isolated 8-second SwiftShader samples: DPR1 mean 27.12 ms (~37 FPS), p95 33.4 ms; device DPR2 capped to render DPR1.25 mean 34.82 ms (~29 FPS), p95 50 ms. This software GPU does not meet the 60 FPS target; CPU simulation/render-submit budgets passed, but no physical-device performance claim is made.
-- Full WebKit web/dist matrix and Chromium/WebKit offline suite passed, as did growth, Assist, bonus, experiment, Fair play, UX, social proof and classic game-upgrade suites.
+- Full Chromium and WebKit web/dist matrices and Chromium/WebKit offline suite passed, as did growth, Assist, bonus, experiment, Fair play, UX, social proof and classic game-upgrade suites.
 - Physical Android FPS, haptics and speaker quality remain unverified. Browser results are emulation on a desktop host. Measurements are in metrics.json and frame-intervals-dpr*.json.
 - Deleted only the owner-approved accidental paused rumble-browser project; GET returned 404. No production data or custom domains were removed.
 
