@@ -1,0 +1,53 @@
+# Section 22 UX audit — Forkade, 22 Nov 2026
+
+Baseline: main `1ebaa22`. Scope: source review of launcher, settings, rankings/locker/install sheets, Playground, Fair play, legal pages and owner stats; read-only browser interaction on https://playforkade.com at 390×844 and 1280×844. No UI fixes are part of this audit. Screenshots are observations, not approved designs.
+
+## Failures, ordered by user impact
+
+- [ ] **P1 — Privacy defaults and claims conflict (§22.11, .17; §19).** `web/settings.js:4` defaults analytics to true; the fresh live settings screenshot confirms the checkbox is preselected. `web/engine.js` automatically sends visit/play counts and starts run-token requests; `web/fair.html` says “Nothing is sent unless you tap Post”, and the launcher says “Nothing tracked.” `web/features.js` no longer offers ranked-run opt-in. This contradicts AGENTS.md's explicit opt-in standard. Reconcile defaults and all claims; also correct the footer's statement that rankings are optional in Settings. Sources: `web/settings.js`, `web/engine.js`, `web/features.js`, `web/index.html`, `web/fair.html`, `tools/make_legal.py` (generated `web/privacy.html`). No consent or copy fix in this step.
+- [ ] **P1 — Playground can discard work (§22.9–10).** `web/playground.html` saves only inside `run()`, has no input autosave or beforeunload guard, and Start over immediately overwrites the draft/removes storage without confirmation or undo. Typing then navigating away loses new edits; resetting loses even saved edits. Add an appropriate recovery flow in a separate PR.
+- [ ] **P1 — Modal focus escapes and dialogs stack (§22.9).** Settings traps Tab, but Locker, Rankings and the shared confirmation sheet do not. `UI.confirm` opens on top of the still-open Rankings modal for Remove/report. Locker/Rankings lack dialog semantics and focus restoration. Sources: `web/index.html` (`UI.confirm`, open/close-locker, open/close-ranks), `web/features.js` (contrast with settings trap). Keep one active dialog and accessible focus ownership.
+- [ ] **P2 — Owner security/action UX falls short (§22.13–14, §14).** `web/stats.html`, `api/stats.js`, `api/leaderboard.js` use one shared STATS_KEY, not an admin role plus 2FA. The client persists that owner credential in localStorage and sends it in the stats URL query. Moderation has no reason/history/user-notice flow; destructive confirmation is only “Sure? removes all scores”, without naming the target or a safe cancel action. No account emails exist; do not start collecting emails merely to satisfy the generic checklist. Owner-auth design needs a separate scoped decision.
+- [ ] **P2 — Loads lack complete deadlines and repeat-click protection (§22.4).** `web/stats.html` uses raw fetch for stats/moderation and Show remains clickable during loading. `api/stats.js` and `api/leaderboard.js` Redis fetches have no timeout. `web/engine.js` begin() uses raw fetch despite the “Every rankings request gets a deadline” comment; post's Promise.race bounds waiting but does not cancel that start request. Main board GET/post/delete already use timedFetch; preserve those working cases.
+- [ ] **P2 — Some controls still miss 44px (§22.2).** `web/index.html` explicitly sets `.rlist button.rep` to 36px and touch pause `.ps` to 40×34. Hidden dynamic controls are not covered by the passing initial-page measurement. Audit the in-game iframe controls too before declaring full compliance. Public initial-page buttons and settings rows measured at least 44px at both widths.
+- [ ] **P2 — Empty rankings have no direct start action (§22.8).** `web/index.html` loadRanks() renders “No scores yet… Be the first!” and instructs the user to post after a round, but offers no one-tap play action from that empty state. Owner “nothing reported” is a healthy empty state and does not need a fabricated action.
+- [ ] **P2 — Main action not sticky on phone (§22.3).** Launcher Start here / Daily and Playground Run scroll away instead of staying at the bottom. `web/index.html`, `web/playground.html`. Decide whether an arcade-specific exception is appropriate; don't add overlays that obscure game controls. The post-round bar already has phone positioning.
+- [ ] **P2 — Settings scope/consequences incomplete (§22.11).** Save ticks and a global local-device explanation exist, but nickname's public-on-Post scope is not on its row; mute/volume lack consequence text; there is no changed-from-default indicator or Reset. `web/features.js`, `web/settings.js`. Six settings do not require a search field.
+- [ ] **P2 — Loading geometry only partly reserved (§22.5).** Rankings uses a short min-height (60px) and ten skeleton rows before up to 50 results; the footer/Remove action moves when results arrive. Stats hides the entire output while loading, with no reserved chart/moderation geometry. `web/index.html` `.rlist`/loadRanks(), `web/stats.html` load(). These are source-derived risks; no network-throttled layout-shift metric was measured.
+- [ ] **P3 — Launcher still uses many competing colours (§22.1, .15).** Live grid cards take pink/lime/violet/orange from game meta instead of the shell trio. `web/index.html` card construction, `web/games/*.js` meta colours, `tools/build_previews.py` generated entries. Games themselves can retain functional palettes. Appendix A must explicitly distinguish gameplay colours from launcher UI. Body is system monospace, not the generic clean-sans choice; seek the documented exception in the draft.
+- [ ] **P3 — Motion recipes/tokens incomplete (§22.6).** `web/index.html` uses `.16s ease`, press translateY without .97 scale, sheet .26s custom curve and immediate hidden exits, not shared §5.1 curves/shorter exit timing/trigger origin. Goal bar animates width. `web/playground.html` has button transitions with no reduced-motion override/settings script. Main launcher reduced-motion suppression does exist; this is not a claim that all motion ignores the preference.
+- [ ] **P3 — Choice density and duplicate entry points (§22.7, .12).** All 13 games plus builder are exposed in one long list; the screenshot shows the long phone journey. Builder is both a card and footer link; offline/install also has multiple entry points. `web/index.html`. Start here already improves first use; consider More/categories and shared navigation, not removal of functionality. Whole game cards are tappable.
+- [ ] **P3 — No Me hub (§22.13).** Settings/Locker/Rankings are separate launcher controls and owner stats is a direct URL. `web/index.html`, `web/features.js`, `web/stats.html`. This app intentionally has no sign-in; document an arcade navigation exception or design a local player hub, without adding an account requirement. Owner names/emails are not applicable to anonymous counts.
+- [ ] **P3 — Detail rules are not consistently implemented (§22.16).** `web/index.html` body and desktop iframe, `web/playground.html` body/editor, `web/stats.html` body use vh; palette and gradients use hex/sRGB rather than OKLCH; emoji icons have no matched stroke weights; nested radii are independently chosen. `web/fair.html` horizontal table scrollers lack edge masks. Main phone canvas already uses dvh and many borders are alpha. Avoid reporting those as missing everywhere.
+
+## Complete checklist disposition
+
+| §22 item | Result / evidence |
+|---|---|
+| 1 colours | Fail: shell/game-meta palette drift above; draft exception awaiting approval. |
+| 2 phone/targets | Partial: no horizontal overflow on all eight public pages at both widths; dynamic 36px/34px controls fail source check. |
+| 3 one sticky main action | Fail: launcher/editor action scrolls away. |
+| 4 response/progress/deadline | Partial: shared busy states and timed board calls pass source review; owner/raw requests fail. Sub-100ms/400ms timing not benchmarked. |
+| 5 loading reservation | Partial: main rankings skeleton exists; incomplete geometry/owner output above. |
+| 6 motion | Partial: launcher reduced-motion works in code; curve/press/editor gaps above. |
+| 7 fewer choices | Fail: long all-games chooser; nickname is already prefilled. |
+| 8 empty state | Fail: empty rankings has text only. |
+| 9 dialogs | Partial: X/Esc/backdrop/swipe implemented; focus, stacking and editor discard gaps above. |
+| 10 undo/delete | Partial: posted-score deletion exists; Playground reset/draft loss fails. No hosted upload feature. |
+| 11 settings | Partial: Saved ticks/local scope exist; defaults, per-row scope and reset gaps above. |
+| 12 buttons/duplicates | Partial: shared implementations exist, duplicate navigation remains; every gameplay/user state not executed in this audit. |
+| 13 Me/admin identity | Gap/exception needed for anonymous arcade, plus owner auth review. No email collection requested. |
+| 14 server validation/secrets | Server score/name/token caps and owner-key comparison exist; no server env secret observed in static source. Owner credential handling gap above. No payments, OTP or user-password forms. Not a full history security scan. |
+| 15 de-slop | No default purple shell gradient; short sign-in-free flow. Font exception/palette hierarchy needs approval. No OTP/password account flow to audit. No exhaustive contrast-ratio measurement performed. |
+| 16 details | Partial: alpha borders/dark surface hierarchy exist; vh/tokens/radii/motion icons gaps above. |
+| 17 truthful growth | Daily countdown derives from Singapore midnight, does not reset on reload; reward numbers drawn from actual local constants. No paid upsells/device pricing. Privacy/count consent claims fail above. |
+| 18 live verification | Visited /, /playground.html, /fair.html, /stats.html, /privacy.html, /terms.html, /guidelines.html, /delete.html at 390 and 1280; no pageerror events or horizontal overflow. Opened settings at both. Owner authenticated actions, all rounds, physical Safari and third-party reviews were not exercised. |
+
+## Evidence and boundaries
+
+- `grid-390.png`, `grid-1280.png`, `settings-1280.png`: current live screenshots; no credentials or player data entered.
+- Source review anchors refer to the baseline SHA; future fixes should regenerate entries/dist as required.
+- No third-party app submission was made. The section 13 approvals table is now required in AGENTS.md before any such submission; this audit does not certify provider console status.
+- `appendix-a-draft.md` requires explicit Younes/Claude approval before modifying the shared source of truth.
+- Earlier tricks task remains a separate queue. This audit request explicitly forbids fixing failures in the audit step; no feature task was bundled here.
+

@@ -17,3 +17,11 @@
 - Use feature branches and PRs for future changes; do not merge without owner approval.
 - Verify the grid and both 2D and 3D games at phone and desktop widths before shipping UI changes.
 - When this app's public link, status, tagline or main features change, update its row in C:\Users\Younes\Desktop\shared process\apps.md (same day).
+
+## UX standards
+
+- Read `C:\Users\Younes\Desktop\shared process\iamynoui-ux-playbook.md` before any UI change. This shared file is the single source of truth; do not copy it into the repo.
+- Follow sections 3.1 (detail rules), 5.1 (motion timings and curves), 6 (code entry, passwords and sign-in), and audit section 22. Record applicable checks and exceptions in every UI PR body, with 390px and 1280px screenshots.
+- Section 19 growth features must use real counts and deadlines: no resetting urgency timers, pre-ticked paid or marketing options, hidden “No thanks”, or device-data pricing.
+- Before any third-party submission, post the section 13 approvals table: connector, exact requested scopes, console app ID actually used, status, and who must click. Submit missing approvals in one round.
+- Keep the existing branch/PR and secret rules: never push to main or force-push; migrations require an owner GO naming the exact file hash. Draft missing Appendix A settings from code and obtain approval before editing the shared playbook.
