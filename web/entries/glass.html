@@ -21,6 +21,8 @@
     --brand:#22e1ff; --brand-soft:rgba(34,225,255,.10); --brand-glow:rgba(34,225,255,.45);
     --pop:#ffd84d; --pop-ink:#14121a;
     --ok:#4ade80; --danger:#ff5a6e;
+    /* motion curves (playbook 5.1) */
+    --ease-out:cubic-bezier(0.23,1,0.32,1); --ease-in-out:cubic-bezier(0.77,0,0.175,1); --ease-drawer:cubic-bezier(0.32,0.72,0,1);
     /* legacy names map onto the trio so nothing off-palette survives */
     --bg:var(--base); --bg2:var(--panel); --ink:var(--text); --dim:var(--muted);
     --cyan:var(--brand); --magenta:var(--brand); --lime:var(--brand); --amber:var(--brand);
@@ -154,7 +156,7 @@
   body.touch #game{width:min(100vw, calc(100dvh * 900 / 560)); max-height:100dvh; border:0; border-radius:0; box-shadow:none;}
   body.touch #gframe{width:100vw; height:100dvh; border-radius:0;}
   body.touch .stagebar{position:fixed; left:max(8px,env(safe-area-inset-left)); top:8px; z-index:80; gap:0;}
-  body.touch .stagebar > span:not(.back){display:none;}
+  body.touch .stagebar > span:not(.back):not(.where){display:none;}
   body.touch .back{padding:6px 12px; font-size:13px; background:rgba(11,10,16,.8);}
   body.touch .postbar{position:fixed; top:8px; left:50%; transform:translateX(-50%); width:min(560px,calc(100vw - 120px)); margin:0; z-index:85; padding:8px;}
   body.touch .touchctl .pad{grid-template-columns:repeat(3,46px); grid-template-rows:repeat(3,46px); gap:4px;
@@ -279,6 +281,38 @@
   }
   .postbar #pb-again{background:transparent; border-color:transparent; color:var(--brand); box-shadow:none;}
   body.playing .toasts{top:calc(64px + var(--ibh,0px)) !important;}
+
+  /* ---- Sense of place (playbook 5.2) ---- */
+  @view-transition{navigation:auto;}
+  .where{font-weight:800; color:var(--text); font-size:13px; letter-spacing:.04em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:46vw;}
+  .where i{font-style:normal; color:var(--muted); margin:0 6px;}
+  body.touch .stagebar .where{margin-left:8px; font-size:12px; text-shadow:0 1px 6px #000;}
+  ::view-transition-group(hero){animation-duration:.38s; animation-timing-function:var(--ease-drawer);}
+  ::view-transition-old(hero), ::view-transition-new(hero){height:100%; object-fit:cover; animation-duration:.38s; animation-timing-function:var(--ease-drawer);}
+  ::view-transition-image-pair(hero){animation:vtblur .38s var(--ease-drawer);}
+  @keyframes vtblur{50%{filter:blur(3px);}}
+  ::view-transition-old(root), ::view-transition-new(root){animation-duration:.3s; animation-timing-function:var(--ease-out);}
+  html.vt-fwd::view-transition-old(root){animation:vtfade .3s var(--ease-out) both, vtleft .3s var(--ease-out) both;}
+  html.vt-back::view-transition-new(root){animation:vtfadein .3s var(--ease-out) both, vtright .3s var(--ease-out) both;}
+  @keyframes vtfade{to{opacity:0;}} @keyframes vtfadein{from{opacity:0;}}
+  @keyframes vtleft{to{transform:translateX(-24px);}} @keyframes vtright{from{transform:translateX(-24px);}}
+  .card.make{view-transition-name:pg;}
+  .card.back-pulse{animation:backpulse .7s var(--ease-out) 1;}
+  @keyframes backpulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--c,var(--brand)) 70%,transparent);} 100%{box-shadow:0 0 0 16px transparent;}}
+  /* menus and sheets grow out of the button that opened them, and shrink back into it */
+  .modal{transition:opacity .25s var(--ease-out), display .25s allow-discrete, overlay .25s allow-discrete;}
+  .modal[hidden]{opacity:0; transition-duration:.2s; transition-timing-function:ease-in;}
+  @starting-style{ .modal:not([hidden]){opacity:0;} }
+  .modal .sheet{transform-origin:var(--ox,50%) var(--oy,0px); transition:transform .25s var(--ease-out), opacity .25s var(--ease-out);}
+  .modal[hidden] .sheet{transform:scale(.95); opacity:0; transition-duration:.2s; transition-timing-function:ease-in;}
+  @starting-style{ .modal:not([hidden]) .sheet{transform:scale(.95); opacity:0;} }
+  @media (max-width:600px){
+    .modal .sheet{animation:none; transition:transform .32s var(--ease-drawer), opacity .2s linear;}
+    .modal[hidden] .sheet{transform:translateY(100%); opacity:1; transition-duration:.25s;}
+    @starting-style{ .modal:not([hidden]) .sheet{transform:translateY(100%); opacity:1;} }
+  }
+  html.reduce-motion .modal, html.reduce-motion .modal .sheet{transition:none;}
+  @media (prefers-reduced-motion:reduce){ .modal, .modal .sheet{transition:none;} ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*){animation:none !important;} }
   [hidden]{display:none !important;}
   /* ---- shared buttons (UX playbook §4): one look, every state ---- */
   .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:8px 16px; border-radius:12px;
@@ -493,7 +527,8 @@
       <span id="pb-msg"></span>
     </div>
     <div class="stagebar">
-      <button class="btn back" id="back" type="button">&larr; Menu <span class="kbdhint">(Esc)</span></button>
+      <button class="btn back" id="back" type="button" aria-label="Back to the arcade">&lsaquo; Arcade <span class="kbdhint">(Esc)</span></button>
+      <span class="where" id="where" aria-live="polite"></span>
       <span>Move <kbd>WASD</kbd>/<kbd>&larr;&uarr;&darr;&rarr;</kbd></span>
       <span>Act <kbd>Space</kbd>/<kbd>Click</kbd></span>
       <span>Rewind <kbd>R</kbd>/<kbd>Shift</kbd></span>
@@ -556,11 +591,7 @@
     const stage = document.getElementById("stage");
     const canvas = document.getElementById("game");
 
-    Forkade.boot(canvas, () => {
-      stage.classList.remove("on", "d3", "portrait-game"); document.body.classList.remove("playing"); leaveFullscreen();
-      const gf = document.getElementById("gframe"); if (gf) { gf.removeAttribute("srcdoc"); gf.src = "about:blank"; }
-      refreshBest();
-    });
+    Forkade.boot(canvas, () => closeStage());
 
     function refreshBest() {
       document.querySelectorAll(".best[data-id]").forEach(el => {
@@ -671,7 +702,8 @@
         el.requestFullscreen({ navigationUI: "hide" }).then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock("landscape").catch(() => {})).catch(() => {});
     }
     function leaveFullscreen() { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); }
-    function openGame(id, options = {}) {
+    function openGame(id, options = {}) { Place.enter(id, () => runGame(id, options)); }
+    function runGame(id, options = {}) {
       stage.classList.remove("d3", "t-tap", "t-lr");
       const meta = (Forkade.registry.find(g => g.id === id) || {}).meta || {};
       if (meta.touch) stage.classList.add("t-" + meta.touch);
@@ -683,9 +715,9 @@
       canvas.focus();
       Forkade.play(id, options);
     }
-    function open3D(id = "echo3d") {
-      if (typeof id !== "string") id = "echo3d";
-      if (Forkade.current()) Forkade.stop();
+    function open3D(id = "echo3d") { if (typeof id !== "string") id = "echo3d"; Place.enter(id, () => run3D(id)); }
+    function run3D(id) {
+      if (Forkade.current()) Forkade.stop(true);
       // A fresh frame avoids Safari racing a previous about:blank navigation.
       const fresh = gframe.cloneNode(false); fresh.removeAttribute('srcdoc'); fresh.removeAttribute('src');
       gframe.replaceWith(fresh); gframe = fresh;
@@ -699,10 +731,91 @@
       gframe.focus();
     }
     function closeStage() {
-      stage.classList.remove("on", "d3", "portrait-game"); document.body.classList.remove("playing"); leaveFullscreen();
-      gframe.removeAttribute("srcdoc"); gframe.src = "about:blank";
-      refreshBest();
+      if (!stage.classList.contains("on")) return;
+      Place.leave(() => {
+        stage.classList.remove("on", "d3", "portrait-game"); document.body.classList.remove("playing"); leaveFullscreen();
+        const gf = document.getElementById("gframe"); if (gf) { gf.removeAttribute("srcdoc"); gf.src = "about:blank"; }
+        refreshBest();
+      });
     }
+    // ---- Sense of place (playbook 5.2): the card becomes the game, Back goes back to the same card ----
+    const Place = (() => {
+      const still = () => !!(Forkade.settings && Forkade.settings.reduceMotion) || document.documentElement.classList.contains("reduce-motion") || matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const http = /^https?:$/.test(location.protocol);
+      let tapped = null, from = null, y0 = 0, popping = false, pushed = false, pendingBacks = 0;
+      grid.addEventListener("click", e => { const c = e.target.closest(".card"); if (c) tapped = c; }, true);
+      const onScreen = el => { if (!el || !el.isConnected || !el.offsetParent) return false; const r = el.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; };
+      const name = id => (GAME_NAMES()[id] || id).toUpperCase();
+      // morph `a` (named before) into whatever `b()` returns (named after); directional root slide
+      function morph(update, a, b, dir) {
+        if (!document.startViewTransition || still() || !onScreen(a)) { update(); return; }
+        const root = document.documentElement; root.classList.add(dir === "back" ? "vt-back" : "vt-fwd");
+        a.style.viewTransitionName = "hero";
+        let t;
+        try { t = document.startViewTransition(() => { a.style.viewTransitionName = ""; update(); const n = b(); if (n) n.style.viewTransitionName = "hero"; }); }
+        catch (_) { a.style.viewTransitionName = ""; update(); root.classList.remove("vt-fwd", "vt-back"); return; }
+        t.finished.finally(() => { const n = b(); if (n) n.style.viewTransitionName = ""; root.classList.remove("vt-fwd", "vt-back"); });
+      }
+      function enter(id, run) {
+        const again = stage.classList.contains("on");
+        const hit = tapped && tapped.isConnected ? tapped : null; tapped = null;   // only a tapped card morphs; code-opened games start at once
+        const card = hit || document.querySelector(`.card[data-game="${id}"]`);
+        { const w = document.getElementById("where"), sep = document.createElement("i"); sep.textContent = "\u203a";
+          w.replaceChildren("Arcade", sep, name(id)); }
+        if (again) { run(); return; }
+        from = card; y0 = scrollY;
+        if (http) try {
+          // our own count, not history.state: a Back we asked for may still be on its way
+          if (!pushed && !pendingBacks && (location.pathname !== "/" || location.search)) history.replaceState({ list: 1 }, "", "/");   // a deep link still has the arcade behind it
+          if (!pushed) { history.pushState({ fg: id }, "", "/" + id); pushed = true; }
+          else history.replaceState({ fg: id }, "", "/" + id);
+        } catch (_) {}
+        // phones that go full screen for this game skip the morph (full screen and the animation fight)
+        const fs = document.body.classList.contains("touch") && !["skyhop", "striker", "breaker"].includes(id);
+        if (fs || !hit) run(); else morph(run, hit, () => stage, "fwd");
+      }
+      function leave(close) {
+        const card = from && from.isConnected && from.offsetParent ? from : null;
+        morph(() => { close(); scrollTo({ top: y0, behavior: "instant" }); }, stage, () => card, "back");
+        if (card && !still()) { card.classList.remove("back-pulse"); void card.offsetWidth; card.classList.add("back-pulse");
+          setTimeout(() => card.classList.remove("back-pulse"), 900); }
+        if (http && !popping && pushed) { pushed = false; pendingBacks++; try { history.back(); } catch (_) { pendingBacks--; } }
+        if (popping) pushed = false;
+      }
+      // phone/browser Back and swipe-back close the game exactly like the on-screen Back
+      addEventListener("popstate", e => {
+        if (pendingBacks) { pendingBacks--; return; }
+        if (stage.classList.contains("on") && !(e.state && e.state.fg)) {
+          popping = true;
+          if (stage.classList.contains("d3") || !Forkade.current()) closeStage(); else Forkade.stop();
+          popping = false;
+        }
+      });
+      return { enter, leave };
+    })();
+    // menus and sheets start at their button (origin = the trigger), shrink back into it
+    (function sheetsFromTrigger() {
+      let trig = null;
+      document.addEventListener("pointerdown", e => { const b = e.target.closest("button, a, [role=button]"); if (b) trig = b.getBoundingClientRect(); }, true);
+      document.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && document.activeElement) trig = document.activeElement.getBoundingClientRect(); }, true);
+      const mo = new MutationObserver(list => list.forEach(m => {
+        const modal = m.target; if (modal.hidden) return;
+        const sh = modal.querySelector(".sheet"); if (!sh || !trig) return;
+        const r = sh.getBoundingClientRect();
+        sh.style.setProperty("--ox", Math.round(trig.left + trig.width / 2 - r.left) + "px");
+        sh.style.setProperty("--oy", Math.round(trig.top + trig.height / 2 - r.top) + "px");
+      }));
+      document.querySelectorAll(".modal").forEach(m => mo.observe(m, { attributes: true, attributeFilter: ["hidden"] }));
+      addEventListener("load", () => document.querySelectorAll(".modal").forEach(m => mo.observe(m, { attributes: true, attributeFilter: ["hidden"] })));
+    })();
+    // coming back from the Playground: same scroll, the card pulses
+    (function returnFromPlayground() {
+      try {
+        const r = JSON.parse(sessionStorage.getItem("forkade-return") || "null"); sessionStorage.removeItem("forkade-return");
+        if (r && /playground/.test(document.referrer)) addEventListener("load", () => { scrollTo({ top: r.y, behavior: "instant" });
+          const c = document.querySelector(".card.make"); if (c && !document.documentElement.classList.contains("reduce-motion")) { c.classList.add("back-pulse"); setTimeout(() => c.classList.remove("back-pulse"), 900); } });
+      } catch (_) {}
+    })();
     document.getElementById("back").addEventListener("click", () => Forkade.stop());
     // the 3D game lives in an iframe and asks to close via postMessage
     window.addEventListener("message", e => {
@@ -731,6 +844,7 @@
         <span class="play">&#9654; Play now</span>
         <div class="best" data-id="${g.id}">BEST <b>${Forkade.scores.get(g.id)}</b></div>
         <div class="stars" data-id="${g.id}"></div>`;
+      card.dataset.game = g.id;
       if (isNew && g.id === START_ID) { card.classList.add("start"); card.insertAdjacentHTML("afterbegin", '<span class="starttag">START HERE &middot; TRY THIS FIRST</span>'); }
       card.addEventListener("click", () => openGame(g.id));
       grid.appendChild(card);
@@ -751,6 +865,7 @@
         <span class="play">&#9654; Play now</span>
         <div class="best" data-id="echo3d">BEST <b>${Forkade.scores.get("echo3d")}</b></div>
         <div class="stars" data-id="echo3d"></div>`;
+      card.dataset.game = "echo3d";
       card.addEventListener("click", open3D);
       grid.appendChild(card);
     })();
@@ -758,13 +873,14 @@
     (function addRampage() {
       const card=document.createElement('button');card.className='card';card.style.setProperty('--c','#ff3ea5');card.style.color='var(--ink)';card.style.fontFamily='inherit';card.style.textAlign='left';
       card.innerHTML='<div class="dot"><span></span></div><h3 class="name">RAMPAGE 3D</h3><div class="genre">3D city destruction</div><p class="desc">Giant ECHO stomps a neon city into chunks. Race the timer, rewind and smash again.</p><span class="play">▶ Play now</span><div class="best" data-id="rampage">BEST <b>'+Forkade.scores.get('rampage')+'</b></div><div class="stars" data-id="rampage"></div>';
-      card.onclick=()=>open3D('rampage');grid.appendChild(card);
+      card.dataset.game='rampage';card.onclick=()=>open3D('rampage');grid.appendChild(card);
     })();
     /* ---------- build-your-own card -> Playground ---------- */
     (function addMake() {
       const href = "playground.html";   // build_dist.py points this at the live site
       const card = document.createElement("a");
       card.className = "card make"; card.href = href;
+      card.addEventListener("click", () => { try { sessionStorage.setItem("forkade-return", JSON.stringify({ y: scrollY })); } catch (_) {} });
       card.style.setProperty("--c", "#ff3ea5");
       card.innerHTML = `
         <div class="num">+</div>
@@ -783,7 +899,7 @@
     /* ---------- touch controls ---------- */
     const isTouch = matchMedia("(pointer:coarse)").matches || "ontouchstart" in window;
     if (isTouch) { document.getElementById("rewindtip").innerHTML = "&#9199; Mess up? Hold <b>REW</b> to rewind time.";
-      document.body.classList.add("touch"); document.getElementById("back").innerHTML = "&#10005; Menu"; }
+      document.body.classList.add("touch"); document.getElementById("back").innerHTML = "&lsaquo; Arcade"; }
     document.querySelectorAll("#touchctl .tbtn").forEach(btn => {
       const code = btn.dataset.code;
       const down = e => { e.preventDefault(); Forkade.Input.hold(code, true); };

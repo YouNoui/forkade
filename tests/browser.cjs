@@ -82,7 +82,7 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
   await a.evaluate(()=>document.getElementById('open-ranks').click());await a.waitForFunction(()=>/Tester/.test(document.querySelector('#rlist').textContent));
   await a.evaluate(()=>document.getElementById('forget').click());assert.equal(await a.locator('#confirm').isHidden(),false,'remove asks first');
   assert.match(await a.locator('#confirm-text').innerText(),/removes every score you posted/);await a.locator('#confirm-no').click();
-  assert.ok(await a.locator('#confirm').isHidden());assert.match(await a.locator('#rlist').textContent(),/Tester/,'cancel keeps scores');
+  await a.locator('#confirm').waitFor({state:'hidden'});assert.match(await a.locator('#rlist').textContent(),/Tester/,'cancel keeps scores');
   await a.evaluate(()=>document.getElementById('close-ranks').click());
   await a.goto(base+'/stats.html');await a.locator('#key').fill('owner-test');await a.locator('#go').click();await a.locator('#out').waitFor({state:'visible'});
   await a.goto(base);await a.waitForFunction(()=>window.Forkade);await a.evaluate(()=>document.getElementById('open-ranks').click());await a.waitForTimeout(800);
@@ -109,13 +109,13 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
    assert.equal(await pops(),1,'returning player: one main action (Daily)');
    const bottom=async id=>{const r=await pg.evaluate(i=>{const s=document.querySelector('#'+i+' .sheet').getBoundingClientRect();return Math.round(innerHeight-s.bottom);},id);assert.ok(Math.abs(r)<=2,id+' is a bottom sheet');};
    await pg.evaluate(()=>document.getElementById('open-locker').click());await pg.waitForTimeout(350);await bottom('locker');
-   await pg.keyboard.press('Escape');await pg.waitForTimeout(150);assert.ok(await pg.locator('#locker').isHidden(),'Esc closes');
+   await pg.keyboard.press('Escape');await pg.locator('#locker').waitFor({state:'hidden',timeout:1500});
    await pg.evaluate(()=>document.getElementById('open-ranks').click());await pg.waitForTimeout(350);await bottom('ranks');
-   await pg.mouse.click(195,20);await pg.waitForTimeout(150);assert.ok(await pg.locator('#ranks').isHidden(),'tap outside closes');
+   await pg.mouse.click(195,20);await pg.locator('#ranks').waitFor({state:'hidden',timeout:1500});
    await pg.evaluate(()=>document.querySelector('.wbtns .settings-button').click());await pg.waitForTimeout(350);
    await pg.evaluate(()=>{const s=document.querySelector('#settings .sheet'),t=(type,y)=>{const e=new Event(type,{bubbles:true});Object.defineProperty(e,'touches',{value:type==='touchend'?[]:[{identifier:1,target:s,clientX:200,clientY:y}]});s.dispatchEvent(e);};
      s.scrollTop=0;t('touchstart',300);t('touchmove',420);t('touchend',0);});await pg.waitForTimeout(150);
-   assert.ok(await pg.locator('#settings').isHidden(),'swipe down closes');
+   await pg.locator('#settings').waitFor({state:'hidden',timeout:1500});
    await pg.evaluate(()=>open3D());await pg.frameLocator('#gframe').locator('canvas').waitFor({state:'visible',timeout:15000});
    await pg.evaluate(()=>closeStage());
    await pg.goto(base+'/playground.html');await pg.locator('button.run').first().click();await pg.waitForTimeout(600);
@@ -131,6 +131,22 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
    const r=await pg.evaluate(()=>{const R=Forkade.rewards,got=R.roundEnd('trail',350,true,null);return {got,sum:R.breakdown.reduce((a,p)=>a+p[1],0),names:R.breakdown.map(p=>p[0])};});
    assert.equal(r.sum,r.got,'breakdown adds up');assert.ok(r.names.includes('round')&&r.names.includes('new best')&&r.names.includes('silver'),'breakdown names each part');
    await pg.close(); }
+  // sense of place (playbook 5.2): card -> game -> Back returns to the same card, same scroll, every way back
+  { const ctx=await browser.newContext({viewport:{width:1280,height:800}});await ctx.addInitScript(()=>{try{localStorage.setItem('forkade-install-snooze',String(Date.now()+9e9));localStorage.setItem('forkade-more-games','1')}catch(_){}});
+   const pg=await ctx.newPage();await pg.goto(base);await pg.waitForFunction(()=>window.Forkade);
+   const card=pg.locator('.card[data-game="glass"]');await card.scrollIntoViewIfNeeded();const y=await pg.evaluate(()=>scrollY);
+   const st=()=>pg.evaluate(()=>({on:document.getElementById('stage').classList.contains('on'),path:location.pathname+location.search,y:scrollY}));
+   await card.click();await pg.waitForTimeout(500);let s1=await st();assert.ok(s1.on&&s1.path==='/glass','game has its own URL');
+   assert.match(await pg.locator('#where').innerText(),/Arcade.*GLASS CITY/s,'header says where you are');
+   await pg.goBack();await pg.waitForTimeout(600);s1=await st();assert.ok(!s1.on&&s1.path==='/'&&Math.abs(s1.y-y)<=1,'browser Back closes the game at the same scroll');
+   assert.ok(await card.evaluate(e=>e.classList.contains('back-pulse')),'the card pulses on return');
+   await card.click();await pg.waitForTimeout(400);await pg.keyboard.press('Escape');await pg.waitForTimeout(600);s1=await st();assert.ok(!s1.on&&s1.path==='/','Esc goes back the same way');
+   await card.click();await pg.waitForTimeout(400);await pg.locator('#back').click();await pg.waitForTimeout(600);s1=await st();assert.ok(!s1.on&&s1.path==='/','on-screen Back goes back the same way');
+   await pg.goto(base+'/?game=prism');await pg.waitForFunction(()=>document.getElementById('stage').classList.contains('on'));await pg.goBack();await pg.waitForTimeout(600);
+   s1=await st();assert.ok(!s1.on&&s1.path==='/','a deep link still has the arcade behind it');
+   await pg.locator('#open-locker').click();await pg.waitForTimeout(300);
+   assert.ok(await pg.evaluate(()=>!!document.querySelector('#locker .sheet').style.getPropertyValue('--ox')),'sheet grows from its button');
+   await ctx.close(); }
   // first visit: one 'Start here' card; settings say Saved
   { const pg=await browser.newPage({viewport:{width:390,height:844}});await pg.goto(base);await pg.waitForFunction(()=>window.Forkade);
    assert.equal(await pg.locator('.card.start').count(),1,'one start card for new players');assert.match(await pg.locator('.card.start').innerText(),/START HERE/);assert.equal(await pg.locator('.card.start .name').innerText(),await pg.evaluate(()=>GAME_NAMES()[Forkade.experiment.start()]));
