@@ -23,6 +23,7 @@ class Redis {
       case 'SISMEMBER':return v?.has(a[0])?1:0;
       case 'SMISMEMBER':return a.map(x=>v?.has(x)?1:0);
       case 'ZADD':{const [score,id]=a.slice(-2);map();if(!a.includes('GT')||!v.has(id)||Number(score)>v.get(id))v.set(id,Number(score));return 1;}
+      case 'ZCOUNT':return [...(v?.values()||[])].filter(n=>a[1].startsWith('(')?n<Number(a[1].slice(1)):n<=Number(a[1])).length;
       case 'ZCARD':return v?.size||0;
       case 'ZSCORE':return v?.get(a[0])??null;
       case 'ZREM':return v?.delete(a[0])?1:0;

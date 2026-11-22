@@ -690,7 +690,7 @@
   }
 
   global.Forkade = {
-    palette, ECHO_COLOR, rand, rng, seed, settings, symbol, TAU,
+    palette, ECHO_COLOR, rand, rng, seed, settings, symbol, TAU, policy: global.ForkadePolicy,
     glowRect, glowCircle, glowLine, drawEcho, fillBg, text, bar, banner,
     Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats, gifts, machine, assist, assistMode, bonus,
     register, boot, play, stop, registry,

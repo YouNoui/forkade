@@ -79,7 +79,7 @@
 <h2>Daily challenge</h2>
 <p id="daily"></p>
 
-<h2 id="chances">Chances and timers</h2><div id="gift-rules"></div><div id="machine-rules"></div><div id="assist-rules"></div><div id="bonus-rules"></div>
+<h2 id="chances">Chances and timers</h2><div id="gift-rules"></div><div id="machine-rules"></div><div id="assist-rules"></div><div id="bonus-rules"></div><p id="percent-rule"></p>
 <h2>Rankings</h2>
 <p>Posting scores is optional: only Post sends your nickname and score. Online rounds start an anonymous timing token. Anonymous visit/play counts are on by default; switch them off in Settings. The server checks that each score came from a real round of the right length, holds impossible jumps for review, and hides a nickname as &ldquo;Player&rdquo; after 3 reports. Your local cores, badges and skins never depend on the rankings. <a href="guidelines.html">Community rules</a></p>
 
@@ -88,6 +88,7 @@
 </main>
 <script src="daily.js"></script>
 <script src="settings.js"></script>
+<script src="policy.js"></script>
 <script src="engine.js"></script>
 <script src="games/skyhop.js"></script>
 <script src="games/swarm.js"></script>
@@ -114,6 +115,7 @@
   $('assist-rules').innerHTML='<h3>Assist is your choice</h3><p>Off unless you choose it. Offered after three consecutive losses; also available per game in Settings. Assisted rounds earn cores but no badges or ranking posts. Daily and 3D never use assist. Choices apply next round.</p><ul>'+Object.entries(F.assistMode.rules).map(([id,knob])=>'<li>'+esc(NAMES[id]||id)+': '+knob+'</li>').join('')+'</ul>';
   const B=F.bonus.rules;
   $('bonus-rules').innerHTML='<h3>Daily bonus rounds</h3><p>Singapore midnight resets the counter. First '+B.full+' finished rounds: full round cores. Rounds '+(B.full+1)+'–'+B.half+': '+B.halfRate*100+'%. Rounds '+(B.half+1)+' onward: '+B.quarterRate*100+'%. Round base and final payout round to the nearest whole core. New best, badges, daily rewards, gifts and starter goal are unaffected. The wallet shows remaining full-bonus rounds when fewer than 10 remain.</p>';
+  $('percent-rule').textContent="The 'beat' percentage uses your posted weekly best and real players with a strictly lower score, divided by everyone on that board, rounded down. Ties are not beaten. Hidden below "+F.policy.socialMinimum+" players; a local unposted score never becomes social proof.";
   const T = R.TIERS, row = (a, b, c) => `<tr><td>${a}</td><td>${b}</td><td class="n">${c}</td></tr>`;
   const ex = s => Math.round(Math.max(1, Math.sqrt(s) * 0.6));
   $("earn").tBodies[0].innerHTML = [

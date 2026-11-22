@@ -11,6 +11,7 @@
 // (or UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN).
 
 const crypto = require("crypto");
+const Policy = require("../web/policy");
 const Runs = require("../lib/runs");
 
 // highest believable score per game - anything above is rejected
@@ -141,8 +142,10 @@ async function publish(R,game,score,name,pid,week,daily) {
   if (dk) cmds.push(['ZADD',dk,'GT',String(score),pid],['EXPIREAT',dk,String(expires)]);
   await R(cmds);
   const [wr,ar,wb,ab] = await R([['ZREVRANK',wk,pid],['ZREVRANK',all,pid],['ZSCORE',wk,pid],['ZSCORE',all,pid]]);
+  const [count,lower]=await R([['ZCARD',wk],['ZCOUNT',wk,'-inf','('+Number(wb)]]);
+  const percent=count>=Policy.socialMinimum?Math.floor(Number(lower)*100/count):null;
   const [dr] = dk ? await R([['ZREVRANK',dk,pid]]) : [null];
-  return {ok:true,week:{rank:wr+1,best:Number(wb)},all:{rank:ar+1,best:Number(ab)},daily:dk?{rank:dr+1,date:daily}:null};
+  return {ok:true,week:{rank:wr+1,best:Number(wb),count,percent},all:{rank:ar+1,best:Number(ab)},daily:dk?{rank:dr+1,date:daily}:null};
 }
 
 module.exports = async function handler(req, res) {
@@ -168,8 +171,10 @@ module.exports = async function handler(req, res) {
       // a nickname hidden by reports or the owner shows as "Player" (the player still sees their own)
       top.forEach((t, i) => { t.rank = i + 1; t.me = ids[i] === pid;
         t.name = hidden && hidden[i] && !t.me ? "Player" : (names[i] || "ECHO"); });
+      const [lower]=myRank!=null && count>=Policy.socialMinimum ? await R([['ZCOUNT',key,'-inf','('+Number(myScore)]]) : [null];
+      const percent=lower==null?null:Math.floor(Number(lower)*100/count);
       return send(res, 200, { game, period, week, count: count || 0, top,
-        me: myRank == null ? null : { rank: myRank + 1, score: Number(myScore) } });
+        me: myRank == null ? null : { rank: myRank + 1, score: Number(myScore), percent } });
     }
 
     if (req.method === "POST") {

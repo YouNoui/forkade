@@ -471,7 +471,7 @@
       </div>
     </div>
     <div class="postbar" id="postbar" hidden>
-      <span id="pb-breakdown" role="status"></span><span id="pb-text"></span>
+      <span id="pb-percent" role="status"></span><span id="pb-breakdown" role="status"></span><span id="pb-text"></span>
       <input id="pb-name" maxlength="14" placeholder="nickname" aria-label="Nickname for the rankings" autocomplete="nickname" spellcheck="false">
       <button id="pb-post" class="btn btn-pop">&#127941; Post score</button>
       <span id="pb-msg"></span>
@@ -493,7 +493,8 @@
   </div>
   <script src="daily.js"></script>
   <script src="settings.js"></script>
-  <script src="engine.js"></script>
+  <script src="policy.js"></script>
+<script src="engine.js"></script>
   <script src="games/skyhop.js"></script>
   <script src="games/swarm.js"></script>
   <script src="games/striker.js"></script>
@@ -879,6 +880,8 @@
       const show = on && L && L.score >= 0;
       if (show && (pb.hidden || shownRound !== L)) {
         shownRound = L;
+        const percentile=document.getElementById('pb-percent');percentile.textContent='';
+        if(!L.assisted&&localStorage.getItem('forkade-pid'))B.top(L.id,'week').then(d=>{if(B.last===L&&d.me?.percent!=null)percentile.textContent="Your posted best beat "+d.me.percent+"% of this week's players";}).catch(()=>{});
         pb.hidden = false; pbMsg.textContent = L.assisted ? "Assisted rounds aren’t ranked" : "";
         document.getElementById("pb-post").hidden=!!L.assisted;pbName.hidden=!!L.assisted; pbMsg.className = "";
         { const b = document.getElementById("pb-post"); UI.reset(b); b.innerHTML = "&#127941; Post score"; }
@@ -906,6 +909,7 @@
       try {
         const r = await B.post(L.id, L.score, name); posted = L;
         pbMsg.textContent = r.pending ? r.message : `Posted! You're #${r.week.rank} this week and #${r.all.rank} all time (best ${r.all.best}).`;
+        if(r.week?.percent!=null)document.getElementById('pb-percent').textContent="You beat "+r.week.percent+"% of this week's players";
         UI.done(btn, "Posted"); UI.burst(btn);      // stays locked for this round; Share stays available
       } catch (err) { pbMsg.textContent = err.message; pbMsg.className = "err"; UI.reset(btn); btn.innerHTML = label; }
       finally { posting = false; }
