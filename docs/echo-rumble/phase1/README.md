@@ -25,11 +25,11 @@ Twelve free choices across body, head, visor, colour, trail and victory/emote ar
 
 ## Release progression
 
-Pulse Breaker #29 is merged at 55bf860 with green checks. Initial Vercel API/CLI deployment attempts hit the 100/day quota, but the Git-integrated ECHO RUMBLE preview subsequently reached READY at 731cbfd. The remaining per-game polish queue is stopped.
+Pulse Breaker #29 is merged at 55bf860 with green checks. Initial Vercel API/CLI deployment attempts hit the 100/day quota, but the Git-integrated ECHO RUMBLE preview subsequently reached READY at 731cbfd. The final follow-up commit again hit the Vercel daily deployment limit. The remaining per-game polish queue is stopped.
 
-PR #30 contains this phase. Merge only the reviewed green head; watch the production deployment and verify Android/iPhone 390 and desktop1280 on playforkade.com. Deployment/production results are recorded in the PR body and the shared checkpoint after release. No billing changes were made.
+PR #30 contains this phase. Merge only the reviewed green head; watch the production deployment and verify Android/iPhone 390 and desktop1280 on playforkade.com. GitHub code CI passed on 859f662, but its Vercel check is rate-limited, so the PR remains open and production still serves the preceding release. Production results must be recorded in the PR body and shared checkpoint after release. No billing changes were made.
 
-The CLI `env run` preview-test attempt unexpectedly created a separate test-only `rumble-browser` project. Its source tree was inspected: exactly one file, src/rumble-browser.cjs, no secrets. The project was paused immediately. Preview tests now use a short-lived Vercel share link, scoped to the intended Forkade deployment; it is never committed. The user must explicitly authorize deletion of that paused accidental project because their guardrails prohibit deleting production projects/domains.
+The CLI `env run` preview-test attempt unexpectedly created a separate test-only `rumble-browser` project. Its source tree was inspected: exactly one file, src/rumble-browser.cjs, no secrets. The project was paused immediately. Preview tests now use a short-lived Vercel share link, scoped to the intended Forkade deployment; it is never committed. The old preview also injects a Vercel toolbar blocked by the strict CSP: preview tests report those exact host-only warnings separately, while still failing all application errors. Preview and production toolbar injection is now disabled in project settings for future deployments. The user must explicitly authorize deletion of that paused accidental project because their guardrails prohibit deleting production projects/domains.
 
 ## UX checklist (§22)
 
@@ -46,5 +46,6 @@ Checked 1–12 and 15–17: trio-B shell; separate game palettes; 44px controls;
 ## Needs Younes
 
 - Show the video to your son: **keep going / change X**.
+- Vercel deployment quota reset (or an owner-approved plan change) is required before the final commit can deploy, merge green and go live.
 - Explicit cleanup approval for the paused accidental test-only project (no secrets/data). No payment or billing change was made.
 - A real mid-range Android phone is needed to verify 60 FPS and haptics; headless emulation cannot certify that target.
