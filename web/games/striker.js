@@ -26,9 +26,9 @@
       }
       this.particles.emit(this.px,this.py+24,P.amber,{n:1,angle:Math.PI/2,spread:.4,speed:2,life:.3});
       for (const b of this.bullets){b.y-=680*dt;b.x+=b.vx*dt;}
-      this.bullets = this.bullets.filter(b => b.y > -20);
+      let nb=0;for(const b of this.bullets)if(b.y>-20)this.bullets[nb++]=b;this.bullets.length=nb;
       for (const b of this.ebullets) { b.x += b.vx * dt; b.y += b.vy * dt; }
-      this.ebullets = this.ebullets.filter(b => b.y > -20 && b.y < this.H + 20 && b.x > -30 && b.x < this.W + 30);
+      let ne=0;for(const b of this.ebullets)if(b.y>-20&&b.y<this.H+20&&b.x>-30&&b.x<this.W+30)this.ebullets[ne++]=b;this.ebullets.length=ne;
       this.spawn -= dt;
       if (this.spawn <= 0 && this.foes.length<32) {
         this.spawn = Math.max(0.4, 1.3 - this.score / 2000);
@@ -50,8 +50,8 @@
       for (const f of this.foes) if (f.hp <= 0) {
         const points=f.kind===3?300:20;this.score+=points;this.kills++;this.juice?.hit(f.x,f.y,'+'+points,f.kind===3);if(this.kills%5===0&&this.drops.length<6)this.drops.push({x:f.x,y:f.y,life:10});if(this.kills%10===0){this.score+=100;this.juice?.hit(this.W/2,140,'10 SHIPS +100',true);}if(f.kind===3){this.hp=Math.min(3,this.hp+1);this.invuln=5;}this.shake.add(3); NE.sfx.explode(); this.particles.emit(f.x, f.y, P.magenta, { n: 16, speed: 4 });
       }
-      this.foes = this.foes.filter(f => f.hp > 0 && f.y < this.H + 30);
-      for(const d of this.drops){d.y+=55*dt;d.life-=dt;if(Math.hypot(d.x-this.px,d.y-this.py)<30){d.life=0;this.power=8;this.juice?.hit(d.x,d.y,'SPREAD SHOT · 8s',true);NE.sfx.pickup();}}this.drops=this.drops.filter(d=>d.life>0&&d.y<this.H+30);
+      let nf=0;for(const f of this.foes)if(f.hp>0&&f.y<this.H+30)this.foes[nf++]=f;this.foes.length=nf;
+      for(const d of this.drops){d.y+=55*dt;d.life-=dt;if(Math.hypot(d.x-this.px,d.y-this.py)<30){d.life=0;this.power=8;this.juice?.hit(d.x,d.y,'SPREAD SHOT · 8s',true);NE.sfx.pickup();}}let nd=0;for(const d of this.drops)if(d.life>0&&d.y<this.H+30)this.drops[nd++]=d;this.drops.length=nd;
       let hit = false;
       for (const b of this.ebullets)
         if (Math.abs(b.x - this.px) < 14 && Math.abs(b.y - this.py) < 14) { hit = true; b.y = 9999; break; }

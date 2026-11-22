@@ -38,7 +38,7 @@
       this.elapsed+=dt;this.wide=Math.max(0,this.wide-dt);this.fire=Math.max(0,this.fire-dt);this.pw=this.wide>0?170:110;
       if(this.elapsed>=this.nextCell){this.nextCell+=35;if(this.drops.length<6)this.drops.push({x:this.W/2,y:this.H*.35,life:12,kind:Math.floor(this.elapsed/35)%2});}
       if(this.elapsed>=this.nextCore){this.nextCore+=120;const br=this.bricks[Math.floor(this.bricks.length/2)];if(br){br.special=2;br.hp=5;this.juice?.hit(this.W/2,130,'REACTOR CORE · +500',true);}}
-      for(const d of this.drops){d.y+=110*dt;d.life-=dt;if(Math.abs(d.y-(this.H-65))<25&&Math.abs(d.x-this.paddle)<this.pw/2+12){d.life=0;if(d.kind===0)this.wide=12;else this.fire=8;this.juice?.hit(this.paddle,this.H-130,d.kind===0?'WIDE · 12s':'BLAZE · 8s',true);NE.sfx.pickup();}}this.drops=this.drops.filter(d=>d.life>0&&d.y<this.H+20);
+      for(const d of this.drops){d.y+=110*dt;d.life-=dt;if(Math.abs(d.y-(this.H-65))<25&&Math.abs(d.x-this.paddle)<this.pw/2+12){d.life=0;if(d.kind===0)this.wide=12;else this.fire=8;this.juice?.hit(this.paddle,this.H-130,d.kind===0?'WIDE · 12s':'BLAZE · 8s',true);NE.sfx.pickup();}}let alive=0;for(const d of this.drops)if(d.life>0&&d.y<this.H+20)this.drops[alive++]=d;this.drops.length=alive;
       const click = I.mouse.down && !this.prevDown; this.prevDown = I.mouse.down;
       if (this.phase === "clear") {
         if (I.pressed.Space || I.pressed.Enter || click) { this.level++; this.buildWall(); NE.sfx.ui(); }
