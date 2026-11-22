@@ -98,6 +98,10 @@
       "destination": "/entries/echo3d.html"
     },
     {
+      "source": "/rumble",
+      "destination": "/entries/rumble.html"
+    },
+    {
       "source": "/rampage",
       "destination": "/entries/rampage.html"
     },

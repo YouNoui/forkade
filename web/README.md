@@ -1,8 +1,10 @@
 # FORKADE — web version (plays in the browser)
 
-Thirteen games on one grid: eleven 2D games plus ECHO 3D and RAMPAGE 3D. Same hero (**ECHO**), same neon look, same twist
+ECHO RUMBLE beta leads the grid: a local-only mutation run, replayed echo squad and 24 free avatar options. Its three toy worlds and boss are generated from a Singapore-date seed; no uploads or rankings in Phase 1.
+
+Thirteen classic games remain: eleven 2D games plus ECHO 3D and RAMPAGE 3D. Same hero (**ECHO**), same neon look, same twist
 (**rewind time** — hold **R** or **Shift**). Pure HTML5 Canvas + JavaScript.
-**No sign-ups. Casual play is local-first and works offline.** Optional rankings and anonymous usage counts use Vercel functions and Upstash; both are off by default.
+**No sign-ups. Casual play is local-first and works offline.** Optional rankings and anonymous usage counts use Vercel functions and Upstash; ranked runs are opt-in and anonymous counts default on with a Settings opt-out. Rumble sends no play events or run tokens.
 
 ## Files
 

@@ -20,7 +20,7 @@ def inline(m):
 html = re.sub(r'<script src="([^"]+)"></script>', inline, html)
 
 # inline the 3D page so the single file can run it via iframe srcdoc
-for game, variable in [("echo3d", "__ECHO3D_HTML__"), ("rampage", "__RAMPAGE_HTML__")]:
+for game, variable in [("echo3d", "__ECHO3D_HTML__"), ("rampage", "__RAMPAGE_HTML__"), ("rumble", "__RUMBLE_HTML__")]:
     content = (here / "games3d" / (game + ".html")).read_text(encoding="utf-8")
     inject = "<script>window." + variable + " = " + json.dumps(content).replace("</", "<\\/") + ";</script>\n</body>"
     html = html.replace("</body>", inject, 1)

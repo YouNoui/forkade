@@ -163,7 +163,7 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
   // landing anatomy (playbook 18): real numbers only, a finder that ends on a game, no invented ratings
   { const pg=await browser.newPage({viewport:{width:390,height:844}});await pg.goto(base);await pg.waitForFunction(()=>window.Forkade);
    const proof=await pg.evaluate(()=>[...document.querySelectorAll('#proof b')].map(b=>+b.textContent));
-   assert.deepEqual(proof,[await pg.evaluate(()=>Forkade.registry.length+2),2,0,0],'proof numbers come from the code');
+   assert.deepEqual(proof,[await pg.evaluate(()=>Forkade.registry.length+3),3,0,0],'proof numbers come from the code');
    assert.doesNotMatch(await pg.locator('.head').innerText(),/★|review|rating/i,'no rating until there are real reviews');
    await pg.locator('#f-q button[data-k=think]').click();assert.match(await pg.locator('#f-step').innerText(),/Step 2 of 2/);
    await pg.locator('#f-q button[data-k=long]').click();assert.match(await pg.locator('#f-play').innerText(),/DEMOLITION CHAIN/);

@@ -75,14 +75,17 @@
     previousFocus = document.activeElement; const game = F.current(); resume = game?.state === 'play';
     if (resume) game.state = 'pause';
     gframe.contentWindow?.postMessage({ t:'forkade-pause', paused:true }, '*');
+    try { gframe.contentWindow?.EchoRumble?.setSettingsPaused(true); } catch (_) {}
     settings.querySelectorAll('[data-setting]').forEach(el => el.type === 'range' ? el.value = S[el.dataset.setting] : el.checked = !!S[el.dataset.setting]);
     settings.hidden = false; document.getElementById('close-settings').focus();
   }
   function closeSettings() {
     settings.hidden = true; if (resume && F.current()?.state === 'pause') F.current().state = 'play';
     gframe.contentWindow?.postMessage({ t:'forkade-pause', paused:false }, '*');
+    try { gframe.contentWindow?.EchoRumble?.setSettingsPaused(false); } catch (_) {}
     previousFocus?.focus();
   }
+  F.openSettings = showSettings; // same-origin offline 3D pages (WebKit WindowProxy identity differs).
   // nickname: prefilled, autosaved, shown only when you Post a score
   const nick = document.getElementById('playername');
   try { nick.value = localStorage.getItem('neon-player') || ''; } catch (_) {}
@@ -152,11 +155,14 @@
   const extra=[...grid.querySelectorAll('.card')].filter(c=>!c.classList.contains('daily')).slice(4);
   function paintMore(){extra.forEach(c=>c.hidden=!expanded);more.textContent=expanded?'Fewer games':'More games ('+extra.length+')';more.setAttribute('aria-expanded',String(expanded));}
   more.onclick=()=>{expanded=!expanded;try{localStorage.setItem('forkade-more-games',expanded?'1':'0');}catch(_){}paintMore();};paintMore();
+  const rumble=document.createElement('button');rumble.className='card rumble-hero';rumble.dataset.game='rumble';rumble.style.setProperty('--c','var(--brand)');
+  rumble.innerHTML='<span class="genre">NEW: ECHO RUMBLE (beta)</span><h3 class="name">The arcade that forks itself.</h3><p class="desc">90 seconds. Three worlds. One boss. Rewind your mistakes into a squad of allies.</p><span class="play">Play the beta →</span><span class="desc"> Local play · 24 free avatar choices</span>';
+  rumble.onclick=()=>open3D('rumble');document.getElementById('hero-sub').after(rumble);document.getElementById('hero-play').classList.remove('btn-pop');
   // Delay until the distribution has installed its inline 3D pages.
   setTimeout(() => {
     const query = new URLSearchParams(location.search), path = location.pathname.replace(/^\/+|\/+$/g,'');
     const id = query.get('game') || query.get('g') || (query.size===1 && !query.get('daily') ? [...query.keys()][0] : '') || path;
     if (query.has('daily')) { dailyCard.click(); return; }
-    if (['echo3d','rampage'].includes(id)) open3D(id); else if (F.registry.some(g=>g.id===id)) openGame(id);
+    if (['echo3d','rampage','rumble'].includes(id)) open3D(id); else if (F.registry.some(g=>g.id===id)) openGame(id);
   }, 0);
 })();

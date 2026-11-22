@@ -220,6 +220,7 @@
     box-shadow:0 0 50px -10px var(--cyan); background:var(--base); display:none;}
   .stage.d3 #game{display:none;} .stage.d3 .stagebar{display:none;}
   .stage.d3 #gframe{display:block;}
+  .stage.rumble-stage{padding:0;background:var(--base)}.stage.rumble-stage #gframe{width:100vw;height:100dvh;max-width:none;border-radius:0}.rumble-hero{width:100%;margin:18px 0;text-align:left;min-height:170px}.rumble-hero .play{color:var(--pop)}
   body.touch .stage.on.d3 .touchctl{display:none;}
   .pname{margin-top:14px;}
   .pname input{font-family:inherit; font-size:13px; color:var(--ink); background:rgba(20,24,46,.5);
@@ -441,8 +442,8 @@
   #more-games{display:flex;margin:20px auto}
   @media(max-width:600px){body:not(.playing) .toasts{bottom:calc(78px + env(safe-area-inset-bottom))!important}}
   </style>
-<meta name="description" content="Free open-source browser arcade with thirteen games, rewind controls and a Playground game builder.">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://iamynoui.com/#organization","name":"IAMYNOUI","url":"https://iamynoui.com/","address":{"@type":"PostalAddress","addressCountry":"SG"}},{"@type":"SoftwareApplication","@id":"https://playforkade.com/#website","name":"Forkade","url":"https://playforkade.com/","description":"Free open-source browser arcade with thirteen games, rewind controls and a Playground game builder.","publisher":{"@id":"https://iamynoui.com/#organization"},"applicationCategory":"GameApplication","operatingSystem":"Web browser","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}</script>
+<meta name="description" content="ECHO RUMBLE beta and thirteen classic browser games, rewind controls and a Playground game builder.">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://iamynoui.com/#organization","name":"IAMYNOUI","url":"https://iamynoui.com/","address":{"@type":"PostalAddress","addressCountry":"SG"}},{"@type":"SoftwareApplication","@id":"https://playforkade.com/#website","name":"Forkade","url":"https://playforkade.com/","description":"ECHO RUMBLE beta and thirteen classic browser games, rewind controls and a Playground game builder.","publisher":{"@id":"https://iamynoui.com/#organization"},"applicationCategory":"GameApplication","operatingSystem":"Web browser","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}</script>
 
 
 
@@ -655,7 +656,7 @@
     }
     /* ---------- rewards: wallet, stars, locker ---------- */
     const R = Forkade.rewards;
-    const GAME_NAMES = () => Object.fromEntries([...Forkade.registry.map(g => [g.id, g.meta.title]), ["echo3d", "ECHO 3D"], ["rampage", "RAMPAGE 3D"]]);
+    const GAME_NAMES = () => Object.fromEntries([...Forkade.registry.map(g => [g.id, g.meta.title]), ["echo3d", "ECHO 3D"], ["rampage", "RAMPAGE 3D"], ["rumble", "ECHO RUMBLE beta"]]);
     // numbers roll to their new value instead of jumping
     function roll(el, to) {
       const from = +el.dataset.v || 0; el.dataset.v = to;
@@ -758,7 +759,7 @@
     function leaveFullscreen() { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); }
     function openGame(id, options = {}) { Place.enter(id, () => runGame(id, options)); }
     function runGame(id, options = {}) {
-      stage.classList.remove("d3", "t-tap", "t-lr");
+      stage.classList.remove("d3", "t-tap", "t-lr", "rumble-stage");
       const meta = (Forkade.registry.find(g => g.id === id) || {}).meta || {};
       if (meta.touch) stage.classList.add("t-" + meta.touch);
       Forkade.stats.send("play", id);
@@ -775,19 +776,20 @@
       // A fresh frame avoids Safari racing a previous about:blank navigation.
       const fresh = gframe.cloneNode(false); fresh.removeAttribute('srcdoc'); fresh.removeAttribute('src');
       gframe.replaceWith(fresh); gframe = fresh;
-      Forkade.sfx.ensure(); phoneFullscreen(); Forkade.board.begin(id); Forkade.stats.send("play", id);
+      Forkade.sfx.ensure(); phoneFullscreen(); if(id!=="rumble"){Forkade.board.begin(id); Forkade.stats.send("play", id);}
+      stage.classList.toggle("rumble-stage",id==="rumble");gframe.title=GAME_NAMES()[id]||"3D game";
       stage.classList.add("on", "d3"); document.body.classList.add("playing");
       // If the 3D page was inlined (single-file build), run it from srcdoc so it
       // works with no separate file. Otherwise load the file (folder version).
-      const inline = id === "rampage" ? window.__RAMPAGE_HTML__ : window.__ECHO3D_HTML__;
+      const inline = id === "rumble" ? window.__RUMBLE_HTML__ : id === "rampage" ? window.__RAMPAGE_HTML__ : window.__ECHO3D_HTML__;
       if (inline) { gframe.removeAttribute("src"); gframe.srcdoc = inline; }
-      else { gframe.removeAttribute("srcdoc"); gframe.src = "games3d/" + (id === "rampage" ? "rampage" : "echo3d") + ".html"; }
+      else { gframe.removeAttribute("srcdoc"); gframe.src = "games3d/" + (["rumble","rampage"].includes(id) ? id : "echo3d") + ".html"; }
       gframe.focus();
     }
     function closeStage() {
       if (!stage.classList.contains("on")) return;
       Place.leave(() => {
-        stage.classList.remove("on", "d3", "portrait-game"); document.body.classList.remove("playing"); leaveFullscreen();
+        stage.classList.remove("on", "d3", "portrait-game", "rumble-stage"); document.body.classList.remove("playing"); leaveFullscreen();
         const gf = document.getElementById("gframe"); if (gf) { gf.removeAttribute("srcdoc"); gf.src = "about:blank"; }
         refreshBest();
       });
@@ -797,7 +799,7 @@
       const still = () => !!(Forkade.settings && Forkade.settings.reduceMotion) || document.documentElement.classList.contains("reduce-motion") || matchMedia("(prefers-reduced-motion: reduce)").matches;
       const http = /^https?:$/.test(location.protocol);
       let tapped = null, from = null, y0 = 0, popping = false, pushed = false, pendingBacks = 0, backTimer = null;
-      grid.addEventListener("click", e => { const c = e.target.closest(".card"); if (c) tapped = c; }, true);
+      document.addEventListener("click", e => { const c = e.target.closest(".card"); if (c) tapped = c; }, true);
       const onScreen = el => { if (!el || !el.isConnected || !el.offsetParent) return false; const r = el.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; };
       const name = id => (GAME_NAMES()[id] || id).toUpperCase();
       // morph `a` (named before) into whatever `b()` returns (named after); directional root slide
@@ -1188,7 +1190,7 @@
     }
     // ---- Landing anatomy (playbook §18): hero, real numbers, game finder, closing band. Real data only. ----
     (function landing() {
-      const N3D = 2, total = Forkade.registry.length + N3D, names = GAME_NAMES();
+      const N3D = 3, total = Forkade.registry.length + N3D, names = GAME_NAMES();
       document.getElementById("hero-sub").innerHTML = `${total} free arcade games in your browser &middot; no sign-ups`;
       // proof: only numbers that are true for everyone, right now (no ratings or reviews exist yet, so none are shown)
       document.getElementById("proof").innerHTML = [[total, "GAMES"], [N3D, "IN 3D"], [0, "SIGN-UPS"], [0, "ADS"]]

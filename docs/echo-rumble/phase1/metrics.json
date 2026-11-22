@@ -1,0 +1,30 @@
+[
+  {
+    "name": "android",
+    "cpuFrameMs": 0.8041111108991835,
+    "simulationMs": 0.009111111097865634,
+    "renderSubmitMs": 0.7949999998013179,
+    "score": 407
+  },
+  {
+    "name": "desktop",
+    "cpuFrameMs": 1.0669444449328713,
+    "simulationMs": 0.01111111107799742,
+    "renderSubmitMs": 1.055833333854874,
+    "score": 407
+  },
+  {
+    "name": "landscape",
+    "cpuFrameMs": 0.9739444444080194,
+    "simulationMs": 0.008944444432854652,
+    "renderSubmitMs": 0.9649999999751647,
+    "score": 407
+  },
+  {
+    "name": "offline",
+    "cpuFrameMs": 1.0488888889551162,
+    "simulationMs": 0.006388888880610466,
+    "renderSubmitMs": 1.0425000000745057,
+    "score": 407
+  }
+]

@@ -19,6 +19,7 @@ def build():
         title = re.search(r'title:\s*"([^"]+)"', path.read_text(encoding='utf-8'))
         if title: games[path.stem] = title[1]
     games['echo3d'] = 'ECHO 3D'
+    games['rumble'] = 'ECHO RUMBLE beta'
     if (WEB/'games3d/rampage.html').exists(): games['rampage'] = 'RAMPAGE 3D'
     (WEB/'og').mkdir(exist_ok=True); (WEB/'entries').mkdir(exist_ok=True)
     for ident, title in games.items():
