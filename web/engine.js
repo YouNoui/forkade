@@ -684,9 +684,9 @@
     current.reset(); rewards.toasts = [];
     if (!running) { running = true; last = performance.now(); frameId = requestAnimationFrame(loop); }
   }
-  function stop() {
+  function stop(silent) {   // silent: switching games, don't leave the stage
     running = false; current = null; if (frameId != null) cancelAnimationFrame(frameId); frameId = null;
-    if (onExit) onExit();
+    if (onExit && silent !== true) onExit();
   }
   function loop(now) {
     if (!running || !current) return;

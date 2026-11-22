@@ -51,13 +51,18 @@
 dialog{max-width:min(440px,calc(100vw - 28px));background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:16px;padding:20px}dialog::backdrop{background:rgba(0,0,0,.75)}#confirm-reset{color:var(--danger)}#draft-status{padding:0 14px;font-size:12px;color:var(--muted)}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media(max-width:600px){.bar{position:sticky;top:0;background:var(--panel);z-index:2}.panel{overflow:visible}}
+  @view-transition{navigation:auto;}
+  header h1{view-transition-name:pg;}
+  .where{font-size:12px; color:var(--muted); font-weight:700;} .where i{font-style:normal; margin:0 4px;}
+  ::view-transition-group(pg){animation-duration:.38s; animation-timing-function:cubic-bezier(0.32,0.72,0,1);}
+  @media (prefers-reduced-motion:reduce){ ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*){animation:none !important;} }
 </style>
 </head>
 <body>
 <header>
   <h1>PLAYGROUND</h1>
   <div class="sub">Build your own FORKADE game right here. It's open source (MIT) &mdash; your game can join the arcade.</div>
-  <a class="back" href="index.html">&larr; Back to the arcade</a>
+  <a class="back" href="index.html" aria-label="Back to the arcade">&lsaquo; Arcade</a> <span class="where">Arcade <i>&rsaquo;</i> Playground</span>
 </header>
 <div class="steps">
   <span><b>1</b> Edit the code</span>
