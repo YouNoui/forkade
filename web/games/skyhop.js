@@ -1,6 +1,6 @@
 /* GAME 1 - SKY HOP : bouncy platformer climb */
 (function () {
-  const NE = Forkade, P = NE.palette, C=["#22e4ff","#b0ffcd","#ffb23f"];
+  const NE = Forkade, P = NE.palette, C=["#22e4ff","#b0ffcd","#ffb23f","#fff2b0"];
 
   class SkyHop extends NE.GameBase {
     reset() {
@@ -12,7 +12,7 @@
       this.stage=0;
       let y = this.H - 130;
       for (let i = 0; i < 40; i++) { this.addPlat(y); y -= this.gap(); }
-      this.elapsed=0;this.sparks=0;this.magnet=0;this.shield=1;this.goal=5;this.stage=0;this.land=0;this.rescues=0;
+      this.nextGate=120;this.elapsed=0;this.sparks=0;this.magnet=0;this.shield=1;this.goal=5;this.stage=0;this.land=0;this.rescues=0;
       this.state = "play";
     }
     // jump reaches ~150px high; gaps stay well under that, and grow a little with height
@@ -28,8 +28,9 @@
     step(dt) {
       const I = this.input;
       if (this.state !== "play") { if (I.pressed.Enter || I.pressed.NumpadEnter) this.reset(); return; }
-      this.elapsed+=dt;const stage=Math.floor(this.elapsed/35);if(stage!==this.stage){this.stage=stage;for(let i=0;i<this.plats.length;i++){const p=this.plats[i];if(p.h<30){p.home=p.x;p.kind=i%4===0?1:stage>1&&i%4===2?2:0;}}this.juice?.hit(this.W/2,120,stage===1?'DRIFT ISLANDS':stage===2?'CRUMBLE ISLANDS':'HIGH SKY',true);}
+      this.elapsed+=dt;const stage=Math.floor(this.elapsed/35);if(stage!==this.stage){this.stage=stage;for(let i=0;i<this.plats.length;i++){const p=this.plats[i];if(p.h<30&&p.kind!==3){p.home=p.x;p.kind=i%4===0?1:stage>1&&i%4===2?2:0;}}this.juice?.hit(this.W/2,120,stage===1?'DRIFT ISLANDS':stage===2?'CRUMBLE ISLANDS':'HIGH SKY',true);}
       this.magnet=Math.max(0,this.magnet-dt);this.land=Math.max(0,this.land-dt);
+      if(this.elapsed>=this.nextGate){this.nextGate+=120;const y=180-this.cam;this.plats.push({x:this.W*.12,y,w:this.W*.76,h:18,kind:3,life:1,home:this.W*.12,phase:0});for(let i=0;i<8;i++)this.orbs.push({x:this.W*(.18+i*.09),y:y-28,on:true});this.juice?.hit(this.W/2,150,'SKY GATE · SPARK RUSH',true);}
       for(const p of this.plats){if(p.kind===1)p.x=Math.max(10,Math.min(this.W-p.w-10,p.home+Math.sin(this.elapsed*1.3+p.phase)*45));if(p.kind===2&&p.life<1)p.life-=dt;}
       const ax = (I.right() ? 1 : 0) - (I.left() ? 1 : 0);
       this.vx = ax * 320;
@@ -86,11 +87,11 @@
     }
     snapshot() {
       if (this.state !== "play") return null;
-      return { run:[this.elapsed,this.sparks,this.magnet,this.shield,this.goal,this.stage,this.land,this.rescues], v: [this.px, this.py, this.vx, this.vy, this.cam, this.best, this.score, this.onGround, this.lastX, this.coyote, this.buffer, this.orbPts],
+      return { run:[this.elapsed,this.sparks,this.magnet,this.shield,this.goal,this.stage,this.land,this.rescues,this.nextGate], v: [this.px, this.py, this.vx, this.vy, this.cam, this.best, this.score, this.onGround, this.lastX, this.coyote, this.buffer, this.orbPts],
                plats: this.plats.map(p => ({ ...p })), orbs: this.orbs.map(o => ({ ...o })) };
     }
     restore(s) {
-      [this.elapsed,this.sparks,this.magnet,this.shield,this.goal,this.stage,this.land,this.rescues]=s.run;
+      [this.elapsed,this.sparks,this.magnet,this.shield,this.goal,this.stage,this.land,this.rescues,this.nextGate]=s.run;
       [this.px, this.py, this.vx, this.vy, this.cam, this.best, this.score, this.onGround, this.lastX, this.coyote, this.buffer, this.orbPts] = s.v;
       this.plats = s.plats.map(p => ({ ...p })); this.orbs = s.orbs.map(o => ({ ...o }));
     }
