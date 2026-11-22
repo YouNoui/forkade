@@ -9,7 +9,7 @@ js=(r/'web/games3d/rampage.js').read_text(encoding='utf-8')
 doc='''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>RAMPAGE 3D — FORKADE</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;overflow:hidden;overscroll-behavior:none;touch-action:none;background:#06051a;color:#f1f3ff;font:14px Consolas,monospace;height:100%;user-select:none;-webkit-user-select:none}
-canvas{display:block;width:100%;height:100%}button{font:700 13px Consolas,monospace;color:#22e4ff;background:#0d0a2acc;border:1px solid #22e4ff;border-radius:12px;padding:10px;touch-action:none}
+canvas{display:block;width:100%;height:100%}button{min-height:44px;min-width:44px;font:700 13px Consolas,monospace;color:#22e4ff;background:#0d0a2acc;border:1px solid #22e4ff;border-radius:12px;padding:10px;touch-action:none}
 #top{position:fixed;top:max(8px,env(safe-area-inset-top));left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 #hud{flex:1;min-width:180px;color:#9dff57;text-shadow:0 1px 5px #000;font-weight:bold}#notice{position:fixed;top:95px;left:12px;right:12px;text-align:center;font-size:12px;text-shadow:0 1px 4px #000;pointer-events:none}
 #stick{position:fixed;left:max(20px,env(safe-area-inset-left));bottom:max(28px,env(safe-area-inset-bottom));width:120px;height:120px;border:2px solid #a07bff88;border-radius:50%;display:grid;place-items:center;background:#16113d88}

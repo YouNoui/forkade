@@ -20,7 +20,7 @@ function redis() {
       cmds = cmds.map(c => [c[0], prefix + c[1], ...c.slice(2)]); }
     const r = await fetch(url.replace(/\/$/, "") + "/pipeline", {
       method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify(cmds),
+      body: JSON.stringify(cmds), signal: AbortSignal.timeout(5000),
     });
     if (!r.ok) throw new Error("store " + r.status);
     return (await r.json()).map(x => (x.error ? null : x.result));
@@ -34,7 +34,7 @@ function send(res, code, body) {
   res.setHeader("Content-Type", "application/json");
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Stats-Key");
   res.setHeader("Cache-Control", "no-store");
   res.end(JSON.stringify(body));
 }
@@ -79,7 +79,7 @@ module.exports = async function handler(req, res) {
       const q = new URL(req.url, "http://x").searchParams;
       const key = process.env.STATS_KEY;
       if (!key) return send(res, 503, { error: "Set STATS_KEY in Vercel to open the stats page." });
-      const given = Buffer.from(String(q.get("key") || "")), want = Buffer.from(key);
+      const given = Buffer.from(String(req.headers["x-stats-key"] || q.get("key") || "")), want = Buffer.from(key);
       if (given.length !== want.length || !crypto.timingSafeEqual(given, want)) return send(res, 401, { error: "Wrong key." });
       const n = Math.min(90, Math.max(1, parseInt(q.get("days") || "30", 10) || 30));
       const days = []; for (let i = n - 1; i >= 0; i--) { const t = new Date(); t.setUTCDate(t.getUTCDate() - i); days.push(day(t)); }

@@ -3,7 +3,7 @@
 Same standard as Breekit: plain language, operator + UEN, DPO, PDPA baseline, version line.
 Edit the copy here, bump VERSION/UPDATED, run:  python tools/make_legal.py"""
 import html, pathlib
-VERSION, UPDATED = "2026-11-22-v5", "22 Nov 2026"
+VERSION, UPDATED = "2026-11-22-v6", "22 Nov 2026"
 EMAIL = "hello@iamynoui.com"
 OP = "Forkade (playforkade.com) is operated by IAMYNOUI, a sole proprietorship registered in Singapore (UEN 53535234D)."
 DOCS = {
@@ -25,7 +25,7 @@ DOCS = {
   ("Rankings (only if you tap Post)", "When a round starts online, we store a random token with only the game and start time (no player ID, name or contact details) for at most two hours, so a posted score can be checked against the time played. Only when you tap Post do we store your nickname, the game, your best score and your random player ID. Your network address is used briefly, as a hash, to stop spam and is deleted after 60 seconds. Rankings are public, so please don't use your real full name as a nickname. If you report a nickname, your random player ID is kept with that report for up to 60 days, only so the same person can't report someone twice."),
   ("Who handles it", "Vercel hosts the site and runs the rankings and counting functions. Upstash stores the rankings and daily counts. GitHub hosts the open-source code and any game you choose to submit there. Each gets only what it needs. Data may be processed outside Singapore with contractual and technical safeguards."),
   ("Cookies and ads", "Forkade sets no cookies and shows no ads. We never sell data and never share it for advertising."),
-  ("Retention", "Daily counts are kept for about 13 months. Run tokens expire in two hours and are consumed on submission. Daily boards and pending scores expire after three days. Weekly boards expire after 3 weeks. All-time scores stay until you remove them or we remove them for breaking the rules. Spam-check hashes are deleted after 60 seconds."),
+  ("Retention", "Daily counts are kept for about 13 months. Run tokens expire in two hours and are consumed on submission. Daily boards and pending scores expire after three days. Weekly boards expire after 3 weeks. All-time scores stay until you remove them or we remove them for breaking the rules. Spam-check hashes are deleted after 60 seconds. Moderation reasons and decision sources are kept in a capped history (100 decisions, up to 90 days); the affected player can see a notice for 60 days."),
   ("Your rights", f"Singapore's PDPA is our baseline. Where EU or UK law applies you may also request access, correction, deletion, restriction, portability or object, and may complain to your local regulator. Remove your rankings data instantly with <b>Remove my scores</b> in Rankings, or email {EMAIL} with your player ID from the Delete my data page."),
   ("Children", "Forkade is made to be played by everyone. Players under 13 should ask a parent before posting a nickname to the rankings."),
   ("AI training", "We do not use anything you post or submit to train AI models, and we do not give it to anyone else to train AI models."),

@@ -468,7 +468,7 @@
   };
   const stats = {
     api: (typeof location !== "undefined" && location.protocol === "file:" ? "https://playforkade.com" : "") + "/api/stats",
-    off() { try { return !settings.analytics || navigator.doNotTrack === "1" || window.doNotTrack === "1" || navigator.globalPrivacyControl === true; } catch (_) { return true; } },
+    off() { try { return navigator.onLine === false || !settings.analytics || navigator.doNotTrack === "1" || window.doNotTrack === "1" || navigator.globalPrivacyControl === true; } catch (_) { return true; } },
     send(e, game) {
       if (this.off() || (typeof location !== "undefined" && /^(localhost|127\.)/.test(location.hostname) && !global.__forkadeTestStats)) return;
       const today=global.ForkadeDaily.date(Date.now());let first=load('forkade-count-first',null);if(!first){first=today;save('forkade-count-first',first);}
@@ -497,7 +497,7 @@
     begin(game, daily = null, assisted = false) {
       this.last = null; this.daily = daily; this.assisted = assisted; if(assisted){this.run=null;return;}
       // anonymous round token (game + start time only), so a posted score can be checked against time played
-      this.run = (typeof navigator === 'undefined' || navigator.onLine !== false) ? fetch(this.api, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      this.run = (typeof navigator === 'undefined' || navigator.onLine !== false) ? timedFetch(this.api, { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'start', game, daily }) })
         .then(async r => { const j = await r.json(); if (!r.ok) throw Error(j.error); return j; })
         .catch(e => ({ error: e.message })) : null;

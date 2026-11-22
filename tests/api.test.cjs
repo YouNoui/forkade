@@ -20,8 +20,8 @@ test('real handlers: consent, run binding, replay, speed, expiry, daily, moderat
   token=await start();now+=7201000;assert.equal((await call({game:'skyhop',score:100,name:'Tester',token})).status,400);
   token=await start();now+=20000;assert.equal((await call({game:'skyhop',score:1100,name:'Tester',token})).status,202);
   let review=await call({action:'moderate',do:'list',key:'owner-test'});assert.equal(review.body.pending.length,1);
-  assert.equal((await call({action:'moderate',do:'approve-score',target:pid,game:'skyhop',key:'bad'})).status,401);
-  assert.equal((await call({action:'moderate',do:'approve-score',target:pid,game:'skyhop',key:'owner-test'})).status,200);
+  assert.equal((await call({action:'moderate',do:'approve-score',reason:'Reviewed fixture evidence',source:'Admin decision',target:pid,game:'skyhop',key:'bad'})).status,401);
+  assert.equal((await call({action:'moderate',do:'approve-score',reason:'Reviewed fixture evidence',source:'Admin decision',target:pid,game:'skyhop',key:'owner-test'})).status,200);
   const d=Daily.challenge(now);token=await start(d.game,{daily:d.date});now+=10000;
   const post=await call({game:d.game,score:100,name:'Tester',token});assert.equal(post.status,200);assert.equal(post.body.daily.rank,1);
   const top=await request(handler,'GET',{},`/api/leaderboard?game=${d.game}&period=daily&pid=${pid}`);assert.equal(top.body.top.length,1);

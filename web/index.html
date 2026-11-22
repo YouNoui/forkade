@@ -30,7 +30,7 @@
   body{
     margin:0; font-family:"Consolas","SF Mono",ui-monospace,monospace;
     background:radial-gradient(1200px 600px at 50% -10%,#10303a 0%,var(--base) 60%);
-    color:var(--ink); min-height:100vh;
+    color:var(--ink); min-height:100dvh;
   }
   .wrap{padding:48px 20px 64px;}
   .head{text-align:center; max-width:760px; margin:0 auto 38px;}
@@ -214,7 +214,7 @@
   .stage.on{display:flex;}
   #game{width:min(94vw,900px); aspect-ratio:900/560; border-radius:14px;
     border:1px solid rgba(120,130,160,.3); box-shadow:0 0 50px -10px var(--cyan); background:var(--bg); touch-action:none;}
-  #gframe{width:min(100vw,1100px); height:min(86vh,720px); border:0; border-radius:14px;
+  #gframe{width:min(100vw,1100px); height:min(86dvh,720px); border:0; border-radius:14px;
     box-shadow:0 0 50px -10px var(--cyan); background:var(--base); display:none;}
   .stage.d3 #game{display:none;} .stage.d3 .stagebar{display:none;}
   .stage.d3 #gframe{display:block;}
@@ -356,12 +356,19 @@
   .stage.on{padding-bottom:max(16px,env(safe-area-inset-bottom));}
   .stage.d3 .stagebar{display:none;}
   .gift-card{margin:20px auto 0;max-width:420px;padding:18px;border:1px solid var(--line);border-radius:16px;background:var(--panel);font-size:13px;}
-  .gift-card h2{font-size:18px;margin:0 0 8px}.gift-card p{color:var(--muted);line-height:1.6}.gift-card a{color:var(--brand);display:inline-block;padding:14px 0}
+  .gift-card h2{font-size:18px;margin:0 0 8px}.gift-card p{color:var(--muted);line-height:1.6}.gift-card a{color:var(--brand);display:inline-block;padding:14px 0;min-height:44px;box-sizing:border-box}
   body.gift-ready .card.start{border-color:var(--line);box-shadow:none}
   body.gift-ready .card.start .play,body.gift-ready .card.daily .dplay{background:var(--panel2);color:var(--text);border:1px solid var(--line);box-shadow:none}
   #assist-game{font:inherit;min-height:44px;max-width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:8px;}
   body:has(.modal:not([hidden])) .toasts{visibility:hidden}
   #pb-breakdown{flex:1 0 100%;font-size:12px;color:var(--muted);line-height:1.5;text-align:center}
+  :root{--ease-out:cubic-bezier(.23,1,.32,1);--ease-in-out:cubic-bezier(.77,0,.175,1);--ease-drawer:cubic-bezier(.32,.72,0,1)}
+  button,.card{transition:transform 150ms var(--ease-out),opacity 150ms var(--ease-out)}button:active:not(:disabled){transform:translateY(1px) scale(.97)}
+  .modal .sheet{animation-timing-function:var(--ease-drawer)}
+  .rlist{height:300px;overflow:auto;overscroll-behavior:contain}.rlist button.rep,body.touch .ps{min-height:44px;min-width:44px}
+  .setting-help{display:block;color:var(--muted);font-size:12px;line-height:1.5;margin:0 0 12px}#settings label[data-changed="true"]::after{content:"Changed";font-size:11px;color:var(--brand)}
+  @media(max-width:600px){body:not(.playing) #gift-open:not([hidden]),body:not(.playing):not(.gift-ready) .grid:has(.card.start) .card.start .play,body:not(.playing):not(.gift-ready) .grid:not(:has(.card.start)) .daily .dplay{position:fixed;z-index:95;bottom:max(12px,env(safe-area-inset-bottom));left:20px;width:calc(100% - 40px);min-height:44px;justify-content:center;box-sizing:border-box;background:var(--pop);color:var(--pop-ink);border:2px solid var(--pop-ink);box-shadow:3px 3px 0 var(--brand)}body.playing #gift-open{display:none}.wrap{padding-bottom:100px}}
+  #more-games{display:flex;margin:20px auto}
   </style>
 <meta name="description" content="Free open-source browser arcade with thirteen games, rewind controls and a Playground game builder.">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://iamynoui.com/#organization","name":"IAMYNOUI","url":"https://iamynoui.com/","address":{"@type":"PostalAddress","addressCountry":"SG"}},{"@type":"SoftwareApplication","@id":"https://playforkade.com/#website","name":"Forkade","url":"https://playforkade.com/","description":"Free open-source browser arcade with thirteen games, rewind controls and a Playground game builder.","publisher":{"@id":"https://iamynoui.com/#organization"},"applicationCategory":"GameApplication","operatingSystem":"Web browser","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}</script>
@@ -516,9 +523,10 @@
         const m = document.getElementById("confirm"), yes = document.getElementById("confirm-yes");
         document.getElementById("confirm-title").textContent = title; document.getElementById("confirm-text").textContent = text;
         yes.textContent = ok; yes.className = "btn " + (danger ? "btn-danger" : "btn-pop");
+        const parent=document.querySelector('.modal:not([hidden])');if(parent&&parent!==m)parent.hidden=true;
         m.hidden = false; setTimeout(() => document.getElementById("confirm-no").focus(), 30);
         return new Promise(res => {
-          const end = v => { m.hidden = true; m.onclick = null; document.removeEventListener("keydown", esc, true); res(v); };
+          const end = v => { m.hidden = true;if(parent&&parent!==m)parent.hidden=false; m.onclick = null; document.removeEventListener("keydown", esc, true); res(v); };
           const esc = e => { if (e.key === "Escape") { e.stopPropagation(); end(false); } };
           document.addEventListener("keydown", esc, true);
           m.onclick = e => { if (e.target === m || e.target.id === "confirm-no" || e.target.id === "confirm-x") end(false); else if (e.target === yes) end(true); };
@@ -831,8 +839,9 @@
         list.innerHTML = d.top.length ? d.top.map(r =>
           `<li class="${r.me ? "me" : ""}"><span class="n">#${r.rank}</span><span class="nm">${esc(r.name)}${r.me ? " (you)" : ""}</span><span class="sc">${r.score}</span>${
             r.me || r.name === "Player" ? `<span class="rep"></span>` : `<button class="rep" data-rank="${r.rank}" data-name="${esc(r.name)}" title="Report this nickname" aria-label="Report ${esc(r.name)}">&#9873;</button>`}</li>`).join("")
-          : "<li>No scores yet this " + (rPeriod === "week" ? "week" : "time") + ". Be the first!</li>";
-        me.textContent = d.me ? `You're #${d.me.rank} of ${d.count} with ${d.me.score}.` : `${d.count} players ranked. Post a score after any round to join.`;
+          : '<li class="msg">No scores yet. <button class="btn" id="empty-play">Play a round</button></li>';
+        const empty=document.getElementById('empty-play');if(empty)empty.onclick=()=>{document.getElementById('ranks').hidden=true;['echo3d','rampage'].includes(rGame)?open3D(rGame):openGame(rGame);};
+        me.textContent = d.me ? `You're #${d.me.rank} of ${d.count} with ${d.me.score}.` : `${d.count} players ranked. Post a score after any round to join.`;if(d.notice)me.textContent+=" Owner notice: "+d.notice.reason;
       } catch (err) {
         if (seq !== ranksSeq) return;
         list.removeAttribute("aria-busy"); me.textContent = "";
@@ -993,5 +1002,6 @@
     }
   </script>
   <script src="features.js"></script>
+<script src="dialogs.js"></script>
 </body>
 </html>

@@ -10,6 +10,7 @@ html = (here / "index.html").read_text(encoding="utf-8").replace('<base href="/"
 # Keep file:// copies self-contained: no manifest/icon/SW fetches from missing paths.
 html = re.sub(r'<link rel="(?:manifest|icon|apple-touch-icon)"[^>]*>', '', html)
 icon = base64.b64encode((here / "icons/icon-192.png").read_bytes()).decode()
+html = html.replace('src="icons/icon-192.png"', 'src="data:image/png;base64,' + icon + '"')
 html = html.replace('</head>', '<link rel="icon" href="data:image/png;base64,' + icon + '"></head>', 1)
 html = html.replace('if ("serviceWorker" in navigator)', 'if (false /* single-file build */)')
 

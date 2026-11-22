@@ -12,3 +12,21 @@ jobs:
           node-version: 24
       - run: npm ci --ignore-scripts
       - run: npm test
+  rewards-and-ux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - run: node tests/growth.cjs
+      - run: node tests/assist.cjs
+      - run: node tests/bonus.cjs
+      - run: node tests/experiment.cjs
+      - run: node tests/fair.cjs
+      - run: node tests/ux.cjs

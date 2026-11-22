@@ -4,7 +4,7 @@
 <title>FORKADE stats (owner)</title><meta name="theme-color" content="#0b0a10"><link rel="icon" href="icons/icon-192.png">
 <style>
   body{margin:0; font-family:"Consolas","SF Mono",ui-monospace,monospace; color:#f1f3ff;
-    background:radial-gradient(1200px 600px at 50% -10%,#10303a 0%,#0b0a10 60%); min-height:100vh;}
+    background:radial-gradient(1200px 600px at 50% -10%,#10303a 0%,#0b0a10 60%); min-height:100dvh;}
   main{max-width:980px; margin:0 auto; padding:30px 18px 50px;}
   h1{margin:0 0 4px; color:#22e1ff; letter-spacing:3px; text-shadow:0 0 14px rgba(34,225,255,.6);}
   .sub{color:#9a9fc4; font-size:13px; margin-bottom:18px;}
@@ -30,6 +30,7 @@
   .mod button{font-size:12px; padding:5px 10px; background:transparent; color:#22e1ff; border:1px solid #22e1ff;}
   .mod button.x{color:#ff5a6e; border-color:#ff5a6e;} .mod button.ok{color:#4ade80; border-color:#4ade80;}
   .dimtxt{color:#9a9fc4; font-size:13px;} .note{color:#9a9fc4; font-size:12px; margin-top:24px; line-height:1.6;}
+#pending,#mod{min-height:160px}#out[aria-busy="true"]{opacity:.55}.chart,.bars{min-height:140px}input,select{min-height:44px;max-width:100%;box-sizing:border-box}
 </style></head><body><main>
 <h1>FORKADE STATS</h1>
 <div class="sub">Owner-only. Anonymous counts: no cookies, no IP addresses, no personal data.</div>
@@ -48,25 +49,29 @@
   <h2>VISITORS PER DAY</h2><div class="chart" id="chart"></div>
   <h2>LAYOUT EXPERIMENT</h2><p class="note">Anonymous A/B groups only. Day-1 return is an approximate, device-reported share of first-counted visitors returning the next Singapore day. No persistent server identifier. Cleared storage, shared networks and missed events affect accuracy. Today’s cohort is not complete.</p><div id="ab-report"></div>
   <h2>PLAYS PER GAME</h2><div class="bars" id="bars"></div>
+<label>Reason for moderation <input id="mod-reason" maxlength="240" placeholder="Explain the decision"></label><label>Requested by <select id="mod-source"><option value="Admin decision">Admin decision</option><option value="User asked">User asked</option></select></label>
   <h2>SCORES PENDING REVIEW</h2><div id="pending" class="mod"></div>
   <h2>REPORTED NICKNAMES</h2>
   <div id="mod" class="mod"><span class="dimtxt">Loading…</span></div>
+  <h2>RECENT MODERATION</h2><div id="mod-history"></div>
   <h2>DAY BY DAY</h2><table><thead><tr><th>Day (SGT)</th><th>Visits</th><th>Visitors</th><th>Plays</th></tr></thead><tbody id="tbody"></tbody></table>
 </div>
-<p class="note">The key is the <code>STATS_KEY</code> value set in Vercel. It's remembered on this device only.
+<p class="note">The key is the <code>STATS_KEY</code> value set in Vercel. It is remembered only in this tab session.
   Counts skip bots and browsers that send Do Not Track / Global Privacy Control, so real numbers are a little higher.</p>
 <script>
   const NAMES = { skyhop: "Sky Hop", swarm: "Neon Swarm", striker: "Sky Striker", breaker: "Pulse Breaker", trail: "Echo Trail",
     drift: "Driftstorm", prism: "Prism Stacks", match: "Core Match", wrecker: "Tower Wrecker", glass: "Glass City", demo: "Demolition Chain", echo3d: "ECHO 3D", rampage: "RAMPAGE 3D", playground: "Playground" };
   const $ = id => document.getElementById(id), api = (location.protocol === "file:" ? "https://playforkade.com" : "") + "/api/stats";
-  try { $("key").value = localStorage.getItem("forkade-stats-key") || ""; } catch (_) {}
+  try { $("key").value = sessionStorage.getItem("forkade-stats-key") || ""; } catch (_) {}
+  try{localStorage.removeItem('forkade-stats-key');}catch(_){}
+  async function bounded(url,options={}){const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),7000);try{return await fetch(url,{...options,signal:ctl.signal});}catch(e){throw Error(e.name==='AbortError'?'Request timed out. Try again.':'Connection failed. Try again.');}finally{clearTimeout(timer);}}
   async function load() {
     const key = $("key").value.trim(); if (!key) { $("msg").textContent = "Enter your stats key."; return; }
-    $("msg").textContent = "Loading…";
+    $("msg").textContent = "Loading… (up to 7 seconds)";$("go").disabled=true;$("out").hidden=false;$("out").setAttribute("aria-busy","true");
     try {
-      const r = await fetch(`${api}?key=${encodeURIComponent(key)}&days=${$("days").value}`);
+      const r = await bounded(`${api}?days=${$("days").value}`,{headers:{"X-Stats-Key":key}});
       const d = await r.json(); if (!r.ok) throw new Error(d.error || "Couldn't load stats.");
-      try { localStorage.setItem("forkade-stats-key", key); } catch (_) {}
+      try { sessionStorage.setItem("forkade-stats-key", key); } catch (_) {}
       const sum = (f) => d.days.reduce((a, x) => a + f(x), 0), plays = {};
       d.days.forEach(x => Object.entries(x.plays).forEach(([g, n]) => plays[g] = (plays[g] || 0) + n));
       $("c-visits").textContent = sum(x => x.visits); $("c-visitors").textContent = sum(x => x.visitors);
@@ -84,18 +89,19 @@
         return '<p><b>Group '+b+'</b> · '+plays+' plays · Day-1 return: '+rate+' ('+returned+' returns / '+first+' first-counted visitors)</p>';}).join('');
       $("out").hidden = false; $("msg").textContent = "";
       loadReports(key);
-    } catch (err) { $("msg").textContent = err.message; }
+    } catch (err) { $("msg").textContent = err.message; } finally {$("go").disabled=false;$("out").removeAttribute("aria-busy");}
   }
   const lbApi = api.replace("/api/stats", "/api/leaderboard");
   const escH = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   async function modCall(key, body) {
-    const r = await fetch(lbApi, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "moderate", key, ...body }) });
+    const r = await bounded(lbApi, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "moderate", key, ...body }) });
     const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Couldn't do that."); return j;
   }
   async function loadReports(key) {
     const box = $("mod");
     try {
-      const { reports, pending = [] } = await modCall(key, { do: "list" });
+      const { reports, pending = [], history = [] } = await modCall(key, { do: "list" });
+      $('mod-history').innerHTML=history.map(x=>'<p>'+escH(x.action)+' · '+escH(x.source)+' · '+escH(x.reason)+'</p>').join('')||'No moderation decisions yet.';
       $('pending').innerHTML = pending.length ? pending.map(p => `<div class="r"><b>${escH(p.name)}</b><span>${escH(p.game)}: ${p.score} (previous ${p.previous})</span><button data-do="approve-score" data-game="${escH(p.game)}" data-t="${p.pid}">Approve</button><button data-do="reject-score" data-game="${escH(p.game)}" data-t="${p.pid}">Reject</button></div>`).join('') : 'No suspicious scores.';
       box.innerHTML = reports.length ? reports.map(r => `<div class="r"><b>${escH(r.name)}</b><span class="c">${r.reports} report${r.reports > 1 ? "s" : ""}</span>
         <span class="dimtxt">${escH(NAMES[r.game] || r.game)}</span>${r.hidden ? `<span class="h">auto-hidden</span>` : ""}
@@ -106,9 +112,10 @@
   }
   document.getElementById("out").addEventListener("click", async e => {
     const b = e.target.closest("button[data-do]"); if (!b) return;
-    if (b.dataset.do === "remove" && b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "Sure? removes all scores"; return; }
+    if (b.dataset.do === "remove" && b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "Remove all scores for " + b.closest(".r").querySelector("b").textContent + "? Click again"; return; }
+    const reason=$("mod-reason").value.trim();if(reason.length<3){$("msg").textContent="Add a reason before moderating.";$("mod-reason").focus();return;}
     b.disabled = true;
-    try { await modCall($("key").value.trim(), { do: b.dataset.do, target: b.dataset.t, game: b.dataset.game }); loadReports($("key").value.trim()); }
+    try { await modCall($("key").value.trim(), { do: b.dataset.do, target: b.dataset.t, game: b.dataset.game, reason, source:$("mod-source").value }); loadReports($("key").value.trim()); }
     catch (err) { b.disabled = false; b.textContent = err.message; }
   });
   $("go").addEventListener("click", load); $("key").addEventListener("keydown", e => { if (e.key === "Enter") load(); });
