@@ -279,6 +279,8 @@
     body.touch .postbar #pb-msg{flex:1 0 100%; text-align:center;}
     body.touch.pb-open .touchctl{display:none !important;}
   }
+  .postbar.polished #pb-again{background:var(--pop);color:var(--pop-ink);min-height:48px;font-size:17px;border:2px solid var(--pop-ink)}
+  .postbar.polished #pb-post{background:transparent;color:var(--text);box-shadow:none}
   .postbar #pb-again{background:transparent; border-color:transparent; color:var(--brand); box-shadow:none;}
   body.playing .toasts{top:calc(64px + var(--ibh,0px)) !important;}
 
@@ -1058,6 +1060,7 @@
       const show = on && L && L.score >= 0;
       if (show && (pb.hidden || shownRound !== L)) {
         shownRound = L;
+        pb.classList.toggle('polished',!!Forkade.current()?.meta.polished);
         const percentile=document.getElementById('pb-percent');percentile.textContent='';
         if(!L.assisted&&localStorage.getItem('forkade-pid'))B.top(L.id,'week').then(d=>{if(B.last===L&&d.me?.percent!=null)percentile.textContent="Your posted best beat "+d.me.percent+"% of this week's players";}).catch(()=>{});
         pb.hidden = false; pbMsg.textContent = L.assisted ? "Assisted rounds aren’t ranked" : "";

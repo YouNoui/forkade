@@ -637,7 +637,7 @@
       if(this.world)this.world.render(ctx,this.t,this.cam||0);
       else {fillBg(ctx, this.W, this.H);this.stars.update(dt); this.stars.render(ctx);}
       const [ox, oy] = this.shake.offset(dt);
-      ctx.save(); ctx.translate(ox, oy);
+      ctx.save(); ctx.translate(this.juice?Math.abs(ox)*this.juice.direction:ox, this.juice?oy*.4:oy);
       this.render(ctx);
       this.particles.render(ctx);
       ctx.restore();
