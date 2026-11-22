@@ -5,7 +5,7 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
  const out=path.join(__dirname,'artifacts');fs.mkdirSync(out,{recursive:true});const report=[];
  const browser=await (process.env.WEBKIT?webkit:chromium).launch({headless:true,...(process.env.WEBKIT?{}:{channel:'chromium',args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']})});
  try{
-  for(const bundle of ['web','dist'])for(const size of [{width:1280,height:900},{width:390,height:844},{width:844,height:390}]){
+  if(!process.env.EXTRAS_ONLY)for(const bundle of ['web','dist'])for(const size of [{width:1280,height:900},{width:390,height:844},{width:844,height:390}]){
    console.log('Matrix',bundle,size.width);
    const context=await browser.newContext({viewport:size,hasTouch:size.width!==1280,isMobile:size.width!==1280,serviceWorkers:'block'}),page=await context.newPage(),errors=[],sent=[];
    page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});page.on('request',r=>{if(r.url().includes('/api/'))sent.push({url:r.url(),body:r.postData()||''});});
@@ -142,16 +142,19 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
   console.log('sense of place (playbook 5.2)');
   // sense of place (playbook 5.2): card -> game -> Back returns to the same card, same scroll, every way back
   { const ctx=await browser.newContext({viewport:{width:1280,height:800}});await ctx.addInitScript(()=>{try{localStorage.setItem('forkade-install-snooze',String(Date.now()+9e9));localStorage.setItem('forkade-more-games','1')}catch(_){}});
+   // Windows Playwright WebKit crashes on native Back during a View Transition.
+   // Exercise the supported reduced-motion navigation fallback; Chromium covers animated morphs.
+   if(process.env.WEBKIT)await ctx.addInitScript(()=>localStorage.setItem('forkade-settings',JSON.stringify({reduceMotion:true})));
    const pg=await ctx.newPage();await pg.goto(base);await pg.waitForFunction(()=>window.Forkade);
    const card=pg.locator('.card[data-game="glass"]');await card.scrollIntoViewIfNeeded();const y=await pg.evaluate(()=>scrollY);
    const st=()=>pg.evaluate(()=>({on:document.getElementById('stage').classList.contains('on'),path:location.pathname+location.search,y:scrollY}));
-   await card.click();await pg.waitForTimeout(500);let s1=await st();assert.ok(s1.on&&s1.path==='/glass','game has its own URL');
+   console.log("Tap game card");await card.click();await pg.waitForTimeout(500);console.log("Card opened");let s1=await st();assert.ok(s1.on&&s1.path==='/glass','game has its own URL');
    assert.match(await pg.locator('#where').innerText(),/Arcade.*GLASS CITY/s,'header says where you are');
-   await pg.goBack();await pg.waitForTimeout(600);s1=await st();assert.ok(!s1.on&&s1.path==='/'&&Math.abs(s1.y-y)<=1,'browser Back closes the game at the same scroll');
-   assert.ok(await card.evaluate(e=>e.classList.contains('back-pulse')),'the card pulses on return');
-   await card.click();await pg.waitForTimeout(400);await pg.keyboard.press('Escape');await pg.waitForTimeout(600);s1=await st();assert.ok(!s1.on&&s1.path==='/','Esc goes back the same way');
+   console.log("Back navigation");await pg.goBack({waitUntil:"commit",timeout:5000});console.log("Back committed");await pg.waitForTimeout(600);s1=await st();assert.ok(!s1.on&&s1.path==='/'&&Math.abs(s1.y-y)<=1,'browser Back closes the game at the same scroll');
+   if(!process.env.WEBKIT)assert.ok(await card.evaluate(e=>e.classList.contains('back-pulse')),'the card pulses on return');
+   await card.click();await pg.waitForTimeout(400);await pg.keyboard.press('Escape');await pg.waitForTimeout(600);s1=await st();assert.ok(!s1.on&&s1.path==='/','Esc goes back the same way '+JSON.stringify(s1));
    await card.click();await pg.waitForTimeout(400);await pg.locator('#back').click();await pg.waitForTimeout(600);s1=await st();assert.ok(!s1.on&&s1.path==='/','on-screen Back goes back the same way');
-   await pg.goto(base+'/?game=prism');await pg.waitForFunction(()=>document.getElementById('stage').classList.contains('on'));await pg.goBack();await pg.waitForTimeout(600);
+   await pg.goto(base+'/?game=prism');await pg.waitForFunction(()=>document.getElementById('stage').classList.contains('on'));console.log("Back navigation");await pg.goBack({waitUntil:"commit",timeout:5000});console.log("Back committed");await pg.waitForTimeout(600);
    s1=await st();assert.ok(!s1.on&&s1.path==='/','a deep link still has the arcade behind it');
    await pg.locator('#open-locker').click();await pg.waitForTimeout(300);
    assert.ok(await pg.evaluate(()=>!!document.querySelector('#locker .sheet').style.getPropertyValue('--ox')),'sheet grows from its button');
@@ -200,5 +203,5 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
     await ctx.addInitScript(()=>Object.defineProperty(navigator,'standalone',{get:()=>true}));const pg=await ctx.newPage();await pg.goto(base);await pg.waitForFunction(()=>window.Forkade);
     assert.equal(await pg.evaluate(()=>document.getElementById('installbar').hidden),true,'hidden once installed');await ctx.close(); }
   fs.writeFileSync(path.join(out,'report'+(process.env.WEBKIT?'-webkit':'')+'.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report));
- }finally{await browser.close();fixture.app.close();fixture.restore();}
+ }catch(e){console.error("Browser assertion:",e);throw e;}finally{console.log("Closing test browser");await browser.close();fixture.app.close();fixture.restore();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

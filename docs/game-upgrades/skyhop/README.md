@@ -14,3 +14,5 @@ UX §22: checked readable phone layout, existing 44px controls, truthful scores,
 ![1280](desktop-1280.png)
 
 12-second before/after GIF: `C:\Users\Younes\Desktop\shared process\forkade-games-before-after\skyhop.gif`. Haptics/audio on physical iPhone and real-phone frame time remain unverified.
+
+WebKit boundary: Windows Playwright WebKit crashes when native Back overlaps a View Transition. Its navigation tests use Reduce motion; Chromium exercises the animated morph. A 300ms navigation fallback keeps the grid URL correct if WebKit suppresses a script-triggered traversal, and queues the next game until navigation settles. No user browser was controlled.
