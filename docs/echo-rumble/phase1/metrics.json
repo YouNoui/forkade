@@ -1,0 +1,44 @@
+[
+  {
+    "name": "android",
+    "cpuFrameMs": 15.913944443919593,
+    "simulationMs": 0.05644444449080361,
+    "renderSubmitMs": 15.85749999942879,
+    "score": 407
+  },
+  {
+    "name": "iphone",
+    "cpuFrameMs": 0.615,
+    "simulationMs": 0.006666666666666667,
+    "renderSubmitMs": 0.6083333333333333,
+    "score": 407
+  },
+  {
+    "name": "desktop",
+    "cpuFrameMs": 1.102055555532376,
+    "simulationMs": 0.007888888890544574,
+    "renderSubmitMs": 1.0941666666418315,
+    "score": 407
+  },
+  {
+    "name": "landscape",
+    "cpuFrameMs": 1.1188888888061046,
+    "simulationMs": 0.011388888880610466,
+    "renderSubmitMs": 1.1074999999254942,
+    "score": 407
+  },
+  {
+    "name": "offline",
+    "cpuFrameMs": 0.9123888881670104,
+    "simulationMs": 0.018222222270237075,
+    "renderSubmitMs": 0.8941666658967733,
+    "score": 407
+  },
+  {
+    "name": "offline-webkit",
+    "cpuFrameMs": 0.5566666666666668,
+    "simulationMs": 0.006666666666666667,
+    "renderSubmitMs": 0.55,
+    "score": 407
+  }
+]

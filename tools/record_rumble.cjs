@@ -1,0 +1,23 @@
+/* Headless, real-time gameplay capture. No production writes or simulated time jumps.
+   OUT defaults outside git. Video editing can select excerpts using timeline.json. */
+const fs=require('node:fs'),path=require('node:path'),{chromium}=require('playwright');
+(async()=>{const out=process.env.RUMBLE_VIDEO_OUT||'C:/Users/Younes/Desktop/shared process/echo-rumble';fs.mkdirSync(out,{recursive:true});
+ const b=await chromium.launch({channel:'chromium',args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});const c=await b.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1,serviceWorkers:'block',recordVideo:{dir:out,size:{width:390,height:844}}}),p=await c.newPage();
+ const errors=[];p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error')errors.push(m.text());});await p.route('**/api/**',r=>r.fulfill({contentType:'application/json',body:'{}'}));
+ const wall=Date.now();await p.goto((process.env.CHECK_URL||'http://127.0.0.1:8089')+'/rumble');const f=p.frameLocator('#gframe');await f.locator('#start').waitFor();await p.screenshot({path:out+'/avatar.png'});await f.locator('#start').click();const audioStart=(Date.now()-wall)/1000;await p.evaluate(()=>{const ac=Forkade.sfx._ac;if(!ac||!window.MediaRecorder)return;const dest=ac.createMediaStreamDestination();Forkade.sfx._master.connect(dest);window.__audioChunks=[];window.__audioRecorder=new MediaRecorder(dest.stream);__audioRecorder.ondataavailable=e=>__audioChunks.push(e.data);__audioRecorder.start();});const timeline=[],intervals=[];let previousStage=-1,last=Date.now(),held=new Set(),forkCount=0;
+ const begin=Date.now();while(Date.now()-begin<150000){const s=await f.locator('body').evaluate(()=>{const r=EchoRumble.core;return {kind:r.kind(),...r.s,objects:r.s.objects,logs:undefined,log:undefined,events:undefined};});
+   if(s.stage!==previousStage){timeline.push({stage:s.stage,kind:s.kind,seconds:(Date.now()-wall)/1000,tick:s.tick});previousStage=s.stage;forkCount=0;console.log('Recording',s.kind,s.tick);await p.screenshot({path:out+'/stage-'+s.stage+'.png'});}
+   if(s.done){await p.waitForTimeout(2000);await p.screenshot({path:out+'/result.png'});console.log('Run ended',s.score,s.win);break;}
+   // Build allies from real attempts: the first two movement paths differ.
+   if((s.stage===0||s.stage===3)&&forkCount<2&&s.stageTick>150){await f.locator('#fork').click();forkCount++;continue;}
+   let tx=0,tz=2.5;
+   if(s.kind!=='boss'){const targets=s.objects.filter(o=>o.hp&&(s.kind!=='climb'||o.type==='crystal'));targets.sort((a,b)=>Math.hypot(a.x-s.player.x,a.z-s.player.z)-Math.hypot(b.x-s.player.x,b.z-s.player.z));const o=targets[0];if(o){tx=o.x;tz=o.z;const distance=Math.hypot(tx-s.player.x,tz-s.player.z);if(s.kind!=='climb'&&distance<3){tx=s.player.x;tz=s.player.z;}}}
+   if(s.stage===0&&forkCount===1){tx+=2;tz-=2;}
+   const dx=tx-s.player.x,dz=tz-s.player.z,screenX=(dx-dz)*.707,screenZ=(dx+dz)*.707,next=new Set();
+   if(screenX>.5)next.add('KeyD');if(screenX<-.5)next.add('KeyA');if(screenZ>.5)next.add('KeyS');if(screenZ<-.5)next.add('KeyW');
+   // Real keyboard events, routed to the focused game frame.
+   await f.locator('canvas').evaluate(e=>{e.tabIndex=0;e.focus();});for(const k of held)if(!next.has(k))await p.keyboard.up(k);for(const k of next)if(!held.has(k))await p.keyboard.down(k);held=next;
+   await p.waitForTimeout(100);const now=Date.now();intervals.push(now-last);last=now;
+ }
+ for(const k of held)await p.keyboard.up(k);const audio=await p.evaluate(async()=>{if(!window.__audioRecorder)return null;await new Promise(r=>{__audioRecorder.onstop=r;__audioRecorder.stop();});const blob=new Blob(__audioChunks,{type:'audio/webm'});return await new Promise(r=>{const reader=new FileReader();reader.onload=()=>r(reader.result.split(',')[1]);reader.readAsDataURL(blob);});});if(audio)fs.writeFileSync(out+'/game-audio.webm',Buffer.from(audio,'base64'));const video=p.video();await c.close();await video.saveAs(out+'/full-run.webm');await b.close();fs.writeFileSync(out+'/timeline.json',JSON.stringify({timeline,audioStart,errors,wallSeconds:(Date.now()-wall)/1000,source:process.env.CHECK_URL||'local candidate; production deployment blocked'},null,2));if(errors.length)throw Error(errors.join('\n'));
+})().catch(e=>{console.error(e);process.exitCode=1;});

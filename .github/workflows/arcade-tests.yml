@@ -32,3 +32,6 @@ jobs:
       - run: node tests/ux.cjs
       - run: node tests/social-browser.cjs
       - run: node tests/game-upgrades.cjs
+      - run: node tests/rumble-browser.cjs
+        env:
+          RUMBLE_CI: "1"

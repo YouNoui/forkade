@@ -1,0 +1,1240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="/">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ECHO RUMBLE beta - FORKADE</title>
+<meta name="theme-color" content="#0b0a10">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Forkade">
+<style>
+  :root{
+    /* FORKADE trio (UX playbook, option B): ink base + brand cyan + pop yellow. Games keep their own colours. */
+    --base:#0b0a10; --panel:#15131d; --panel2:#1d1a28; --line:rgba(150,156,190,.32);
+    --text:#f1f3ff; --muted:#9a9fc4;
+    --brand:#22e1ff; --brand-soft:rgba(34,225,255,.10); --brand-glow:rgba(34,225,255,.45);
+    --pop:#ffd84d; --pop-ink:#14121a;
+    --ok:#4ade80; --danger:#ff5a6e;
+    /* motion curves (playbook 5.1) */
+    --ease-out:cubic-bezier(0.23,1,0.32,1); --ease-in-out:cubic-bezier(0.77,0,0.175,1); --ease-drawer:cubic-bezier(0.32,0.72,0,1);
+    /* legacy names map onto the trio so nothing off-palette survives */
+    --bg:var(--base); --bg2:var(--panel); --ink:var(--text); --dim:var(--muted);
+    --cyan:var(--brand); --magenta:var(--brand); --lime:var(--brand); --amber:var(--brand);
+    --violet:var(--line); --red:var(--danger);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:"Consolas","SF Mono",ui-monospace,monospace;
+    background:radial-gradient(1200px 600px at 50% -10%,#10303a 0%,var(--base) 60%);
+    color:var(--ink); min-height:100dvh;
+  }
+  .wrap{padding:48px 20px 64px;}
+  .head{text-align:center; max-width:760px; margin:0 auto 38px;}
+  .title{
+    font-size:clamp(34px,7vw,64px); font-weight:800; letter-spacing:4px; margin:0; color:var(--cyan);
+    text-shadow:0 0 12px rgba(34,225,255,.7),0 0 34px rgba(34,225,255,.35);
+  }
+  .sub{color:var(--dim); font-size:15px; margin-top:12px; letter-spacing:1px;}
+  .chip{display:inline-block; margin-top:16px; padding:7px 16px; border-radius:20px;
+    border:1px solid var(--line); color:var(--muted); font-size:13px;}
+  .grid{display:grid; gap:18px; max-width:1040px; margin:0 auto;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));}
+  .card{position:relative; border-radius:16px; padding:22px 20px 20px;
+    background:linear-gradient(160deg,var(--panel2),var(--panel));
+    border:1px solid rgba(120,130,160,.25); overflow:hidden; cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;}
+  .card:hover{transform:translateY(-3px); box-shadow:0 0 28px -4px var(--c); border-color:var(--c);}
+  .num{position:absolute; top:14px; right:18px; font-size:34px; font-weight:800; color:var(--c); opacity:.22;}
+  .dot{width:46px; height:46px; border-radius:12px; margin-bottom:14px;
+    background:var(--c); box-shadow:0 0 18px var(--c); display:flex; align-items:center; justify-content:center;}
+  .dot span{width:16px; height:9px; border-radius:5px; background:var(--bg); display:block;}
+  .name{font-size:21px; font-weight:800; letter-spacing:1px; margin:0 0 4px;}
+  .genre{color:var(--c); font-size:13px; letter-spacing:1px; margin-bottom:10px;}
+  .desc{color:var(--dim); font-size:13.5px; line-height:1.5; margin:0 0 16px;}
+  .play{display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:700;
+    color:var(--ink); padding:8px 14px; border-radius:10px; border:1px solid var(--c);
+    background:rgba(255,255,255,.03);}
+  .best{position:absolute; bottom:22px; right:20px; font-size:12px; color:var(--dim); letter-spacing:1px;}
+  .best b{color:var(--c);}
+  .mute{cursor:pointer; color:var(--dim); border:1px solid rgba(120,130,170,.5);
+    border-radius:10px; padding:8px 14px; font-weight:700; background:rgba(20,24,46,.4);
+    font-family:inherit; font-size:13px;}
+  .foot{text-align:center; color:var(--dim); font-size:13px; margin-top:34px; line-height:1.7;}
+  .foot a{color:var(--cyan);}
+  .foot b{color:var(--violet);}
+  .chip.oss{margin-top:8px; border-color:var(--magenta);}
+  .chip.oss a{color:var(--magenta); text-decoration:none;}
+  a.card{display:block; text-decoration:none; color:inherit;}
+  .card.make{border-style:dashed;}
+  .card.start{border:2px solid var(--pop); box-shadow:5px 5px 0 var(--pop);}
+  .card.start:hover{box-shadow:7px 7px 0 var(--pop);}
+  .card.daily, #daily-claim{order:-2;} .card.start{order:-1;}
+  @media (max-width:600px){ .card.start{order:-3;} }
+  body.hero-out .card.start .play, body.hero-out .card.daily .dplay{background:var(--pop); color:var(--pop-ink); border:2px solid var(--pop-ink); font-weight:900; box-shadow:3px 3px 0 var(--brand);}
+  .card.start{padding-top:50px;}
+  .card .starttag{position:absolute; top:14px; left:20px; white-space:nowrap; background:var(--brand); color:var(--pop-ink); font-size:11px; font-weight:900;
+    letter-spacing:.12em; padding:4px 10px; border-radius:6px;}
+  .wallet{display:flex; flex-wrap:wrap; justify-content:center; gap:10px 16px; margin-top:14px; font-size:13px; color:var(--dim);}
+  .wallet b{color:var(--lime); font-variant-numeric:tabular-nums;}
+  .streak{display:inline-flex; align-items:center; gap:8px;}
+  .sdots{display:inline-flex; gap:4px;} .sdots i{width:9px; height:9px; border-radius:50%; border:1px solid var(--line);}
+  .sdots i.on{background:var(--amber); border-color:var(--amber); box-shadow:0 0 8px var(--amber);}
+  .sdots i.next{border-style:dashed;}
+  .goal{max-width:420px; margin:12px auto 0; font-size:12px; color:var(--dim); text-align:left;}
+  .goal .g-t{display:flex; justify-content:space-between; gap:10px; margin-bottom:5px;} .goal .g-t b{color:var(--ink,#fff); font-weight:800;}
+  .goal .g-bar{height:6px; border-radius:3px; background:rgba(141,146,189,.18); overflow:hidden;}
+  .goal .g-bar i{display:block; height:100%; width:0; border-radius:3px; background:var(--cyan); box-shadow:0 0 10px var(--cyan); transition:width .6s cubic-bezier(.2,.8,.2,1);}
+  html.reduce-motion .goal .g-bar i{transition:none;}
+  /* colour roles: cyan = the action to take, amber/lime = rewards you hold, neutral = everything else */
+  .wallet .locker{cursor:pointer; font-family:inherit; font-weight:800; font-size:13px; color:var(--ink,#fff);
+    border:1px solid rgba(120,130,170,.5); border-radius:10px; padding:5px 12px; background:rgba(20,24,46,.4); min-height:36px;}
+  .wallet .locker:hover{border-color:var(--cyan);}
+  .stars{position:absolute; right:20px; bottom:42px; font-size:14px; letter-spacing:2px;}
+  .stars .on{color:var(--brand); text-shadow:0 0 8px var(--brand-glow);} .stars .off{color:rgba(141,146,189,.35);}
+  .modal{position:fixed; inset:0; z-index:200; background:rgba(3,2,14,.78); display:flex; align-items:flex-start;
+    justify-content:center; overflow:auto; padding:30px 14px;}
+  .modal[hidden]{display:none;}
+  .sheet{position:relative; width:min(760px,100%); background:var(--panel); border:1px solid var(--line);
+    border-radius:18px; padding:22px; box-shadow:0 20px 60px -20px #000;}
+  .sheet h2{margin:6px 0 10px; letter-spacing:3px; color:var(--cyan); font-size:18px;}
+  .sheet .hint{color:var(--dim); font-size:13px; line-height:1.6; margin:0 0 14px;}
+  .sheet .x{position:absolute; right:14px; top:10px; font-size:28px; background:none; border:0; color:var(--dim); cursor:pointer;}
+  .skins{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin-bottom:18px;}
+  .skin{border:1px solid rgba(141,146,189,.3); border-radius:12px; padding:12px; text-align:center; font-size:13px;}
+  .skin .sw{width:34px; height:34px; border-radius:10px; margin:0 auto 8px; box-shadow:0 0 14px currentColor;}
+  .skin button{margin-top:8px; width:100%; font-family:inherit; font-weight:800; font-size:12px; cursor:pointer;
+    border-radius:8px; padding:6px; background:transparent; color:var(--lime); border:1px solid var(--lime);}
+  .skin button[disabled]{color:var(--dim); border-color:rgba(141,146,189,.4); cursor:default;}
+  .skin.eq{border-color:var(--lime); box-shadow:0 0 16px -6px var(--lime);}
+  .badges{display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:8px; font-size:13px;}
+  .badge{display:flex; justify-content:space-between; gap:8px; border:1px solid rgba(141,146,189,.25); border-radius:10px; padding:9px 12px;}
+  .badge small{display:block; color:var(--dim); font-size:11px; margin-top:2px;}
+  .toasts{position:fixed; left:50%; top:16px; transform:translateX(-50%); z-index:300; display:flex; flex-direction:column; gap:8px; pointer-events:none;}
+  .toast{background:rgba(11,10,16,.94); border:1px solid var(--lime); color:var(--lime); border-radius:12px;
+    padding:10px 16px; font-size:14px; font-weight:800; box-shadow:0 0 24px -8px var(--lime); animation:tin .25s ease-out;}
+  @keyframes tin{from{opacity:0; transform:translateY(-8px);} to{opacity:1; transform:none;}}
+
+  .rtabs{display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 10px;}
+  .rtabs button{font-family:inherit; font-size:12px; font-weight:800; cursor:pointer; border-radius:8px; padding:6px 10px;
+    background:transparent; color:var(--dim); border:1px solid rgba(141,146,189,.4);}
+  .rtabs button.on{color:var(--cyan); border-color:var(--cyan); background:rgba(34,225,255,.08);}
+  .rlist{list-style:none; margin:0; padding:0; font-size:14px; min-height:60px;}
+  .rlist li{display:flex; gap:12px; padding:8px 10px; border-bottom:1px solid rgba(141,146,189,.15);}
+  .rlist li .n{width:34px; color:var(--dim);} .rlist li .nm{flex:1;} .rlist li .sc{color:var(--lime); font-weight:800;}
+  .rlist button.rep, .rlist span.rep{width:62px; text-align:center; font-family:inherit; font-size:12px; cursor:pointer; border-radius:7px;
+    padding:2px 6px; background:transparent; color:var(--dim); border:1px solid transparent;}
+  .rlist button.rep:hover, .rlist button.rep[data-sure="1"]{color:var(--red); border-color:rgba(255,79,110,.6);}
+  .rlist li.sk{height:20px; box-sizing:content-box; position:relative; overflow:hidden;}
+  .rlist li.sk::after{content:""; position:absolute; left:10px; right:10px; top:13px; height:10px; border-radius:5px;
+    background:linear-gradient(90deg,rgba(141,146,189,.10),rgba(141,146,189,.22),rgba(141,146,189,.10)); background-size:200% 100%; animation:skel 1.2s linear infinite;}
+  @keyframes skel{from{background-position:200% 0} to{background-position:0 0}}
+  html.reduce-motion .rlist li.sk::after{animation:none}
+  .rlist li.msg{display:block; text-align:center; padding:18px 10px; color:var(--dim);}
+  .rlist li.msg button{margin-left:8px; font:inherit; font-weight:800; color:var(--cyan); background:transparent; border:1px solid var(--cyan); border-radius:8px; padding:4px 12px; cursor:pointer; min-height:32px;}
+  #pb-post:disabled{opacity:.55; cursor:default;}
+  .rlist li.me{background:var(--brand-soft); border-radius:8px;}
+  .rlist li:nth-child(-n+3) .n{color:var(--brand); font-weight:800;}
+  .postbar{position:relative; z-index:70; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px;
+    margin:10px auto 0; padding:10px 12px; max-width:900px; border:1px solid var(--cyan); border-radius:12px;
+    background:rgba(11,10,16,.94); font-size:13px;}
+  .postbar[hidden]{display:none;}
+  .postbar input{font-family:inherit; font-size:14px; width:150px; padding:7px 10px; border-radius:8px;
+    border:1px solid var(--line); background:var(--base); color:var(--ink);}
+  .postbar button{font-family:inherit; font-weight:800; font-size:13px; cursor:pointer; border-radius:8px; padding:8px 12px;
+    background:var(--panel2); color:var(--text); border:1px solid var(--line);}
+  .postbar #pb-post{background:var(--pop); color:var(--pop-ink); border:2px solid var(--pop-ink); box-shadow:3px 3px 0 var(--brand);}
+  .postbar #pb-msg{width:100%; text-align:center; color:var(--lime);}
+  .postbar #pb-msg.err{color:var(--red);}
+  /* ---- phones: full-screen game, small see-through controls on top ---- */
+  body.touch .stage.on{padding:0; gap:0; background:var(--base); touch-action:none;}
+  body.touch #game{width:min(100vw, calc(100dvh * 900 / 560)); max-height:100dvh; border:0; border-radius:0; box-shadow:none;}
+  body.touch #gframe{width:100vw; height:100dvh; border-radius:0;}
+  body.touch .stagebar{position:fixed; left:max(8px,env(safe-area-inset-left)); top:8px; z-index:80; gap:0;}
+  body.touch .stagebar > span:not(.back):not(.where){display:none;}
+  body.touch .back{padding:6px 12px; font-size:13px; background:rgba(11,10,16,.8);}
+  body.touch .postbar{position:fixed; top:8px; left:50%; transform:translateX(-50%); width:min(560px,calc(100vw - 120px)); margin:0; z-index:85; padding:8px;}
+  body.touch .touchctl .pad{grid-template-columns:repeat(3,46px); grid-template-rows:repeat(3,46px); gap:4px;
+    left:max(10px,env(safe-area-inset-left)); bottom:max(10px,env(safe-area-inset-bottom));}
+  body.touch .pad .tbtn{width:46px; height:46px; font-size:17px;}
+  body.touch .touchctl .side{right:max(10px,env(safe-area-inset-right)); bottom:max(10px,env(safe-area-inset-bottom)); gap:8px;}
+  body.touch .tbtn{background:rgba(20,16,50,.38); border-color:rgba(160,170,220,.35); backdrop-filter:none;}
+  body.touch .big{width:66px; height:66px; font-size:14px;}
+  body.touch .rw{width:52px; height:52px; font-size:12px;}
+  body.touch .ps{position:fixed; right:max(10px,env(safe-area-inset-right)); top:8px; width:40px; height:34px;}
+  /* each game only shows the buttons it needs */
+  .stage.t-tap .pad, .stage.t-tap .big{display:none !important;}
+  .stage.t-lr .tbtn.u, .stage.t-lr .tbtn.dn{visibility:hidden;}
+  /* portrait: nudge players to turn the phone */
+  .rotate{display:none;}
+  @media (orientation:portrait){ body.touch .stage.on:not(.d3) .rotate{display:block; position:fixed; top:calc(50% - 150px - 56px);
+    left:0; right:0; text-align:center; font-size:13px; color:var(--amber);} }
+  .forget{font-family:inherit; font-size:12px; cursor:pointer; border-radius:8px; padding:6px 10px; background:transparent;
+    color:var(--red); border:1px solid rgba(255,79,110,.6);}
+  .sheet a, .foot .legal a{color:var(--cyan);}
+  .foot .legal{display:block; margin-top:10px; font-size:12px;}
+  /* ---- install bar ---- */
+  .installbar{position:relative; z-index:90; display:flex; align-items:center; gap:10px; padding:8px max(12px,env(safe-area-inset-right)) 8px max(12px,env(safe-area-inset-left));
+    padding-top:max(8px,env(safe-area-inset-top)); background:rgba(11,10,16,.96); border-bottom:1px solid rgba(34,225,255,.45); font-size:13px;}
+  .installbar[hidden]{display:none;}
+  .installbar img{border-radius:7px; flex:none;}
+  .installbar .ib-text{flex:1; min-width:0; color:var(--ink); line-height:1.35;}
+  .installbar .ib-go{flex:none; font-family:inherit; font-weight:800; font-size:13px; cursor:pointer; border-radius:9px; padding:7px 14px;
+    background:transparent; color:var(--brand); border:1px solid var(--brand); min-height:44px;}
+  .installbar .ib-x{flex:none; font-family:inherit; font-size:20px; line-height:1; cursor:pointer; width:44px; height:44px; border-radius:8px;
+    background:transparent; color:var(--dim); border:0;}
+  .installbar button:focus-visible{outline:2px solid var(--amber); outline-offset:2px;}
+  body.playing .installbar{display:none !important;}   /* never inside a game */
+  .installbar .ib-text b{color:var(--cyan); font-weight:800;}
+  @media (max-width:560px){
+    .installbar{gap:8px; font-size:12px; padding-top:max(6px,env(safe-area-inset-top)); padding-bottom:6px;}
+    .installbar .ib-dash{display:none;} .installbar .ib-sub{display:block; color:var(--dim); font-size:11px;}
+    .installbar .ib-go{padding:6px 12px;}
+    .installbar{padding-top:max(2px,env(safe-area-inset-top)); padding-bottom:2px;}
+  }
+  /* 44px tap areas without making the bar taller: the X and Install reach past the bar's padding */
+  .installbar .ib-x, .installbar .ib-go{margin:-4px 0;}
+  .toasts{top:calc(16px + var(--ibh, 0px)) !important;}   /* toasts sit below the install bar */
+  .ios-steps{margin:0; padding-left:20px; font-size:14px; line-height:1.8;}
+  .ios-sheet{max-width:420px;}
+  .nodata{display:inline-block; margin-top:10px; color:var(--muted);}
+  .privacy-line{margin-top:10px; font-size:12px; color:var(--muted);}
+  .privacy-line a, .fairnote a{color:var(--brand); display:inline-block; padding:15px 2px; margin:-15px 0; line-height:14px;}
+  .fairnote{color:var(--muted); font-size:12px; margin-top:-6px;}
+  .wbtns{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; width:100%;}
+  .offline{text-align:center; margin-top:28px;}
+  .wbtns .settings-button{font-weight:800; color:var(--text); font-size:13px; border-radius:10px; padding:5px 12px;}
+
+  /* ---- in-game stage ---- */
+  .stage{position:fixed; inset:0; background:rgba(4,6,14,.96); display:none;
+    flex-direction:column; align-items:center; justify-content:center; z-index:50; gap:14px; padding:16px;}
+  .stage.on{display:flex;}
+  #game{width:min(94vw,900px); aspect-ratio:900/560; border-radius:14px;
+    border:1px solid rgba(120,130,160,.3); box-shadow:0 0 50px -10px var(--cyan); background:var(--bg); touch-action:none;}
+  #gframe{width:min(100vw,1100px); height:min(86dvh,720px); border:0; border-radius:14px;
+    box-shadow:0 0 50px -10px var(--cyan); background:var(--base); display:none;}
+  .stage.d3 #game{display:none;} .stage.d3 .stagebar{display:none;}
+  .stage.d3 #gframe{display:block;}
+  .stage.rumble-stage{padding:0;background:var(--base)}.stage.rumble-stage #gframe{width:100vw;height:100dvh;max-width:none;border-radius:0}.rumble-hero{width:100%;margin:18px 0;text-align:left;min-height:170px}.rumble-hero .play{color:var(--pop)}
+  body.touch .stage.on.d3 .touchctl{display:none;}
+  .pname{margin-top:14px;}
+  .pname input{font-family:inherit; font-size:13px; color:var(--ink); background:rgba(20,24,46,.5);
+    border:1px solid rgba(120,130,170,.5); border-radius:10px; padding:8px 12px; width:170px; text-align:center;}
+  .pname label{color:var(--dim); font-size:12px; margin-right:8px;}
+  .stagebar{display:flex; gap:18px; align-items:center; color:var(--dim); font-size:13px; flex-wrap:wrap; justify-content:center;}
+  .back{font-size:13px;} body.touch .kbdhint{display:none;}
+  kbd{background:var(--panel2); border:1px solid var(--line); border-radius:5px; padding:1px 7px; color:var(--ink);}
+
+  /* ---- install button ---- */
+  .install{display:none; margin:18px auto 0; cursor:pointer; color:var(--cyan);
+    border:1px solid var(--cyan); border-radius:12px; padding:10px 20px; font-weight:800;
+    letter-spacing:1px; background:rgba(34,225,255,.06); box-shadow:0 0 20px -6px var(--cyan);
+    font-family:inherit; font-size:14px;}
+  .install.show{display:inline-block;}
+  .dlbox{max-width:520px; margin:12px auto 0; padding:14px 16px; border:1px solid var(--cyan); border-radius:14px;
+    background:rgba(34,225,255,.05); font-size:13px; line-height:1.6; color:var(--ink); text-align:left;}
+  .dlbox .dlfile{display:inline-block; margin-top:10px; color:var(--lime); font-weight:700; text-decoration:none;}
+
+  /* ---- touch controls (phones only) ---- */
+  .touchctl{position:absolute; inset:0; display:none; pointer-events:none; z-index:60;}
+  body.touch .stage.on .touchctl{display:block;}
+  .touchctl .pad{position:absolute; bottom:max(22px,env(safe-area-inset-bottom)); display:grid;
+    grid-template-columns:repeat(3,56px); grid-template-rows:repeat(3,56px); gap:6px;}
+  .touchctl .pad.left{left:18px;}
+  .touchctl .side{position:absolute; right:18px; bottom:max(22px,env(safe-area-inset-bottom));
+    display:flex; flex-direction:column; gap:12px; align-items:center;}
+  .tbtn{pointer-events:auto; user-select:none; -webkit-user-select:none; touch-action:none;
+    display:flex; align-items:center; justify-content:center; border-radius:14px;
+    background:rgba(20,24,46,.72); border:1px solid rgba(120,130,170,.5); color:var(--ink);
+    font-size:22px; font-weight:800; backdrop-filter:blur(2px);}
+  .tbtn:active{background:rgba(34,225,255,.25); border-color:var(--cyan);}
+  .pad .tbtn{width:56px; height:56px;}
+  .big{width:82px; height:82px; font-size:16px; border-color:var(--cyan); color:var(--cyan);}
+  .ps{width:48px; height:48px; font-size:14px; border-color:var(--dim); color:var(--dim);}
+  .rw{width:64px; height:64px; font-size:15px; border-color:var(--violet); color:var(--violet);}
+  .u{grid-column:2; grid-row:1;} .l{grid-column:1; grid-row:2;}
+  .r{grid-column:3; grid-row:2;} .dn{grid-column:2; grid-row:3;}
+
+  #settings label{display:flex;align-items:center;gap:12px;margin:8px 0;min-height:44px;font-size:14px;cursor:pointer;}
+  #settings input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand);}
+  #settings input[type=range]{accent-color:var(--brand); min-height:44px;}
+  .settings-button{min-height:36px}.daily{grid-column:1/-1;color:var(--ink);font-family:inherit;text-align:left;}
+  #daily-claim{grid-column:1/-1;justify-self:start;}
+  #settings .saved{margin-left:auto; white-space:nowrap; flex:none; font-size:12px; font-weight:800; color:var(--lime); opacity:0; transition:opacity .2s;}
+  #settings .saved.on{opacity:1;}
+
+
+  /* game over on phones: one full-width bar at the bottom, within thumb reach */
+  @media (max-width:600px){
+    body.touch .postbar{top:auto; bottom:var(--kb,0px); left:0; right:0; transform:none; width:100%; max-width:none; margin:0;
+      border-radius:18px 18px 0 0; border:0; border-top:1px solid var(--line); padding:12px 14px calc(12px + env(safe-area-inset-bottom));
+      box-shadow:0 -12px 30px -12px #000; justify-content:stretch;}
+    body.touch .postbar #pb-text{flex:1 0 100%; text-align:center; font-weight:800; color:var(--text);}
+    body.touch .postbar input{flex:1 1 120px; width:auto; min-height:44px;}
+    body.touch .postbar #pb-post{flex:0 0 auto;} body.touch .postbar #pb-share, body.touch .postbar #pb-again{flex:1 1 40%;}
+    body.touch .postbar #pb-msg{flex:1 0 100%; text-align:center;}
+    body.touch.pb-open .touchctl{display:none !important;}
+  }
+  .postbar.polished #pb-again{background:var(--pop);color:var(--pop-ink);min-height:48px;font-size:17px;border:2px solid var(--pop-ink)}
+  .postbar.polished #pb-post{background:transparent;color:var(--text);box-shadow:none}
+  .postbar #pb-again{background:transparent; border-color:transparent; color:var(--brand); box-shadow:none;}
+  body.playing .toasts{top:calc(64px + var(--ibh,0px)) !important;}
+
+  /* ---- Sense of place (playbook 5.2) ---- */
+  @view-transition{navigation:auto;}
+  .where{font-weight:800; color:var(--text); font-size:13px; letter-spacing:.04em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:46vw;}
+  .where i{font-style:normal; color:var(--muted); margin:0 6px;}
+  body.touch .stagebar .where{margin-left:8px; font-size:12px; text-shadow:0 1px 6px #000;}
+  ::view-transition-group(hero){animation-duration:.38s; animation-timing-function:var(--ease-drawer);}
+  ::view-transition-old(hero), ::view-transition-new(hero){height:100%; object-fit:cover; animation-duration:.38s; animation-timing-function:var(--ease-drawer);}
+  ::view-transition-image-pair(hero){animation:vtblur .38s var(--ease-drawer);}
+  @keyframes vtblur{50%{filter:blur(3px);}}
+  ::view-transition-old(root), ::view-transition-new(root){animation-duration:.3s; animation-timing-function:var(--ease-out);}
+  html.vt-fwd::view-transition-old(root){animation:vtfade .3s var(--ease-out) both, vtleft .3s var(--ease-out) both;}
+  html.vt-back::view-transition-new(root){animation:vtfadein .3s var(--ease-out) both, vtright .3s var(--ease-out) both;}
+  @keyframes vtfade{to{opacity:0;}} @keyframes vtfadein{from{opacity:0;}}
+  @keyframes vtleft{to{transform:translateX(-24px);}} @keyframes vtright{from{transform:translateX(-24px);}}
+  .card.make{view-transition-name:pg;}
+  .card.back-pulse{animation:backpulse .7s var(--ease-out) 1;}
+  @keyframes backpulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--c,var(--brand)) 70%,transparent);} 100%{box-shadow:0 0 0 16px transparent;}}
+  /* menus and sheets grow out of the button that opened them, and shrink back into it */
+  .modal{transition:opacity .25s var(--ease-out), display .25s allow-discrete, overlay .25s allow-discrete;}
+  .modal[hidden]{opacity:0; transition-duration:.2s; transition-timing-function:ease-in;}
+  @starting-style{ .modal:not([hidden]){opacity:0;} }
+  .modal .sheet{transform-origin:var(--ox,50%) var(--oy,0px); transition:transform .25s var(--ease-out), opacity .25s var(--ease-out);}
+  .modal[hidden] .sheet{transform:scale(.95); opacity:0; transition-duration:.2s; transition-timing-function:ease-in;}
+  @starting-style{ .modal:not([hidden]) .sheet{transform:scale(.95); opacity:0;} }
+  @media (max-width:600px){
+    .modal .sheet{animation:none; transition:transform .32s var(--ease-drawer), opacity .2s linear;}
+    .modal[hidden] .sheet{transform:translateY(100%); opacity:1; transition-duration:.25s;}
+    @starting-style{ .modal:not([hidden]) .sheet{transform:translateY(100%); opacity:1;} }
+  }
+  html.reduce-motion .modal, html.reduce-motion .modal .sheet{transition:none;}
+  @media (prefers-reduced-motion:reduce){ .modal, .modal .sheet{transition:none;} ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*){animation:none !important;} }
+
+  /* ---- Landing anatomy (playbook §18), real data only ---- */
+  .promise{margin:6px 0 4px; font-size:clamp(17px,4.6vw,30px); font-weight:900; letter-spacing:.02em; color:var(--text);}
+  .promise b{white-space:nowrap; font-weight:900;} .promise .hl{color:var(--brand);}
+  .hero-cta{display:flex; flex-wrap:wrap; gap:8px 14px; justify-content:center; align-items:center; margin:14px 0 6px;}
+  .hero-cta #hero-play{font-size:16px; padding:10px 22px; min-height:48px;}
+  body.gift-ready #f-play{background:var(--panel2); color:var(--text); border:1px solid var(--line); box-shadow:none;}
+  body.gift-ready #hero-play{background:var(--panel2); color:var(--text); border:1px solid var(--line); box-shadow:none;}
+  .proof{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; max-width:520px; margin:18px auto 4px;}
+  .proof div{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:10px 6px; text-align:center;}
+  .proof b{display:block; font-size:24px; color:var(--brand); font-variant-numeric:tabular-nums; line-height:1.1;}
+  .proof span{font-size:11px; color:var(--muted); letter-spacing:.06em;}
+  .finder{max-width:520px; margin:28px auto 8px; padding:18px; background:var(--panel); border:1px solid var(--line); border-radius:18px;}
+  .finder h2{margin:0 0 10px; font-size:18px;}
+  .f-progress{display:flex; align-items:center; gap:10px; font-size:12px; color:var(--muted);}
+  .f-bar{flex:1; height:6px; border-radius:3px; background:rgba(150,156,190,.18); overflow:hidden;}
+  .f-bar i{display:block; height:100%; width:34%; background:var(--brand); border-radius:3px; transition:width .35s var(--ease-out);}
+  .f-pic{position:relative; margin:14px 0; aspect-ratio:1200/630; border-radius:12px; overflow:hidden; border:1px solid var(--line);
+    background:repeating-linear-gradient(90deg, rgba(34,225,255,.06) 0 1px, transparent 1px 28px), repeating-linear-gradient(0deg, rgba(34,225,255,.06) 0 1px, transparent 1px 28px), var(--base);}
+  .f-pic img{width:100%; height:100%; object-fit:cover; display:block; transition:filter .45s var(--ease-out), opacity .45s var(--ease-out), transform .45s var(--ease-out);}
+  .f-pic.half img{filter:blur(8px) saturate(.6); opacity:.55; transform:scale(1.04);}
+  .f-pic b{position:absolute; left:12px; bottom:10px; font-size:13px; letter-spacing:.08em; color:var(--text); text-shadow:0 1px 8px #000;}
+  .f-q h3{margin:0 0 10px; font-size:16px;}
+  .f-chips{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .f-chips button{min-height:56px; text-align:left; flex-direction:column; align-items:flex-start; justify-content:center; gap:2px; font-size:14px;}
+  .f-chips button small{display:block; font-weight:400; font-size:11px; color:var(--muted);}
+  .f-done{display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
+  .f-done .chips{flex:1 0 100%; display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+  .f-done .chips button{min-height:36px; padding:4px 10px; font-size:12px; font-weight:700;}
+  .gallery-title{max-width:1100px; margin:30px auto 12px; font-size:18px; text-align:left;} .gallery-title span{color:var(--muted); font-weight:400; font-size:13px;}
+  .closing{max-width:520px; margin:40px auto 0; text-align:center; padding:26px 18px; border-radius:18px; border:1px solid var(--line);
+    background:radial-gradient(400px 160px at 50% 0%, rgba(34,225,255,.12), transparent 70%), var(--panel);}
+  .closing-line{font-size:18px; font-weight:800; color:var(--text); margin:0 0 14px;} .closing-line span{display:block; color:var(--brand);}
+  html.reduce-motion .f-pic img, html.reduce-motion .f-bar i{transition:none;}
+  [hidden]{display:none !important;}
+  /* ---- shared buttons (UX playbook §4): one look, every state ---- */
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:8px 16px; border-radius:12px;
+    font-family:inherit; font-weight:800; font-size:14px; line-height:1.2; cursor:pointer; text-decoration:none;
+    background:var(--panel2); color:var(--text); border:1px solid var(--line);}
+  .btn:hover{border-color:var(--brand);}
+  .btn-pop{background:var(--pop); color:var(--pop-ink); border:2px solid var(--pop-ink); box-shadow:3px 3px 0 var(--brand);}
+  .btn-pop:hover{border-color:var(--pop-ink); box-shadow:4px 4px 0 var(--brand);}
+  .btn-pop:active:not(:disabled){box-shadow:1px 1px 0 var(--brand);}
+  .btn-dark{background:var(--base); color:var(--text); border-color:var(--text);}
+  .btn-link{background:transparent; border-color:transparent; color:var(--brand); padding-left:8px; padding-right:8px;}
+  .btn-link:hover{border-color:transparent; text-decoration:underline;}
+  .btn-danger{background:transparent; color:var(--danger); border-color:rgba(255,90,110,.6);}
+  .btn-danger:hover{border-color:var(--danger);}
+  .btn:disabled{opacity:.55; cursor:not-allowed; box-shadow:none;}
+  .btn.done{opacity:1; color:var(--ok); border-color:rgba(74,222,128,.5); background:transparent;}
+  .btn.busy{opacity:.85; cursor:progress;}
+  .btn.busy::before{content:""; width:14px; height:14px; border-radius:50%; border:2px solid currentColor; border-right-color:transparent;
+    animation:bspin .7s linear infinite; flex:none;}
+  @keyframes bspin{to{transform:rotate(360deg);}}
+  html.reduce-motion .btn.busy::before{animation:none; border-right-color:currentColor; opacity:.5;}
+  .why{display:block; font-size:11px; color:var(--muted); margin-top:4px;}
+  /* confirm sheet */
+  #confirm .sheet{max-width:440px;} #confirm h2{margin:0 0 8px; font-size:18px; letter-spacing:.04em;}
+  #confirm p{color:var(--muted); font-size:14px; margin:0 0 18px;} #confirm .row{display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;}
+  @media (max-width:600px){ #confirm .row .btn{flex:1;} }
+  /* success burst: one moment, ~1s */
+  .burst{position:fixed; width:0; height:0; pointer-events:none; z-index:400;}
+  .burst i{position:absolute; left:-4px; top:-4px; width:8px; height:8px; border-radius:50%; background:var(--c);
+    animation:burst .9s cubic-bezier(.15,.7,.3,1) forwards;}
+  @keyframes burst{0%{transform:translate(0,0) scale(1); opacity:1;} 100%{transform:translate(var(--x),var(--y)) scale(.3); opacity:0;}}
+  /* ---- UX playbook: buttons, taps, sheets ---- */
+  button, .play, .foot a, .dlfile{transition:transform .16s ease, background-color .16s ease, border-color .16s ease, box-shadow .16s ease, color .16s ease;}
+  button:active:not(:disabled), .card:active .play{transform:translateY(1px);}
+  .card.start:active .play, .card.daily:active .dplay, .postbar #pb-post:active:not(:disabled){box-shadow:1px 1px 0 var(--brand);}
+  .wallet .locker, .mute, .install, #daily-claim, .rtabs button, .skin button, .postbar button, .postbar input,
+  .rlist li.msg button, .forget, .ib-go{min-height:44px;}
+  .sheet .x{min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center; right:8px; top:6px;}
+  .rlist button.rep{min-height:36px;}
+  .foot a, .sheet .hint a{display:inline-block; padding:14px 4px; margin:-14px 0;}
+  .foot{line-height:2.2;}
+  #settings label.nick{justify-content:flex-start;} #settings label.nick input{flex:1; min-width:0; max-width:220px; min-height:44px;
+    font-family:inherit; font-size:15px; color:var(--text); background:var(--base); border:1px solid var(--line); border-radius:10px; padding:8px 12px;}
+  #settings label.nick input:focus{outline:2px solid var(--brand); outline-offset:1px;}
+  .card.daily{border-color:var(--line);} .card.daily .dnext{font-size:12px; color:var(--muted); margin-left:10px;}
+  .card.daily .dplay{margin-top:4px;}
+  .grid:has(.card.start) .card.daily .dplay{background:rgba(255,255,255,.03); color:var(--text); border:1px solid var(--line); box-shadow:none; font-weight:700;}
+  .toasts{top:auto !important; bottom:calc(18px + env(safe-area-inset-bottom));}
+  body.playing .toasts{bottom:auto !important;}
+  @keyframes tin{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;}}
+  /* phones: pop-ups are bottom sheets (tap outside, ✕, Esc or swipe down to close) */
+  .sheet .grab{display:none;}
+  @media (max-width:600px){
+    .modal{align-items:flex-end; padding:0; overflow:hidden;}
+    .modal .sheet{width:100%; max-height:88dvh; overflow:auto; overscroll-behavior:contain; border-radius:20px 20px 0 0; border-bottom:0;
+      padding:26px 18px calc(22px + env(safe-area-inset-bottom)); animation:sheetup .26s cubic-bezier(.2,.8,.2,1);}
+    .sheet .grab{display:block; position:absolute; top:8px; left:50%; width:44px; height:5px; margin-left:-22px; border-radius:3px; background:var(--line);}
+    .modal .ios-sheet, .modal > .sheet{margin:0;}
+  }
+  @keyframes sheetup{from{transform:translateY(40px); opacity:.4;} to{transform:none; opacity:1;}}
+  html.reduce-motion .modal .sheet{animation:none;}
+  @media (prefers-reduced-motion:reduce){ .modal .sheet, .toast{animation:none;} button, .card{transition:none;} }
+  .reduce-motion *, .reduce-motion *::before,.reduce-motion *::after{animation:none!important;transition:none!important;}
+  .stage.portrait-game #game{width:min(94vw,calc((100dvh - 110px) * 560 / 900));max-height:calc(100dvh - 110px);aspect-ratio:560/900;}
+  body.touch .stage.portrait-game #game{width:min(100vw,calc((100dvh - 90px) * 560 / 900));max-height:calc(100dvh - 90px);}
+  body.touch .stage.portrait-game .rotate{display:none!important;}
+  body.touch .settings-button{font-size:11px;padding:6px;margin-left:6px;}
+  body.touch .postbar{top:auto;bottom:max(85px,env(safe-area-inset-bottom));width:calc(100vw - 20px);}
+  .stage.d3 .stagebar{display:flex;position:absolute;top:6px;left:6px;z-index:80;}
+  .stage.d3 .stagebar > span{display:none;}
+
+  html,body{overscroll-behavior:none}body.playing{overflow:hidden;touch-action:none;}
+  .wrap{padding-top:max(48px,env(safe-area-inset-top));padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right));padding-bottom:max(64px,env(safe-area-inset-bottom));}
+  body.touch .stagebar,body.touch .ps{top:max(8px,env(safe-area-inset-top));}
+  .stage.on{padding-bottom:max(16px,env(safe-area-inset-bottom));}
+  .stage.d3 .stagebar{display:none;}
+  .gift-card{margin:20px auto 0;max-width:420px;padding:18px;border:1px solid var(--line);border-radius:16px;background:var(--panel);font-size:13px;}
+  .gift-card h2{font-size:18px;margin:0 0 8px}.gift-card p{color:var(--muted);line-height:1.6}.gift-card a{color:var(--brand);display:inline-block;padding:14px 0;min-height:44px;box-sizing:border-box}
+  body.gift-ready .card.start{border-color:var(--line);box-shadow:none}
+  body.gift-ready .card.start .play,body.gift-ready .card.daily .dplay{background:var(--panel2);color:var(--text);border:1px solid var(--line);box-shadow:none}
+  #assist-game{font:inherit;min-height:44px;max-width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:8px;}
+  body:has(.modal:not([hidden])) .toasts{visibility:hidden}
+  #pb-breakdown{flex:1 0 100%;font-size:12px;color:var(--muted);line-height:1.5;text-align:center}
+  :root{--ease-out:cubic-bezier(.23,1,.32,1);--ease-in-out:cubic-bezier(.77,0,.175,1);--ease-drawer:cubic-bezier(.32,.72,0,1)}
+  button,.card{transition:transform 150ms var(--ease-out),opacity 150ms var(--ease-out)}button:active:not(:disabled){transform:translateY(1px) scale(.97)}
+  .modal .sheet{animation-timing-function:var(--ease-drawer)}
+  .rlist{height:300px;overflow:auto;overscroll-behavior:contain}.rlist button.rep,body.touch .ps{min-height:44px;min-width:44px}
+  .setting-help{display:block;color:var(--muted);font-size:12px;line-height:1.5;margin:0 0 12px}#settings label[data-changed="true"]::after{content:"Changed";font-size:11px;color:var(--brand)}
+  @media(max-width:600px){body:not(.playing) #gift-open:not([hidden]),body.hero-out:not(.playing):not(.gift-ready) .grid:has(.card.start) .card.start .play,body.hero-out:not(.playing):not(.gift-ready) .grid:not(:has(.card.start)) .daily .dplay{position:fixed;z-index:95;bottom:max(12px,env(safe-area-inset-bottom));left:20px;width:calc(100% - 40px);min-height:44px;justify-content:center;box-sizing:border-box;background:var(--pop);color:var(--pop-ink);border:2px solid var(--pop-ink);box-shadow:3px 3px 0 var(--brand)}body.playing #gift-open{display:none}.wrap{padding-bottom:100px}}
+  #more-games{display:flex;margin:20px auto}
+  @media(max-width:600px){body:not(.playing) .toasts{bottom:calc(78px + env(safe-area-inset-bottom))!important}}
+  </style>
+<meta name="description" content="ECHO RUMBLE beta and thirteen classic browser games, rewind controls and a Playground game builder.">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://iamynoui.com/#organization","name":"IAMYNOUI","url":"https://iamynoui.com/","address":{"@type":"PostalAddress","addressCountry":"SG"}},{"@type":"SoftwareApplication","@id":"https://playforkade.com/#website","name":"Forkade","url":"https://playforkade.com/","description":"ECHO RUMBLE beta and thirteen classic browser games, rewind controls and a Playground game builder.","publisher":{"@id":"https://iamynoui.com/#organization"},"applicationCategory":"GameApplication","operatingSystem":"Web browser","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}</script>
+
+
+
+
+
+
+
+
+<link rel="canonical" href="https://playforkade.com/rumble">
+<meta property="og:type" content="website"><meta property="og:title" content="ECHO RUMBLE beta - FORKADE">
+<meta property="og:description" content="Play it, rewind it, fork it. Free neon arcade starring ECHO.">
+<meta property="og:url" content="https://playforkade.com/rumble">
+<meta property="og:image" content="https://playforkade.com/og/rumble.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="ECHO RUMBLE beta - FORKADE">
+<meta name="twitter:image" content="https://playforkade.com/og/rumble.png">
+</head>
+<body>
+  <!-- install bar (playbook section 11): slim, pushes the page down, menu only -->
+  <div class="installbar" id="installbar" role="region" aria-label="Install FORKADE" hidden>
+    <img src="icons/icon-192.png" alt="" width="28" height="28">
+    <span class="ib-text"><b>Install FORKADE</b><span class="ib-dash"> &mdash; </span><span class="ib-sub">faster, works like an app</span></span>
+    <button class="ib-go" id="ib-go" type="button" aria-label="Install FORKADE">Install</button>
+    <button class="ib-x" id="ib-x" type="button" aria-label="Hide the install bar for 3 days">&times;</button>
+  </div>
+  <div class="modal" id="ios-install" hidden role="dialog" aria-modal="true" aria-labelledby="ios-install-title">
+    <div class="sheet ios-sheet">
+      <button class="x" id="ios-install-close" type="button" aria-label="Close">&times;</button>
+      <h2 id="ios-install-title">INSTALL FORKADE</h2>
+      <ol class="ios-steps">
+        <li>Tap <b>Share</b> <span aria-hidden="true">(the square with an arrow &#8679;)</span> in Safari&rsquo;s toolbar.</li>
+        <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
+        <li>Tap <b>Add</b>. FORKADE opens full screen and works offline.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="head">
+      <h1 class="title">FORKADE</h1>
+      <p class="promise"><b>Play it.</b> <b class="hl">Rewind it.</b> <b>Fork it.</b></p>
+      <div class="sub" id="hero-sub">Free arcade games in your browser &middot; no sign-ups</div>
+      <div class="hero-cta">
+        <button class="btn btn-pop" id="hero-play" type="button">&#9654; Play now</button>
+        <a class="btn btn-link" id="hero-build" href="playground.html">Build your own game &rsaquo;</a>
+      </div>
+      <div class="chip" id="rewindtip">&#9199; Mess up? Hold <b>R</b> or <b>Shift</b> to rewind time.</div>
+      <div class="privacy-line">&#128274; No sign-ups, no ads. Only anonymous play counts — switch off in Settings. <a href="fair.html">Fair play</a></div>
+      <div class="proof" id="proof" aria-label="FORKADE in numbers"></div>
+      <div class="wallet" id="wallet">
+        <span>&#9670; <b id="w-cores">0</b> cores</span>
+        <span>RANK <b id="w-rank">1</b></span>
+        <span class="streak" id="w-streakbox" title=""><span>&#128293; <b id="w-streak">0</b>-day streak</span><span class="sdots" id="w-sdots" aria-hidden="true"></span><span id="w-tmr" style="font-size:11px"></span></span>
+        <span class="wbtns"><button class="locker" id="open-locker">&#127942; Locker</button>
+        <button class="locker ranks" id="open-ranks">&#127941; Rankings</button></span>
+      </div>
+      <div class="goal" id="goal" hidden><div class="g-t"><span id="g-name"></span><span id="g-num"></span></div><div class="g-bar" role="progressbar" aria-labelledby="g-name" id="g-bar"><i id="g-fill"></i></div><div id="g-hint" style="margin-top:5px"></div></div>
+    </div>
+    <section class="finder" id="finder" aria-labelledby="finder-title">
+      <h2 id="finder-title">Find your game in 10 seconds</h2>
+      <div class="f-progress"><span id="f-step">Step 1 of 2</span><div class="f-bar"><i id="f-fill"></i></div></div>
+      <div class="f-pic" id="f-pic" aria-hidden="true"><img id="f-img" alt="" width="1200" height="630" hidden><b id="f-name"></b></div>
+      <div class="f-q" id="f-q"></div>
+      <div class="f-done" id="f-done" hidden></div>
+    </section>
+    <h2 class="gallery-title">Every game <span>&middot; tap one to play</span></h2>
+    <div class="grid" id="grid"></div>
+    <section class="closing" aria-label="Start playing">
+      <p class="closing-line">One tap, no account, and every mistake can be rewound. <span>Go on, have a go.</span></p>
+      <button class="btn" id="closing-play" type="button">&#9654; Play now</button>
+    </section>
+    <div class="offline">
+      <button class="btn install show" id="install">&#11015; Play offline / install</button>
+      <div class="dlbox" id="dlbox" hidden>
+        <div id="dlmsg"></div>
+        <a class="dlfile" href="download/forkade.html" download="forkade.html">&#11015; Download as one file (plays offline, double-click to open)</a>
+      </div>
+    </div>
+    <div class="foot">
+      <a href="https://github.com/YouNoui/forkade" target="_blank" rel="noopener noreferrer">Fork it on GitHub</a><br>
+      Built with HTML5 Canvas + JavaScript &middot; MIT licensed &middot; fork it, extend it, add your own.<br>
+      In every game: hold <b>R</b> or <b>Shift</b> to rewind &middot; <b>P</b> pause &middot; <b>Esc</b> back to menu.
+      <span class="nodata">🔒 Progress stays on this device. No cookies or third-party trackers. Anonymous counts are on by default; switch them off in Settings. Online rounds start anonymous timing tokens; only Post shares your nickname and score.</span>
+      <span class="legal"><a href="fair.html">Fair play</a> &middot; <a href="terms.html">Terms</a> &middot; <a href="privacy.html">Privacy</a> &middot; <a href="guidelines.html">Community rules</a> &middot; <a href="delete.html">Delete my data</a> &middot; <a href="mailto:hello@iamynoui.com">Contact</a> &middot; &copy; 2026 IAMYNOUI</span>
+    </div>
+  </div>
+
+  <div class="modal" id="locker" hidden>
+    <div class="sheet">
+      <button class="x" id="close-locker" aria-label="Close">&times;</button>
+      <h2>LOCKER</h2>
+      <p class="hint">Earn cores in every game: finish rounds, clear levels, beat your best and win badges. Spend them on ECHO skins that show up in every game.</p>
+      <p class="hint fairnote">&#9878; Original skins have fixed prices. Machine chances are shown before you spin. No ads; cores cannot be bought. <a href="fair.html">Every number</a></p>
+      <div class="skins" id="skins"></div>
+      <h2>BADGES <span id="badge-count"></span></h2>
+      <div class="badges" id="badges"></div>
+    </div>
+  </div>
+  <div class="modal" id="ranks" hidden>
+    <div class="sheet">
+      <button class="x" id="close-ranks" aria-label="Close">&times;</button>
+      <h2>GLOBAL RANKINGS</h2>
+      <div class="rtabs" id="rgames"></div>
+      <div class="rtabs small"><button data-period="week" class="on">This week</button><button data-period="all">All time</button></div>
+      <ol class="rlist" id="rlist"></ol>
+      <p class="hint" id="rme"></p>
+      <p class="hint">No sign-up needed. Your device gets a random hidden ID and you pick a nickname.
+        Scores only appear here if you tap <b>Post</b> after a game. We only store your nickname, the game and your score.
+        See a rude or fake nickname? Tap &#9873; next to it.
+        <a href="fair.html">Fair play</a> &middot; <a href="privacy.html">Privacy</a> &middot; <a href="guidelines.html">Rules</a></p>
+      <p class="hint"><button class="btn btn-danger forget" id="forget">Remove my scores</button> <span id="forget-msg"></span></p>
+    </div>
+  </div>
+  <div class="toasts" id="toasts"></div>
+
+  <div class="stage" id="stage">
+    <canvas id="game" width="900" height="560" tabindex="0"></canvas>
+    <iframe id="gframe" title="ECHO 3D" allow="fullscreen; autoplay"></iframe>
+    <div class="rotate">&#8635; Turn your phone sideways for a bigger screen</div>
+    <div class="touchctl" id="touchctl">
+      <div class="pad left">
+        <div class="tbtn u"  data-code="ArrowUp">&#9650;</div>
+        <div class="tbtn l"  data-code="ArrowLeft">&#9664;</div>
+        <div class="tbtn r"  data-code="ArrowRight">&#9654;</div>
+        <div class="tbtn dn" data-code="ArrowDown">&#9660;</div>
+      </div>
+      <div class="side">
+        <div class="tbtn ps"  data-code="KeyP" title="Pause">II</div>
+        <div class="tbtn rw"  data-code="KeyR">REW</div>
+        <div class="tbtn big" data-code="Space">ACT</div>
+      </div>
+    </div>
+    <div class="postbar" id="postbar" hidden>
+      <span id="pb-percent" role="status"></span><span id="pb-breakdown" role="status"></span><span id="pb-text"></span>
+      <input id="pb-name" maxlength="14" placeholder="nickname" aria-label="Nickname for the rankings" autocomplete="nickname" spellcheck="false">
+      <button id="pb-post" class="btn btn-pop">&#127941; Post score</button>
+      <span id="pb-msg"></span>
+    </div>
+    <div class="stagebar">
+      <button class="btn back" id="back" type="button" aria-label="Back to the arcade">&lsaquo; Arcade <span class="kbdhint">(Esc)</span></button>
+      <span class="where" id="where" aria-live="polite"></span>
+      <span>Move <kbd>WASD</kbd>/<kbd>&larr;&uarr;&darr;&rarr;</kbd></span>
+      <span>Act <kbd>Space</kbd>/<kbd>Click</kbd></span>
+      <span>Rewind <kbd>R</kbd>/<kbd>Shift</kbd></span>
+      <span>Pause <kbd>P</kbd></span>
+    </div>
+  </div>
+
+  <div class="modal" id="confirm" hidden role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <section class="sheet"><button class="x" id="confirm-x" aria-label="Cancel">&times;</button>
+      <h2 id="confirm-title"></h2><p id="confirm-text"></p>
+      <div class="row"><button class="btn" id="confirm-no" type="button">Cancel</button><button class="btn" id="confirm-yes" type="button"></button></div>
+    </section>
+  </div>
+  <script src="daily.js"></script>
+  <script src="settings.js"></script>
+  <script src="policy.js"></script>
+<script src="engine.js"></script>
+  <script src="games/skyhop.js"></script>
+  <script src="games/swarm.js"></script>
+  <script src="games/striker.js"></script>
+  <script src="games/breaker.js"></script>
+  <script src="games/trail.js"></script>
+  <script src="games/drift.js"></script>
+  <script src="games/prism.js"></script>
+  <script src="games/wrecker.js"></script>
+  <script src="games/glass.js"></script>
+  <script src="games/demo.js"></script>
+  <script src="games/match.js"></script>
+  <script>
+    // ---- UI kit (UX playbook §3–§5): button states, confirm sheet, success burst ----
+    window.UI = {
+      busy(b, label) { if (!b.dataset.label) b.dataset.label = b.innerHTML; b.classList.remove("done"); b.classList.add("busy"); b.disabled = true; b.textContent = label; },
+      done(b, label) { b.classList.remove("busy"); b.classList.add("done"); b.disabled = true; b.textContent = "\u2713 " + label; },
+      reset(b) { b.classList.remove("busy", "done"); if (b.dataset.label) b.innerHTML = b.dataset.label; delete b.dataset.label; b.disabled = false; },
+      confirm({ title, text, ok, danger = true }) {
+        const m = document.getElementById("confirm"), yes = document.getElementById("confirm-yes");
+        document.getElementById("confirm-title").textContent = title; document.getElementById("confirm-text").textContent = text;
+        yes.textContent = ok; yes.className = "btn " + (danger ? "btn-danger" : "btn-pop");
+        const parent=document.querySelector('.modal:not([hidden])');if(parent&&parent!==m)parent.hidden=true;
+        m.hidden = false; setTimeout(() => document.getElementById("confirm-no").focus(), 30);
+        return new Promise(res => {
+          const end = v => { m.hidden = true;if(parent&&parent!==m)parent.hidden=false; m.onclick = null; document.removeEventListener("keydown", esc, true); res(v); };
+          const esc = e => { if (e.key === "Escape") { e.stopPropagation(); end(false); } };
+          document.addEventListener("keydown", esc, true);
+          m.onclick = e => { if (e.target === m || e.target.id === "confirm-no" || e.target.id === "confirm-x") end(false); else if (e.target === yes) end(true); };
+        });
+      },
+      burst(el) {
+        const still = document.documentElement.classList.contains("reduce-motion") || matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (still || !el) return;
+        const r = el.getBoundingClientRect(), b = document.createElement("div"); b.className = "burst";
+        b.style.left = (r.left + r.width / 2) + "px"; b.style.top = (r.top + r.height / 2) + "px";
+        for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2, d = 50 + (i % 3) * 22, d2 = document.createElement("i");
+          d2.style.setProperty("--x", Math.cos(a) * d + "px"); d2.style.setProperty("--y", Math.sin(a) * d + "px");
+          d2.style.setProperty("--c", i % 2 ? "var(--pop)" : "var(--brand)"); b.appendChild(d2); }
+        document.body.appendChild(b); setTimeout(() => b.remove(), 1000);
+      }
+    };
+    const grid = document.getElementById("grid");
+    const stage = document.getElementById("stage");
+    const canvas = document.getElementById("game");
+
+    Forkade.boot(canvas, () => closeStage());
+
+    function refreshBest() {
+      document.querySelectorAll(".best[data-id]").forEach(el => {
+        el.innerHTML = "BEST <b>" + Forkade.scores.get(el.dataset.id) + "</b>";
+      });
+      refreshRewards();
+    }
+    /* ---------- rewards: wallet, stars, locker ---------- */
+    const R = Forkade.rewards;
+    const GAME_NAMES = () => Object.fromEntries([...Forkade.registry.map(g => [g.id, g.meta.title]), ["echo3d", "ECHO 3D"], ["rampage", "RAMPAGE 3D"], ["rumble", "ECHO RUMBLE beta"]]);
+    // numbers roll to their new value instead of jumping
+    function roll(el, to) {
+      const from = +el.dataset.v || 0; el.dataset.v = to;
+      if (from === to || Forkade.settings.reduceMotion || !el.dataset.seen) { el.dataset.seen = 1; el.textContent = to; return; }
+      const t0 = performance.now(), dur = Math.min(900, 300 + Math.abs(to - from) * 8);
+      cancelAnimationFrame(+el.dataset.raf || 0);
+      const tick = now => { const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+        el.textContent = Math.round(from + (to - from) * e); if (k < 1) el.dataset.raf = requestAnimationFrame(tick); };
+      el.dataset.raf = requestAnimationFrame(tick);
+    }
+    function refreshGoal() {
+      const box = document.getElementById("goal"), names = GAME_NAMES();
+      let name, num, frac, hint = "";
+      if (!localStorage.getItem("forkade-starter")) {
+        const n = Math.min(3, R.tried());            // opening the arcade already counts as step 1 of 4
+        name = "<b>Starter goal</b> &middot; try 3 different games"; num = `${n + 1} / 4`; frac = (n + 1) / 4;
+        hint = `&#9670; +${R.STARTER} cores when done`;
+      } else {
+        let best = null;
+        for (const id of Object.keys(names)) {
+          const t = R.tierOf(id); if (t >= 3) continue;
+          const g = R.goals(id, (Forkade.registry.find(x => x.id === id) || {}).meta), have = Forkade.scores.get(id), f = have / g[t];
+          if (have > 0 && f < 1 && (!best || f > best.f)) best = { id, t, goal: g[t], have, f };
+        }
+        if (!best) { box.hidden = true; return; }
+        name = `<b>Next badge</b> &middot; ${names[best.id]} ${R.TIERS[best.t].name.toLowerCase()}`;
+        num = `${best.have.toLocaleString()} / ${best.goal.toLocaleString()}`; frac = best.f;
+        hint = `best score so far &middot; &#9670; +${R.TIERS[best.t].cores} cores`;
+      }
+      box.hidden = false;
+      document.getElementById("g-name").innerHTML = name; document.getElementById("g-num").textContent = num;
+      document.getElementById("g-hint").innerHTML = hint;
+      const pct = Math.round(Math.max(0, Math.min(1, frac)) * 100);
+      document.getElementById("g-bar").setAttribute("aria-valuenow", pct);
+      requestAnimationFrame(() => { document.getElementById("g-fill").style.width = pct + "%"; });
+    }
+    function refreshRewards() {
+      roll(document.getElementById("w-cores"), R.cores());
+      document.getElementById("w-rank").textContent = R.rank();
+      const sn = R.streak();
+      document.getElementById("w-streak").textContent = sn;
+      // last 7 days: filled = played, dashed = tomorrow (what you'd lose by skipping)
+      const on = Math.min(6, sn);
+      document.getElementById("w-sdots").innerHTML = Array.from({ length: 7 }, (_, i) => `<i class="${i < on ? "on" : i === on ? "next" : ""}"></i>`).join("");
+      document.getElementById("w-tmr").textContent = `tomorrow +${10 * Math.min(7, sn + 1)}`;
+      document.getElementById("w-streakbox").title = `Come back tomorrow to make it ${sn + 1} days: +${10 * Math.min(7, sn + 1)} cores`;
+      try { refreshGoal(); } catch (_) {}
+      document.querySelectorAll(".stars[data-id]").forEach(el => {
+        const t = R.tierOf(el.dataset.id);
+        el.innerHTML = [0, 1, 2].map(k => `<span class="${k < t ? "on" : "off"}">&#9733;</span>`).join("");
+        el.title = t ? R.TIERS[t - 1].name + " badge" : "no badge yet";
+      });
+      if (!document.getElementById("locker").hidden) renderLocker();
+    }
+    function renderLocker() {
+      const own = R.owned(), eq = R.skin().id, cores = R.cores();
+      document.getElementById("skins").innerHTML = R.SKINS.map(sk => {
+        const has = own.includes(sk.id), bg = sk.color === "rainbow"
+          ? "linear-gradient(135deg,#ff3ea5,#ffb23f,#9dff57,#22e4ff,#a07bff)" : sk.color;   /* skin = game colour, not UI */
+        const btn = sk.id === eq ? `<button class="btn done" disabled>&#10003; Equipped</button>`
+          : has ? `<button class="btn" data-skin="${sk.id}">Equip</button>`
+          : sk.machineOnly ? `<span class="why">Prize machine only</span>`
+          : cores < sk.cost ? `<button class="btn" disabled aria-describedby="why-${sk.id}">&#9670; ${sk.cost}</button><small class="why" id="why-${sk.id}">Need ${sk.cost - cores} more cores</small>`
+          : `<button class="btn" data-skin="${sk.id}">&#9670; ${sk.cost} Buy</button>`;
+        return `<div class="skin ${sk.id === eq ? "eq" : ""}"><div class="sw" style="background:${bg};color:${sk.color === "rainbow" ? "#a07bff" : sk.color}"></div>${sk.name}${btn}</div>`;
+      }).join("");
+      const names = GAME_NAMES(); let total = 0;
+      document.getElementById("badges").innerHTML = Object.keys(names).map(id => {
+        const t = R.tierOf(id), g = R.goals(id, (Forkade.registry.find(x => x.id === id) || {}).meta); total += t;
+        const next = t < 3 ? `next: ${R.TIERS[t].name.toLowerCase()} at ${g[t]} pts (+${R.TIERS[t].cores} cores)` : "all badges won";
+        const stars = [0, 1, 2].map(k => `<span style="color:${k < t ? "var(--brand)" : "rgba(141,146,189,.35)"}">&#9733;</span>`).join("");
+        return `<div class="badge"><div>${names[id]}<small>${next}</small></div><div>${stars}</div></div>`;
+      }).join("");
+      document.getElementById("badge-count").textContent = `${total} / ${Object.keys(names).length * 3}`;
+    }
+    function toast(text) {
+      const t = document.createElement("div"); t.className = "toast"; t.textContent = text;
+      document.getElementById("toasts").appendChild(t); setTimeout(() => t.remove(), 3200);
+    }
+    document.getElementById("open-locker").addEventListener("click", () => {
+      document.getElementById("locker").hidden = false; renderLocker();
+    });
+    document.getElementById("close-locker").addEventListener("click", () => { document.getElementById("locker").hidden = true; });
+    document.getElementById("locker").addEventListener("click", e => {
+      if (e.target.id === "locker") e.currentTarget.hidden = true;
+      const id = e.target.dataset && e.target.dataset.skin; if (!id) return;
+      if (R.buy(id)) { Forkade.sfx.pickup(); toast("ECHO is now " + R.SKINS.find(s => s.id === id).name + "!"); }
+      refreshRewards(); renderLocker();
+    });
+
+    let gframe = document.getElementById("gframe");
+
+    // phones: go full screen and lock landscape where the browser allows it (Android); iPhone just rotates
+    function phoneFullscreen() {
+      if (!document.body.classList.contains("touch")) return;
+      const el = document.documentElement;
+      if (!document.fullscreenElement && el.requestFullscreen)
+        el.requestFullscreen({ navigationUI: "hide" }).then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock("landscape").catch(() => {})).catch(() => {});
+    }
+    function leaveFullscreen() { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); }
+    function openGame(id, options = {}) { Place.enter(id, () => runGame(id, options)); }
+    function runGame(id, options = {}) {
+      stage.classList.remove("d3", "t-tap", "t-lr", "rumble-stage");
+      const meta = (Forkade.registry.find(g => g.id === id) || {}).meta || {};
+      if (meta.touch) stage.classList.add("t-" + meta.touch);
+      Forkade.stats.send("play", id);
+      // Preserve portrait orientation for the three adaptive games.
+      if (!["skyhop","swarm","striker","breaker"].includes(id)) phoneFullscreen();
+      gframe.src = "about:blank";
+      stage.classList.add("on"); document.body.classList.add("playing");
+      canvas.focus();
+      Forkade.play(id, options);
+    }
+    function open3D(id = "echo3d") { if (typeof id !== "string") id = "echo3d"; Place.enter(id, () => run3D(id)); }
+    function run3D(id) {
+      if (Forkade.current()) Forkade.stop(true);
+      // A fresh frame avoids Safari racing a previous about:blank navigation.
+      const fresh = gframe.cloneNode(false); fresh.removeAttribute('srcdoc'); fresh.removeAttribute('src');
+      gframe.replaceWith(fresh); gframe = fresh;
+      Forkade.sfx.ensure(); phoneFullscreen(); if(id!=="rumble"){Forkade.board.begin(id); Forkade.stats.send("play", id);}
+      stage.classList.toggle("rumble-stage",id==="rumble");gframe.title=GAME_NAMES()[id]||"3D game";
+      stage.classList.add("on", "d3"); document.body.classList.add("playing");
+      // If the 3D page was inlined (single-file build), run it from srcdoc so it
+      // works with no separate file. Otherwise load the file (folder version).
+      const inline = id === "rumble" ? window.__RUMBLE_HTML__ : id === "rampage" ? window.__RAMPAGE_HTML__ : window.__ECHO3D_HTML__;
+      if (inline) { gframe.removeAttribute("src"); gframe.srcdoc = inline; }
+      else { gframe.removeAttribute("srcdoc"); gframe.src = "games3d/" + (["rumble","rampage"].includes(id) ? id : "echo3d") + ".html"; }
+      gframe.focus();
+    }
+    function closeStage() {
+      if (!stage.classList.contains("on")) return;
+      Place.leave(() => {
+        stage.classList.remove("on", "d3", "portrait-game", "rumble-stage"); document.body.classList.remove("playing"); leaveFullscreen();
+        const gf = document.getElementById("gframe"); if (gf) { gf.removeAttribute("srcdoc"); gf.src = "about:blank"; }
+        refreshBest();
+      });
+    }
+    // ---- Sense of place (playbook 5.2): the card becomes the game, Back goes back to the same card ----
+    const Place = (() => {
+      const still = () => !!(Forkade.settings && Forkade.settings.reduceMotion) || document.documentElement.classList.contains("reduce-motion") || matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const http = /^https?:$/.test(location.protocol);
+      let tapped = null, from = null, y0 = 0, popping = false, pushed = false, pendingBacks = 0, backTimer = null;
+      document.addEventListener("click", e => { const c = e.target.closest(".card"); if (c) tapped = c; }, true);
+      const onScreen = el => { if (!el || !el.isConnected || !el.offsetParent) return false; const r = el.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; };
+      const name = id => (GAME_NAMES()[id] || id).toUpperCase();
+      // morph `a` (named before) into whatever `b()` returns (named after); directional root slide
+      function morph(update, a, b, dir) {
+        if (!document.startViewTransition || still() || !onScreen(a)) { update(); return; }
+        const root = document.documentElement; root.classList.add(dir === "back" ? "vt-back" : "vt-fwd");
+        a.style.viewTransitionName = "hero";
+        let t;
+        try { t = document.startViewTransition(() => { a.style.viewTransitionName = ""; update(); const n = b(); if (n) n.style.viewTransitionName = "hero"; }); }
+        catch (_) { a.style.viewTransitionName = ""; update(); root.classList.remove("vt-fwd", "vt-back"); return; }
+        t.finished.finally(() => { const n = b(); if (n) n.style.viewTransitionName = ""; root.classList.remove("vt-fwd", "vt-back"); });
+      }
+      function enter(id, run) {
+        // Complete the prior traversal before pushing a new game entry (Safari may defer it).
+        if(pendingBacks){setTimeout(()=>enter(id,run),40);return;}
+        const again = stage.classList.contains("on");
+        const hit = tapped && tapped.isConnected ? tapped : null; tapped = null;   // only a tapped card morphs; code-opened games start at once
+        const card = hit || document.querySelector(`.card[data-game="${id}"]`);
+        { const w = document.getElementById("where"), sep = document.createElement("i"); sep.textContent = "\u203a";
+          w.replaceChildren("Arcade", sep, name(id)); }
+        if (again) { run(); return; }
+        from = card; y0 = scrollY;
+        if (http) try {
+          // our own count, not history.state: a Back we asked for may still be on its way
+          if (!pushed && !pendingBacks && (location.pathname !== "/" || location.search)) history.replaceState({ list: 1 }, "", "/");   // a deep link still has the arcade behind it
+          if (!pushed) { history.pushState({ fg: id }, "", "/" + id); pushed = true; }
+          else history.replaceState({ fg: id }, "", "/" + id);
+        } catch (_) {}
+        // phones that go full screen for this game skip the morph (full screen and the animation fight)
+        const fs = document.body.classList.contains("touch") && !["skyhop", "swarm", "striker", "breaker"].includes(id);
+        if (fs || !hit) run(); else morph(run, hit, () => stage, "fwd");
+      }
+      function leave(close) {
+        const card = from && from.isConnected && from.offsetParent ? from : null;
+        morph(() => { close(); scrollTo({ top: y0, behavior: "instant" }); }, stage, () => card, "back");
+        if (card && !still()) { card.classList.remove("back-pulse"); void card.offsetWidth; card.classList.add("back-pulse");
+          setTimeout(() => card.classList.remove("back-pulse"), 900); }
+        if (http && !popping && pushed) { pushed = false; pendingBacks++; try { history.back(); } catch (_) { pendingBacks--; }
+          // Some WebKit hosts suppress a script-triggered second traversal. The grid is
+          // already visible: keep its URL truthful and release the pending navigation.
+          clearTimeout(backTimer);backTimer=setTimeout(()=>{if(pendingBacks&&!stage.classList.contains('on')){pendingBacks=0;history.replaceState({list:1},'', '/');}},300);
+        }
+        if (popping) pushed = false;
+      }
+      // phone/browser Back and swipe-back close the game exactly like the on-screen Back
+      addEventListener("popstate", e => {
+        if (pendingBacks) { pendingBacks--; clearTimeout(backTimer); return; }
+        if (stage.classList.contains("on") && !(e.state && e.state.fg)) {
+          popping = true;
+          if (stage.classList.contains("d3") || !Forkade.current()) closeStage(); else Forkade.stop();
+          popping = false;
+        }
+      });
+      return { enter, leave };
+    })();
+    // menus and sheets start at their button (origin = the trigger), shrink back into it
+    (function sheetsFromTrigger() {
+      let trig = null;
+      document.addEventListener("pointerdown", e => { const b = e.target.closest("button, a, [role=button]"); if (b) trig = b.getBoundingClientRect(); }, true);
+      document.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && document.activeElement) trig = document.activeElement.getBoundingClientRect(); }, true);
+      const mo = new MutationObserver(list => list.forEach(m => {
+        const modal = m.target; if (modal.hidden) return;
+        const sh = modal.querySelector(".sheet"); if (!sh || !trig) return;
+        const r = sh.getBoundingClientRect();
+        sh.style.setProperty("--ox", Math.round(trig.left + trig.width / 2 - r.left) + "px");
+        sh.style.setProperty("--oy", Math.round(trig.top + trig.height / 2 - r.top) + "px");
+      }));
+      document.querySelectorAll(".modal").forEach(m => mo.observe(m, { attributes: true, attributeFilter: ["hidden"] }));
+      addEventListener("load", () => document.querySelectorAll(".modal").forEach(m => mo.observe(m, { attributes: true, attributeFilter: ["hidden"] })));
+    })();
+    // coming back from the Playground: same scroll, the card pulses
+    (function returnFromPlayground() {
+      try {
+        const r = JSON.parse(sessionStorage.getItem("forkade-return") || "null"); sessionStorage.removeItem("forkade-return");
+        if (r && /playground/.test(document.referrer)) addEventListener("load", () => { scrollTo({ top: r.y, behavior: "instant" });
+          const c = document.querySelector(".card.make"); if (c && !document.documentElement.classList.contains("reduce-motion")) { c.classList.add("back-pulse"); setTimeout(() => c.classList.remove("back-pulse"), 900); } });
+      } catch (_) {}
+    })();
+    document.getElementById("back").addEventListener("click", () => Forkade.stop());
+    // the 3D game lives in an iframe and asks to close via postMessage
+    window.addEventListener("message", e => {
+      if (e.source === gframe.contentWindow && e.data?.t === "forkade-run-start") Forkade.board.begin(e.data.id);
+      if (e.data === "neon-3d-back") closeStage();
+      if (e.data && e.data.t === "forkade-score" && ["echo3d", "rampage"].includes(e.data.id) && e.source === gframe.contentWindow) {
+        const got = R.roundEnd(e.data.id, e.data.score | 0, !!e.data.best);
+        if (got) toast(`+${got} cores from ${GAME_NAMES()[e.data.id]}`);
+        refreshRewards();
+      }
+    });
+
+    // first visit: one clear place to start instead of 12 equal choices (gone after the first game)
+    const START_ID = Forkade.experiment.start(), isNew = R.tried() === 0;
+    Forkade.registry.forEach((g, i) => {
+      const m = g.meta;
+      const card = document.createElement("div");
+      card.className = "card";
+      card.style.setProperty("--c", m.color);
+      card.innerHTML = `
+        <div class="num">${String(i + 1).padStart(2, "0")}</div>
+        <div class="dot"><span></span></div>
+        <h3 class="name">${m.title}</h3>
+        <div class="genre">${m.genre}</div>
+        <p class="desc">${m.desc}</p>
+        <span class="play">&#9654; Play now</span>
+        <div class="best" data-id="${g.id}">BEST <b>${Forkade.scores.get(g.id)}</b></div>
+        <div class="stars" data-id="${g.id}"></div>`;
+      card.dataset.game = g.id;
+      if (isNew && g.id === START_ID) { card.classList.add("start"); card.insertAdjacentHTML("afterbegin", '<span class="starttag">START HERE &middot; TRY THIS FIRST</span>'); }
+      card.addEventListener("click", () => openGame(g.id));
+      grid.appendChild(card);
+    });
+
+    /* ---------- 3D bonus game (three.js, in an iframe) ---------- */
+    (function add3D() {
+      const i = Forkade.registry.length;
+      const card = document.createElement("div");
+      card.className = "card";
+      card.style.setProperty("--c", "#9dff57");
+      card.innerHTML = `
+        <div class="num">${String(i + 1).padStart(2, "0")}</div>
+        <div class="dot"><span></span></div>
+        <h3 class="name">ECHO 3D <span style="font-size:12px;color:#9dff57">· 3D</span></h3>
+        <div class="genre">3D platformer</div>
+        <p class="desc">Run and jump ECHO across a floating neon obstacle course. Collect cores, reach the goal. Rewind your falls.</p>
+        <span class="play">&#9654; Play now</span>
+        <div class="best" data-id="echo3d">BEST <b>${Forkade.scores.get("echo3d")}</b></div>
+        <div class="stars" data-id="echo3d"></div>`;
+      card.dataset.game = "echo3d";
+      card.addEventListener("click", open3D);
+      grid.appendChild(card);
+    })();
+
+    (function addRampage() {
+      const card=document.createElement('button');card.className='card';card.style.setProperty('--c','#ff3ea5');card.style.color='var(--ink)';card.style.fontFamily='inherit';card.style.textAlign='left';
+      card.innerHTML='<div class="dot"><span></span></div><h3 class="name">RAMPAGE 3D</h3><div class="genre">3D city destruction</div><p class="desc">Giant ECHO stomps a neon city into chunks. Race the timer, rewind and smash again.</p><span class="play">▶ Play now</span><div class="best" data-id="rampage">BEST <b>'+Forkade.scores.get('rampage')+'</b></div><div class="stars" data-id="rampage"></div>';
+      card.dataset.game='rampage';card.onclick=()=>open3D('rampage');grid.appendChild(card);
+    })();
+    /* ---------- build-your-own card -> Playground ---------- */
+    (function addMake() {
+      const href = "playground.html";   // build_dist.py points this at the live site
+      const card = document.createElement("a");
+      card.className = "card make"; card.href = href;
+      card.addEventListener("click", () => { try { sessionStorage.setItem("forkade-return", JSON.stringify({ y: scrollY })); } catch (_) {} });
+      card.style.setProperty("--c", "#ff3ea5");
+      card.innerHTML = `
+        <div class="num">+</div>
+        <div class="dot"><span></span></div>
+        <h3 class="name">MAKE YOUR OWN</h3>
+        <div class="genre">Open source &middot; MIT</div>
+        <p class="desc">Every game here is open source. Write your own in the Playground, play it instantly with rewind built in, then submit it to join the arcade.</p>
+        <span class="play">&#9998; Open Playground</span>
+        <div class="best">no install needed</div>`;
+      grid.appendChild(card);
+    })();
+
+    /* ---------- player name ---------- */
+    // nickname lives in Settings now (features.js); one place to change it
+
+    /* ---------- touch controls ---------- */
+    const isTouch = matchMedia("(pointer:coarse)").matches || "ontouchstart" in window;
+    if (isTouch) { document.getElementById("rewindtip").innerHTML = "&#9199; Mess up? Hold <b>REW</b> to rewind time.";
+      document.body.classList.add("touch"); document.getElementById("back").innerHTML = "&lsaquo; Arcade"; }
+    document.querySelectorAll("#touchctl .tbtn").forEach(btn => {
+      const code = btn.dataset.code;
+      const down = e => { e.preventDefault(); Forkade.Input.hold(code, true); };
+      const up   = e => { e.preventDefault(); Forkade.Input.hold(code, false); };
+      btn.addEventListener("pointerdown", down);
+      btn.addEventListener("pointerup", up);
+      btn.addEventListener("pointerleave", up);
+      btn.addEventListener("pointercancel", up);
+    });
+
+    /* ---------- mute toggle ---------- */
+    // bottom sheets: a grab handle, and swipe down to close (phones)
+    function sheetify(sheet) {
+      if (!sheet || sheet.dataset.sheet) return; sheet.dataset.sheet = 1;
+      const g = document.createElement("i"); g.className = "grab"; g.setAttribute("aria-hidden", "true"); sheet.prepend(g);
+      let y0 = null, dy = 0;
+      sheet.addEventListener("touchstart", e => { y0 = sheet.scrollTop <= 0 ? e.touches[0].clientY : null; dy = 0; }, { passive: true });
+      sheet.addEventListener("touchmove", e => { if (y0 === null) return; dy = Math.max(0, e.touches[0].clientY - y0);
+        sheet.style.transform = dy ? `translateY(${dy}px)` : ""; }, { passive: true });
+      sheet.addEventListener("touchend", () => { sheet.style.transform = "";
+        if (y0 !== null && dy > 90) { const x = sheet.querySelector(".x"); if (x) x.click(); } y0 = null; });
+    }
+    window.addEventListener("load", () => document.querySelectorAll(".modal .sheet").forEach(sheetify));
+    // Esc closes the top pop-up (before it can reach the game or the menu)
+    document.addEventListener("keydown", e => {
+      if (e.key !== "Escape") return;
+      const open = [...document.querySelectorAll(".modal:not([hidden])")].pop(); if (!open) return;
+      const x = open.querySelector(".x"); if (x) { e.stopPropagation(); e.preventDefault(); x.click(); }
+    }, true);
+    // sound lives in Settings now (one place for every option)
+    function paintMute() {}
+
+    // badge toasts raised outside a canvas game (3D, menu) show as DOM toasts
+    R.listeners.push((text) => {
+      const st = document.getElementById("stage").classList;
+      if (text && (!st.contains("on") || st.contains("d3"))) { toast(text);   // 2D games draw their own toasts
+        if (/BADGE|STARTER|TOP 10/i.test(text)) UI.burst(document.querySelector("#toasts .toast:last-child")); }
+      if (!text) refreshRewards();                                         // cores changed: roll the wallet
+    });
+    { const d = R.daily(); if (d && d.cores) setTimeout(() => toast(`Day ${d.streak} streak! +${d.cores} cores`), 600); }
+    refreshRewards();
+    Forkade.stats.send("visit");
+
+    /* ---------- global rankings (opt-in) ---------- */
+    const B = Forkade.board;
+    const rankGames = () => [...Forkade.registry.map(g => ({ id: g.id, t: g.meta.title })), { id: "echo3d", t: "ECHO 3D" }, { id: "rampage", t: "RAMPAGE 3D" }];
+    let rGame = "skyhop", rPeriod = "week";
+    const esc = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    async function loadRanks() {
+      const list = document.getElementById("rlist"), me = document.getElementById("rme");
+      document.getElementById("rgames").innerHTML = rankGames().map(g =>
+        `<button data-game="${g.id}" class="${g.id === rGame ? "on" : ""}">${esc(g.t)}</button>`).join("");
+      document.querySelectorAll("#ranks [data-period]").forEach(b => b.classList.toggle("on", b.dataset.period === rPeriod));
+      // keep the list's final size while loading, so nothing jumps when the rows arrive
+      list.innerHTML = '<li class="sk"></li>'.repeat(10); list.setAttribute("aria-busy", "true"); me.textContent = "Loading rankings\u2026";
+      const seq = ++ranksSeq;
+      try {
+        if (rPeriod === "daily") rGame = ForkadeDaily.challenge().game;
+        const d = await B.top(rGame, rPeriod);
+        if (seq !== ranksSeq) return;           // a newer tab was picked meanwhile
+        list.removeAttribute("aria-busy");
+        list.innerHTML = d.top.length ? d.top.map(r =>
+          `<li class="${r.me ? "me" : ""}"><span class="n">#${r.rank}</span><span class="nm">${esc(r.name)}${r.me ? " (you)" : ""}</span><span class="sc">${r.score}</span>${
+            r.me || r.name === "Player" ? `<span class="rep"></span>` : `<button class="rep" data-rank="${r.rank}" data-name="${esc(r.name)}" title="Report this nickname" aria-label="Report ${esc(r.name)}">&#9873;</button>`}</li>`).join("")
+          : '<li class="msg">No scores yet. <button class="btn" id="empty-play">Play a round</button></li>';
+        const empty=document.getElementById('empty-play');if(empty)empty.onclick=()=>{document.getElementById('ranks').hidden=true;['echo3d','rampage'].includes(rGame)?open3D(rGame):openGame(rGame);};
+        me.textContent = d.me ? `You're #${d.me.rank} of ${d.count} with ${d.me.score}.` : `${d.count} players ranked. Post a score after any round to join.`;if(d.notice)me.textContent+=" Owner notice: "+d.notice.reason;
+      } catch (err) {
+        if (seq !== ranksSeq) return;
+        list.removeAttribute("aria-busy"); me.textContent = "";
+        list.innerHTML = `<li class="msg">${esc(err.message)}<button type="button" class="btn" id="r-retry">Retry</button></li>`;
+      }
+    }
+    let ranksSeq = 0;
+    document.getElementById("forget").addEventListener("click", async () => {
+      const m = document.getElementById("forget-msg"), btn = document.getElementById("forget");
+      const ok = await UI.confirm({ title: "Remove your scores?", ok: "Remove",
+        text: "This removes every score you posted and your nickname from the rankings. Your cores, badges and skins on this device stay." });
+      if (!ok) return;
+      m.textContent = ""; UI.busy(btn, "Removing\u2026");
+      try { await B.forget(); UI.done(btn, "Removed"); m.textContent = "Your nickname and scores are gone from the rankings."; loadRanks(); }
+      catch (err) { UI.reset(btn); m.textContent = err.message; }
+    });
+    document.getElementById("open-ranks").addEventListener("click", () => { document.getElementById("ranks").hidden = false; loadRanks(); });
+    document.getElementById("close-ranks").addEventListener("click", () => { document.getElementById("ranks").hidden = true; });
+    document.getElementById("ranks").addEventListener("click", e => {
+      if (e.target.id === "ranks") e.currentTarget.hidden = true;
+      if (e.target.dataset.game) { rGame = e.target.dataset.game; loadRanks(); }
+      if (e.target.dataset.period) { rPeriod = e.target.dataset.period; loadRanks(); }
+      if (e.target.id === "r-retry") loadRanks();
+      const rb = e.target.closest && e.target.closest("button.rep");
+      if (rb) {
+        UI.confirm({ title: "Report " + rb.dataset.name + "?", ok: "Report",
+          text: "Use this for rude or fake nicknames or impossible scores. After 3 reports the nickname is hidden as \u201cPlayer\u201d until we review it." })
+          .then(ok => { if (!ok) return; rb.disabled = true; rb.textContent = "\u2026";
+            B.report(rGame, rPeriod, +rb.dataset.rank, rb.dataset.name)
+              .then(() => { rb.textContent = "\u2713"; toast("Thanks, we'll take a look."); })
+              .catch(err => { rb.textContent = "\u2691"; rb.disabled = false; toast(err.message); }); });
+      }
+    });
+    // "post this score?" bar under the game, shown after a round ends
+    const pb = document.getElementById("postbar"), pbName = document.getElementById("pb-name"), pbMsg = document.getElementById("pb-msg");
+    let posted = null, shownRound = null, posting = false;
+    try { pbName.value = localStorage.getItem("neon-player") || ""; } catch (_) {}
+    ["keydown", "keyup"].forEach(t => pbName.addEventListener(t, e => {
+      if (e.key === "Escape") { pbName.blur(); return; }     // Esc still goes back to the menu
+      e.stopPropagation();                                   // typing a name must not steer or restart the game
+      if (t === "keydown" && e.key === "Enter") document.getElementById("pb-post").click();
+    }));
+    setInterval(() => {
+      const L = B.last, on = stage.classList.contains("on");
+      const show = on && L && L.score >= 0;
+      if (show && (pb.hidden || shownRound !== L)) {
+        shownRound = L;
+        pb.classList.toggle('polished',!!Forkade.current()?.meta.polished);
+        const percentile=document.getElementById('pb-percent');percentile.textContent='';
+        if(!L.assisted&&localStorage.getItem('forkade-pid'))B.top(L.id,'week').then(d=>{if(B.last===L&&d.me?.percent!=null)percentile.textContent="Your posted best beat "+d.me.percent+"% of this week's players";}).catch(()=>{});
+        pb.hidden = false; pbMsg.textContent = L.assisted ? "Assisted rounds aren’t ranked" : "";
+        document.getElementById("pb-post").hidden=!!L.assisted;pbName.hidden=!!L.assisted; pbMsg.className = "";
+        { const b = document.getElementById("pb-post"); UI.reset(b); b.innerHTML = "&#127941; Post score"; }
+        const name = (rankGames().find(g => g.id === L.id) || {}).t || L.id;
+        document.getElementById("pb-text").textContent = `${name}: ${L.score} points${L.assisted ? " · ASSIST" : ""}`;
+        document.getElementById("pb-breakdown").textContent=(R.breakdown||[]).map(p=>`${p[0]} +${p[1]}${p[2]?" ("+p[2]+")":""}`).join(" · ");
+      } else if (!show) pb.hidden = true;
+      if (!on) pb.hidden = true;
+      document.body.classList.toggle("pb-open", !pb.hidden);
+    }, 250);
+    // keep the game-over bar above the phone keyboard while typing a nickname
+    if (window.visualViewport) { const vv = window.visualViewport, kb = () => document.documentElement.style.setProperty("--kb",
+        Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop)) + "px");
+      vv.addEventListener("resize", kb); vv.addEventListener("scroll", kb); }
+    document.getElementById("pb-post").addEventListener("click", async () => {
+      const L = B.last; if (!L) return;
+      const name = pbName.value.trim();
+      if (name.length < 2) { pbMsg.textContent = "Pick a nickname first (2-14 letters or numbers)."; pbMsg.className = "err"; pbName.focus(); return; }
+      try { localStorage.setItem("neon-player", name); } catch (_) {}
+      { const pn = document.getElementById("playername"); if (pn) pn.value = name; }
+      if (posting || posted === L) return;          // one tap, one post
+      const btn = document.getElementById("pb-post"), label = btn.innerHTML;
+      posting = true; UI.busy(btn, "Posting\u2026");
+      pbMsg.textContent = ""; pbMsg.className = "";
+      try {
+        const r = await B.post(L.id, L.score, name); posted = L;
+        pbMsg.textContent = r.pending ? r.message : `Posted! You're #${r.week.rank} this week and #${r.all.rank} all time (best ${r.all.best}).`;
+        if(r.week?.percent!=null)document.getElementById('pb-percent').textContent="You beat "+r.week.percent+"% of this week's players";
+        UI.done(btn, "Posted"); UI.burst(btn);      // stays locked for this round; Share stays available
+      } catch (err) { pbMsg.textContent = err.message; pbMsg.className = "err"; UI.reset(btn); btn.innerHTML = label; }
+      finally { posting = false; }
+    });
+
+    /* ---------- PWA: install button + service worker ---------- */
+    let deferredPrompt = null;
+    const installBtn = document.getElementById("install");
+    window.addEventListener("beforeinstallprompt", e => {
+      e.preventDefault(); deferredPrompt = e; installBtn.classList.add("show");
+    });
+    // one button for everyone: real install prompt where the browser offers it,
+    // clear steps where it doesn't (iPhone/iPad, Firefox...), plus a one-file download
+    const dlbox = document.getElementById("dlbox"), dlmsg = document.getElementById("dlmsg");
+    const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+    if (standalone) installBtn.classList.remove("show");
+    installBtn.addEventListener("click", async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const r = await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        if (r && r.outcome === "accepted") { installBtn.classList.remove("show"); return; }
+      }
+      const ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua) || (ua.includes("Mac") && "ontouchend" in document);
+      dlmsg.innerHTML = ios
+        ? "<b>iPhone / iPad:</b> tap the <b>Share</b> button (square with an arrow) in Safari, then <b>Add to Home Screen</b>. FORKADE then opens full-screen and works offline."
+        : /Android/.test(ua)
+        ? "<b>Android:</b> open the browser menu <b>&#8942;</b> and tap <b>Install app</b> (or <b>Add to Home screen</b>). It then works offline."
+        : "<b>Computer:</b> in Chrome or Edge, click the <b>install</b> icon at the right of the address bar (or menu &rarr; <b>Install FORKADE</b>). Or grab the single file below.";
+      dlbox.hidden = !dlbox.hidden;
+    });
+    window.addEventListener("appinstalled", () => { installBtn.classList.remove("show"); dlbox.hidden = true; });
+
+    /* ---------- install bar (playbook section 11) ---------- */
+    (function installBar() {
+      const bar = document.getElementById("installbar"), sheet = document.getElementById("ios-install");
+      const KEY = "forkade-install-snooze";   // until-timestamp; the ✕ hides the bar for 3 days
+      const installed = () => matchMedia("(display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui)").matches
+        || navigator.standalone === true;
+      const snoozed = () => { try { return Date.now() < Number(localStorage.getItem(KEY) || 0); } catch (_) { return false; } };
+      const ua = navigator.userAgent;
+      const iosSafari = (/iPhone|iPad|iPod/.test(ua) || (ua.includes("Macintosh") && navigator.maxTouchPoints > 1))
+        && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(ua);
+      let prompt = null, gone = false;
+      const can = () => !gone && !installed() && !snoozed() && (prompt || iosSafari);
+      const show = () => { bar.hidden = !can();
+        document.documentElement.style.setProperty('--ibh', bar.hidden ? '0px' : bar.offsetHeight + 'px'); };
+      addEventListener("beforeinstallprompt", e => { e.preventDefault(); prompt = e; deferredPrompt = e; show(); });
+      addEventListener("appinstalled", () => { gone = true; sheet.hidden = true; show(); });
+      document.getElementById("ib-go").addEventListener("click", async () => {
+        if (prompt) {
+          const p = prompt; prompt = null; deferredPrompt = null; p.prompt();   // a prompt can only be used once
+          const r = await p.userChoice.catch(() => null);
+          if (r && r.outcome === "accepted") gone = true;
+          show();
+        } else if (iosSafari) { sheet.hidden = false; document.getElementById("ios-install-close").focus(); }
+      });
+      document.getElementById("ib-x").addEventListener("click", () => {
+        try { localStorage.setItem(KEY, String(Date.now() + 3 * 864e5)); } catch (_) {}
+        show();
+      });
+      const closeSheet = () => { sheet.hidden = true; document.getElementById("ib-go").focus(); };
+      document.getElementById("ios-install-close").addEventListener("click", closeSheet);
+      sheet.addEventListener("click", e => { if (e.target === sheet) closeSheet(); });
+      addEventListener("keydown", e => { if (e.key === "Escape" && !sheet.hidden) closeSheet(); });
+      show();
+    })();
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () =>
+        navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(reg => reg.update()).catch(() => {}));
+      // a new version took over: refresh once so the newest games load (never in the middle of a game)
+      const hadController = !!navigator.serviceWorker.controller;
+      let refreshPending = false;
+      const refreshNow = () => { try { if (sessionStorage.getItem("forkade-refreshed")) return; sessionStorage.setItem("forkade-refreshed", "1"); } catch (_) {} location.reload(); };
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (!hadController) return;                       // first install: nothing old to replace
+        if (stage.classList.contains("on")) refreshPending = true; else refreshNow();
+      });
+      setInterval(() => { if (refreshPending && !stage.classList.contains("on")) { refreshPending = false; refreshNow(); } }, 1000);
+    }
+    // ---- Landing anatomy (playbook §18): hero, real numbers, game finder, closing band. Real data only. ----
+    (function landing() {
+      const N3D = 3, total = Forkade.registry.length + N3D, names = GAME_NAMES();
+      document.getElementById("hero-sub").innerHTML = `${total} free arcade games in your browser &middot; no sign-ups`;
+      // proof: only numbers that are true for everyone, right now (no ratings or reviews exist yet, so none are shown)
+      document.getElementById("proof").innerHTML = [[total, "GAMES"], [N3D, "IN 3D"], [0, "SIGN-UPS"], [0, "ADS"]]
+        .map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join("");
+      const start = () => document.querySelector(".card.start");
+      const label = () => start() ? "▶ Play " + start().querySelector(".name").textContent.trim() : "▶ Play today's challenge";
+      const play = () => { const s = start(); if (s) return s.click(); const d = document.getElementById("daily-challenge"); if (d) d.click(); else openGame(Forkade.registry[0].id); };
+      for (const id of ["hero-play", "closing-play"]) { const b = document.getElementById(id); b.textContent = label(); b.addEventListener("click", play); }
+      // the cards' Play becomes the (sticky) main action once the hero's Play has scrolled away: one yellow button on screen
+      if ("IntersectionObserver" in window) new IntersectionObserver(([e]) => document.body.classList.toggle("hero-out", !e.isIntersecting))
+        .observe(document.getElementById("hero-play"));
+      else document.body.classList.add("hero-out");
+      // finder: one question per step, tap to answer, the picture sharpens as you answer
+      const KINDS = [
+        { k: "jump", t: "Jump & climb", d: "platforms and timing", quick: "skyhop", long: "echo3d" },
+        { k: "shoot", t: "Shoot", d: "waves of enemies", quick: "swarm", long: "striker" },
+        { k: "smash", t: "Smash things", d: "physics and debris", quick: "glass", long: "rampage" },
+        { k: "think", t: "Think", d: "puzzles and combos", quick: "match", long: "demo" }];
+      const LENS = [{ k: "quick", t: "Short rounds", d: "quick restarts" }, { k: "long", t: "Longer runs", d: "a course or a level" }];
+      const $ = id => document.getElementById(id), ans = {};
+      const pic = (id, half) => { const img = $("f-img"); img.hidden = false; img.src = "og/" + id + ".png"; $("f-pic").classList.toggle("half", half);
+        $("f-name").textContent = half ? "" : names[id]; };
+      const chips = (list, onPick) => `<div class="f-chips">${list.map(o => `<button class="btn" type="button" data-k="${o.k}">${o.t}<small>${o.d}</small></button>`).join("")}</div>`;
+      function step(n) {
+        $("f-done").hidden = true; $("f-q").hidden = false;
+        $("f-step").textContent = `Step ${n} of 2`; $("f-fill").style.width = (n === 1 ? 34 : 67) + "%";
+        if (n === 1) { $("f-q").innerHTML = `<h3>What do you feel like?</h3>` + chips(KINDS);
+          $("f-q").onclick = e => { const b = e.target.closest("button[data-k]"); if (!b) return; ans.kind = KINDS.find(o => o.k === b.dataset.k); pic(ans.kind.quick, true); step(2); }; }
+        else { $("f-q").innerHTML = `<h3>How long do you want to play?</h3>` + chips(LENS);
+          $("f-q").onclick = e => { const b = e.target.closest("button[data-k]"); if (!b) return; ans.len = LENS.find(o => o.k === b.dataset.k); done(); }; }
+      }
+      function done() {
+        const id = ans.kind[ans.len.k]; pic(id, false);
+        $("f-step").textContent = "Your game"; $("f-fill").style.width = "100%"; $("f-q").hidden = true;
+        const d = $("f-done"); d.hidden = false;
+        d.innerHTML = `<div class="chips"><button class="btn" type="button" data-step="1">${ans.kind.t} &#10005;</button><button class="btn" type="button" data-step="2">${ans.len.t} &#10005;</button></div>` +
+          `<button class="btn btn-pop" type="button" id="f-play">▶ Play ${names[id]}</button>`;
+        d.onclick = e => { const c = e.target.closest("[data-step]"); if (c) return step(+c.dataset.step);
+          if (e.target.closest("#f-play")) (["echo3d", "rampage"].includes(id) ? open3D(id) : openGame(id)); };
+      }
+      step(1);
+    })();
+  </script>
+  <script src="features.js"></script>
+<script src="dialogs.js"></script>
+</body>
+</html>
