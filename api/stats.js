@@ -20,13 +20,13 @@ function redis() {
       cmds = cmds.map(c => [c[0], prefix + c[1], ...c.slice(2)]); }
     const r = await fetch(url.replace(/\/$/, "") + "/pipeline", {
       method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify(cmds),
+      body: JSON.stringify(cmds), signal: AbortSignal.timeout(5000),
     });
     if (!r.ok) throw new Error("store " + r.status);
     return (await r.json()).map(x => (x.error ? null : x.result));
   };
 }
-const day = (d = new Date()) => d.toISOString().slice(0, 10);   // UTC day
+const day = (d = new Date()) => require("../web/daily").date(d.getTime()); // Singapore day
 const TTL = String(60 * 60 * 24 * 400);                          // keep daily totals ~13 months
 
 function send(res, code, body) {
@@ -34,7 +34,7 @@ function send(res, code, body) {
   res.setHeader("Content-Type", "application/json");
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Stats-Key");
   res.setHeader("Cache-Control", "no-store");
   res.end(JSON.stringify(body));
 }
@@ -65,6 +65,13 @@ module.exports = async function handler(req, res) {
       } else if (b.e === "play" && GAMES.includes(b.game)) {
         cmds.push(["HINCRBY", `st:${d}:plays`, b.game, "1"], ["EXPIRE", `st:${d}:plays`, TTL]);
       } else return send(res, 400, { error: "Unknown event." });
+      if(['A','B'].includes(b.ab)){
+        const prefix=`st:${d}:ab:${b.ab}`;
+        if(b.e==='visit'){
+          cmds.push(['INCR',prefix+':visits'],['EXPIRE',prefix+':visits',TTL]);
+          for(const field of ['first','returnDay1'])if(b[field]===true)cmds.push(['PFADD',prefix+':'+field,visitor],['EXPIRE',prefix+':'+field,TTL]);
+        }else cmds.push(['HINCRBY',prefix+':plays',b.game,'1'],['EXPIRE',prefix+':plays',TTL]);
+      }
       await R(cmds);
       return send(res, 204, {});
     }
@@ -72,7 +79,7 @@ module.exports = async function handler(req, res) {
       const q = new URL(req.url, "http://x").searchParams;
       const key = process.env.STATS_KEY;
       if (!key) return send(res, 503, { error: "Set STATS_KEY in Vercel to open the stats page." });
-      const given = Buffer.from(String(q.get("key") || "")), want = Buffer.from(key);
+      const given = Buffer.from(String(req.headers["x-stats-key"] || q.get("key") || "")), want = Buffer.from(key);
       if (given.length !== want.length || !crypto.timingSafeEqual(given, want)) return send(res, 401, { error: "Wrong key." });
       const n = Math.min(90, Math.max(1, parseInt(q.get("days") || "30", 10) || 30));
       const days = []; for (let i = n - 1; i >= 0; i--) { const t = new Date(); t.setUTCDate(t.getUTCDate() - i); days.push(day(t)); }
@@ -82,6 +89,8 @@ module.exports = async function handler(req, res) {
         for (let k = 0; k < flat.length; k += 2) plays[flat[k]] = Number(flat[k + 1]);
         return { day: d, visits: Number(out[i * 3] || 0), visitors: Number(out[i * 3 + 1] || 0), plays };
       });
+      const abData=await R(days.flatMap(d=>['A','B'].flatMap(b=>[['GET',`st:${d}:ab:${b}:visits`],['HGETALL',`st:${d}:ab:${b}:plays`],['PFCOUNT',`st:${d}:ab:${b}:first`],['PFCOUNT',`st:${d}:ab:${b}:returnDay1`]])));
+      rows.forEach((row,i)=>{row.buckets={};['A','B'].forEach((b,j)=>{const k=i*8+j*4,flat=abData[k+1]||[],plays={};for(let n=0;n<flat.length;n+=2)plays[flat[n]]=Number(flat[n+1]);row.buckets[b]={visits:Number(abData[k]||0),plays,first:Number(abData[k+2]||0),returnDay1:Number(abData[k+3]||0)};});});
       const [players] = await R([["HLEN", "lb:names"]]);
       return send(res, 200, { days: rows, rankedPlayers: players || 0 });
     }

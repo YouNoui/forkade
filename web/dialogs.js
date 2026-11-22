@@ -1,0 +1,9 @@
+/* One visible modal, focus ownership and restoration for every launcher dialog. */
+(()=>{let active=null,returnFocus=null;document.addEventListener('click',e=>{if(e.target.closest('button,a')&&!e.target.closest('.modal'))returnFocus=e.target.closest('button,a');},true);
+function sync(){const visible=[...document.querySelectorAll('.modal:not([hidden])')];const next=visible.find(m=>m!==active)||visible[0]||null;if(next===active)return;
+if(next){for(const other of visible)if(other!==next)other.hidden=true;active=next;const sheet=next.querySelector('.sheet');if(sheet){sheet.setAttribute('role','dialog');sheet.setAttribute('aria-modal','true');const title=sheet.querySelector('h2');if(title){if(!title.id)title.id=next.id+'-title';sheet.setAttribute('aria-labelledby',title.id);}}const target=next.querySelector('button:not(:disabled),input,select');if(!next.contains(document.activeElement))target?.focus();}
+else{active=null;}
+for(const el of document.querySelectorAll('.wrap,#stage'))el.inert=!!active;if(!active&&returnFocus?.isConnected&&!returnFocus.closest('[hidden]'))returnFocus.focus();
+}
+new MutationObserver(sync).observe(document.body,{subtree:true,attributes:true,attributeFilter:['hidden'],childList:true});
+document.addEventListener('keydown',e=>{if(!active||e.key!=='Tab')return;const controls=[...active.querySelectorAll('button,a[href],input,select,textarea,[tabindex="0"]')].filter(x=>!x.disabled&&x.getClientRects().length&&!x.closest('[hidden]'));if(!controls.length)return;const first=controls[0],last=controls.at(-1);if(e.shiftKey&&(document.activeElement===first||!active.contains(document.activeElement))){e.preventDefault();last.focus();}else if(!e.shiftKey&&(document.activeElement===last||!active.contains(document.activeElement))){e.preventDefault();first.focus();}},true);sync();})();

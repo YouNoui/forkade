@@ -1,6 +1,9 @@
 /* Launcher enhancements. Classic script: also inlined into the offline distribution. */
 (function () {
   const F = Forkade, S = F.settings, D = ForkadeDaily;
+  const bonusLeft=document.createElement('p');bonusLeft.id='bonus-left';bonusLeft.className='hint';document.querySelector('.wallet').appendChild(bonusLeft);
+  function paintBonus(){const left=F.bonus.left();bonusLeft.hidden=left>=10;bonusLeft.textContent='Full-bonus rounds left today: '+left;}
+  F.rewards.listeners.push(paintBonus);paintBonus();setInterval(paintBonus,1000);
   const gift=document.createElement('section');gift.id='free-gift';gift.className='gift-card';
   gift.innerHTML='<h2>Free gift</h2><p id="gift-hint"></p><button id="gift-open" class="btn btn-pop">Open gift</button><p id="gift-time" role="status"></p><a href="fair.html#chances">Chances and timers</a>';
   document.querySelector('.wallet').after(gift);
@@ -46,6 +49,26 @@
     <p class="hint">First-party visits and game counts only, no raw IP storage. Always off with Do Not Track or Global Privacy Control.</p>
   </section>`;
   document.body.appendChild(settings);
+  const settingHelp={mute:'Only this device — turns all game sounds off.',volume:'Only this device — adjusts every game sound.',reduceMotion:'Only this device — removes shake, flashes and UI animation.',colourBlind:'Only this device — adds distinct symbols to Match and Prism.',analytics:'Anonymous counts leave this device while enabled; turn off to stop future counts.'};
+  for(const el of settings.querySelectorAll('[data-setting]')){const help=document.createElement('small');help.className='setting-help';help.textContent=settingHelp[el.dataset.setting];el.closest('label').after(help);}
+  const nickHelp=document.createElement('p');nickHelp.className='hint';nickHelp.textContent='Nickname stays here until you tap Post; then it is public on rankings.';settings.querySelector('.nick').after(nickHelp);
+  const resetSettings=document.createElement('button');resetSettings.className='btn';resetSettings.textContent='Reset settings';resetSettings.onclick=()=>{Object.assign(S,{mute:false,volume:.6,reduceMotion:matchMedia('(prefers-reduced-motion: reduce)').matches,colourBlind:false,analytics:true});S.save();showSettings();toast('Settings reset on this device. Anonymous counts are on.');};settings.querySelector('.sheet').appendChild(resetSettings);
+  const defaults={mute:false,volume:.6,reduceMotion:matchMedia('(prefers-reduced-motion: reduce)').matches,colourBlind:false,analytics:true};
+  function markSettings(){for(const el of settings.querySelectorAll('[data-setting]')){const label=el.closest('label');label.dataset.changed=String(S[el.dataset.setting]!==defaults[el.dataset.setting]);}}
+  addEventListener('forkade-settings',markSettings);markSettings();
+  const assistRow=document.createElement('div');assistRow.innerHTML='<h3>Assist — this device</h3><label>Game <select id="assist-game"></select></label><label><input type="checkbox" id="assist-toggle"> Assist next round</label><p class="hint" id="assist-description"></p><p class="hint">Assisted rounds earn cores, but cannot post scores or unlock badges. Never applies to Daily challenges. Changes apply next round.</p><span id="assist-saved" role="status"></span>';
+  settings.querySelector('.sheet').appendChild(assistRow);
+  const assistSelect=assistRow.querySelector('select'),assistToggle=assistRow.querySelector('input');
+  for(const [id,knob] of Object.entries(F.assistMode.rules)){const o=document.createElement('option');o.value=id;o.textContent=GAME_NAMES()[id]||id;assistSelect.appendChild(o);}
+  function paintAssist(){assistToggle.checked=F.assistMode.preference(assistSelect.value);document.getElementById('assist-description').textContent=F.assistMode.rules[assistSelect.value];}
+  assistSelect.onchange=paintAssist;assistToggle.onchange=()=>{F.assistMode.set(assistSelect.value,assistToggle.checked);document.getElementById('assist-saved').textContent='Saved ✓ — next round, only on this device';};paintAssist();
+  const offer=document.createElement('div');offer.className='modal';offer.id='assist-offer';offer.hidden=true;
+  offer.innerHTML='<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="assist-title"><button class="x" aria-label="Close assist offer">×</button><h2 id="assist-title">Want a hand?</h2><p id="assist-offer-text"></p><button class="btn btn-pop" id="assist-yes">Turn on assist</button> <button class="btn btn-link" id="assist-no">No thanks</button></section>';document.body.appendChild(offer);
+  let offeredId,offerFocus;
+  const closeOffer=()=>{offer.hidden=true;offerFocus?.focus();};offer.querySelector('.x').onclick=closeOffer;offer.querySelector('#assist-no').onclick=closeOffer;
+  offer.querySelector('#assist-yes').onclick=()=>{F.assistMode.set(offeredId,true);paintAssist();closeOffer();toast('Assist enabled for your next '+(GAME_NAMES()[offeredId]||offeredId)+' round.');};
+  offer.onclick=e=>{if(e.target===offer)closeOffer();};offer.onkeydown=e=>{e.stopPropagation();if(e.key==='Escape')closeOffer();if(e.key==='Tab'){const all=[...offer.querySelectorAll('button')],first=all[0],last=all.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}};
+  addEventListener('forkade-assist-offer',e=>{setTimeout(()=>{if(document.querySelector('.modal:not([hidden])'))return;offeredId=e.detail.id;offerFocus=document.activeElement;document.getElementById('assist-offer-text').textContent='Assist makes '+(GAME_NAMES()[offeredId]||offeredId)+' a little easier: '+F.assistMode.rules[offeredId]+'. Assisted rounds earn cores but aren’t ranked and don’t unlock badges.';offer.hidden=false;offer.querySelector('#assist-no').focus();},350);});
   let resume = false, previousFocus;
   function showSettings() {
     previousFocus = document.activeElement; const game = F.current(); resume = game?.state === 'play';
@@ -70,7 +93,7 @@
   settings.addEventListener('click', e => { if (e.target === settings) closeSettings(); });
   settings.addEventListener('keydown', e => {
     e.stopPropagation(); if (e.key === 'Escape') closeSettings();
-    if (e.key === 'Tab') { const controls = [...settings.querySelectorAll('button,input')], first=controls[0], last=controls.at(-1);
+    if (e.key === 'Tab') { const controls = [...settings.querySelectorAll('button,input,select')], first=controls[0], last=controls.at(-1);
       if (e.shiftKey && document.activeElement===first) { e.preventDefault(); last.focus(); }
       else if (!e.shiftKey && document.activeElement===last) { e.preventDefault(); first.focus(); } }
   });
@@ -123,6 +146,11 @@
     finally { UI.reset(claim); }
   };
   const dailyTab = document.createElement('button'); dailyTab.dataset.period='daily'; dailyTab.textContent='Daily'; document.querySelector('#ranks .rtabs.small').appendChild(dailyTab);
+  const more=document.createElement('button');more.id='more-games';more.className='btn';more.textContent='More games';grid.after(more);
+  let expanded=false;try{expanded=localStorage.getItem('forkade-more-games')==='1';}catch(_){}
+  const extra=[...grid.querySelectorAll('.card')].filter(c=>!c.classList.contains('daily')).slice(4);
+  function paintMore(){extra.forEach(c=>c.hidden=!expanded);more.textContent=expanded?'Fewer games':'More games ('+extra.length+')';more.setAttribute('aria-expanded',String(expanded));}
+  more.onclick=()=>{expanded=!expanded;try{localStorage.setItem('forkade-more-games',expanded?'1':'0');}catch(_){}paintMore();};paintMore();
   // Delay until the distribution has installed its inline 3D pages.
   setTimeout(() => {
     const query = new URLSearchParams(location.search), path = location.pathname.replace(/^\/+|\/+$/g,'');

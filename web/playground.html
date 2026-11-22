@@ -15,7 +15,7 @@
   }
   *{box-sizing:border-box;}
   body{margin:0; font-family:"Consolas","SF Mono",ui-monospace,monospace; color:var(--ink);
-    background:radial-gradient(1200px 600px at 50% -10%,#10303a 0%,var(--bg) 60%); min-height:100vh;}
+    background:radial-gradient(1200px 600px at 50% -10%,#10303a 0%,var(--bg) 60%); min-height:100dvh;}
   header{display:flex; flex-wrap:wrap; align-items:center; gap:14px; padding:18px 22px;}
   header h1{margin:0; font-size:26px; letter-spacing:3px; color:var(--cyan); text-shadow:0 0 14px var(--cyan);}
   header .sub{color:var(--dim); font-size:13px;}
@@ -35,7 +35,7 @@
   button.run{background:var(--pop); color:var(--pop-ink); border:2px solid var(--pop-ink); box-shadow:3px 3px 0 var(--brand);}
   button.ghost, .btn.ghost{color:var(--dim); border-color:rgba(141,146,189,.5); background:transparent;}
   .btn.share{color:var(--brand); border-color:var(--brand);}
-  textarea{width:100%; height:62vh; min-height:360px; resize:vertical; border:0; outline:0; padding:14px;
+  textarea{width:100%; height:62dvh; min-height:360px; resize:vertical; border:0; outline:0; padding:14px;
     white-space:pre; overflow-wrap:normal; overflow:auto;
     background:transparent; color:var(--ink); font:13px/1.55 "Consolas","SF Mono",ui-monospace,monospace; tab-size:2;}
   .stagewrap{padding:12px;}
@@ -48,6 +48,9 @@
   .help code{color:var(--amber);}
   .note{padding:0 22px 26px; font-size:12px; color:var(--dim);}
   .note a, .hint a, .help a, p a{display:inline-block; padding:15px 2px; margin:-15px 0;}
+dialog{max-width:min(440px,calc(100vw - 28px));background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:16px;padding:20px}dialog::backdrop{background:rgba(0,0,0,.75)}#confirm-reset{color:var(--danger)}#draft-status{padding:0 14px;font-size:12px;color:var(--muted)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:600px){.bar{position:sticky;top:0;background:var(--panel);z-index:2}.panel{overflow:visible}}
 </style>
 </head>
 <body>
@@ -70,6 +73,7 @@
       <a class="btn share" id="submit" target="_blank" rel="noopener noreferrer"
          href="https://github.com/YouNoui/forkade/upload/main/web/games">&#8679; Submit to FORKADE</a>
     </div>
+    <p id="draft-status" role="status">Private draft — only on this device</p><button id="undo-reset" hidden>Undo start over</button>
     <textarea id="code" spellcheck="false" aria-label="Game code"></textarea>
     <div class="help">
       Your game is a class that extends <code>Forkade.GameBase</code> with
@@ -89,6 +93,8 @@
 </main>
 <div class="note">&#128274; Your code stays in this browser (saved on this device only). Nothing is uploaded unless you submit it yourself on GitHub. &middot; <a href="terms.html" style="color:var(--cyan)">Terms</a> &middot; <a href="privacy.html" style="color:var(--cyan)">Privacy</a></div>
 
+<dialog id="reset-confirm"><button id="reset-x" aria-label="Close">×</button><h2>Replace your game code?</h2><p>Your draft will be replaced by the starter game. You can undo this.</p><button id="keep-editing">Keep editing</button><button id="confirm-reset">Start over</button></dialog>
+<script src="daily.js"></script><script src="settings.js"></script><script src="policy.js"></script>
 <script src="engine.js"></script>
 <script>
 const TEMPLATE = `/* MY GAME - DODGE RAIN : a tiny starter game. Change anything! */
@@ -176,13 +182,20 @@ document.getElementById("run").addEventListener("click", run);
 code.addEventListener("keydown", e => {
   if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); run(); }
   if (e.key === "Tab") { e.preventDefault(); const s = code.selectionStart;
-    code.setRangeText("  ", s, code.selectionEnd, "end"); }
+    code.setRangeText("  ", s, code.selectionEnd, "end");saveDraft(); }
   e.stopPropagation();                         // typing shouldn't steer the game
 });
 code.addEventListener("keyup", e => e.stopPropagation());
+let saveFailed=false;
+function saveDraft(){try{localStorage.setItem(KEY,code.value);saveFailed=false;document.getElementById('draft-status').textContent='Saved ✓ — private, only on this device';}catch(_){saveFailed=true;document.getElementById('draft-status').textContent='Could not save on this device. Download your code before leaving.';}}
+code.addEventListener('input',saveDraft);addEventListener('beforeunload',e=>{if(saveFailed){e.preventDefault();e.returnValue='';}});
+const resetDialog=document.getElementById('reset-confirm'),undo=document.getElementById('undo-reset');
+undo.hidden=!localStorage.getItem(KEY+'-undo');
+document.getElementById('keep-editing').onclick=()=>resetDialog.close();document.getElementById('reset-x').onclick=()=>resetDialog.close();resetDialog.onclick=e=>{if(e.target===resetDialog){const r=resetDialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)resetDialog.close();}};
+document.getElementById('confirm-reset').onclick=()=>{try{localStorage.setItem(KEY+'-undo',code.value);}catch(_){}code.value=TEMPLATE;saveDraft();undo.hidden=false;resetDialog.close();say('Starter restored. Undo is available.');};
+undo.onclick=()=>{const previous=localStorage.getItem(KEY+'-undo');if(previous!=null){code.value=previous;saveDraft();localStorage.removeItem(KEY+'-undo');undo.hidden=true;say('Your previous code is restored.');}};
 document.getElementById("reset").addEventListener("click", () => {
-  code.value = TEMPLATE; try { localStorage.removeItem(KEY); } catch (_) {}
-  say("Back to the starter game. Press ▶ Run.");
+  resetDialog.showModal();document.getElementById("keep-editing").focus();
 });
 document.getElementById("download").addEventListener("click", () => {
   const m = code.value.match(/register\(\s*["']([\w-]+)["']/);

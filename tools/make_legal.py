@@ -3,7 +3,7 @@
 Same standard as Breekit: plain language, operator + UEN, DPO, PDPA baseline, version line.
 Edit the copy here, bump VERSION/UPDATED, run:  python tools/make_legal.py"""
 import html, pathlib
-VERSION, UPDATED = "2026-11-22-v4", "22 Nov 2026"
+VERSION, UPDATED = "2026-11-22-v6", "22 Nov 2026"
 EMAIL = "hello@iamynoui.com"
 OP = "Forkade (playforkade.com) is operated by IAMYNOUI, a sole proprietorship registered in Singapore (UEN 53535234D)."
 DOCS = {
@@ -21,11 +21,11 @@ DOCS = {
   f"{OP} Contact: {EMAIL}. Short version: no accounts, no ads, no tracking cookies, and your progress stays on your device.", [
   ("Data Protection Officer", f"Younes Noui, Data Protection Officer, IAMYNOUI &mdash; {EMAIL}. We respond to requests for access, correction or deletion within 30 days."),
   ("What stays on your device", "Settings, daily rewards, high scores, cores, badges, skins, your streak, the nickname box, Playground drafts and a random player ID are saved in your browser's local storage. We can't see any of it. Clearing your browser's site data, or the button on the Delete my data page, removes it."),
-  ("Anonymous counts", "Anonymous visit and play counts are on by default. You can switch them off in Settings. To see which games people enjoy, we count visits and plays per game per day. To avoid counting the same visitor twice in a day, a hash of your network address and browser type, salted with a value that changes daily, is added to an approximate counter that cannot be turned back into an address. Raw network addresses are not stored, no cookies are set, and nothing is linked to you. If your browser sends Do Not Track or Global Privacy Control, nothing is counted."),
+  ("Anonymous counts", "An anonymous A/B group letter is sent with visit/play counts to test small layout choices. The letter and first-counted date stay on your device; first-day/next-day return flags let us estimate day-one returns without sending a device ID. Rules, rewards, odds and levels are identical in both groups. Anonymous visit and play counts are on by default. You can switch them off in Settings. To see which games people enjoy, we count visits and plays per game per day. To avoid counting the same visitor twice in a day, a hash of your network address and browser type, salted with a value that changes daily, is added to an approximate counter that cannot be turned back into an address. Raw network addresses are not stored, no cookies are set, and nothing is linked to you. If your browser sends Do Not Track or Global Privacy Control, nothing is counted."),
   ("Rankings (only if you tap Post)", "When a round starts online, we store a random token with only the game and start time (no player ID, name or contact details) for at most two hours, so a posted score can be checked against the time played. Only when you tap Post do we store your nickname, the game, your best score and your random player ID. Your network address is used briefly, as a hash, to stop spam and is deleted after 60 seconds. Rankings are public, so please don't use your real full name as a nickname. If you report a nickname, your random player ID is kept with that report for up to 60 days, only so the same person can't report someone twice."),
   ("Who handles it", "Vercel hosts the site and runs the rankings and counting functions. Upstash stores the rankings and daily counts. GitHub hosts the open-source code and any game you choose to submit there. Each gets only what it needs. Data may be processed outside Singapore with contractual and technical safeguards."),
   ("Cookies and ads", "Forkade sets no cookies and shows no ads. We never sell data and never share it for advertising."),
-  ("Retention", "Daily counts are kept for about 13 months. Run tokens expire in two hours and are consumed on submission. Daily boards and pending scores expire after three days. Weekly boards expire after 3 weeks. All-time scores stay until you remove them or we remove them for breaking the rules. Spam-check hashes are deleted after 60 seconds."),
+  ("Retention", "Daily counts are kept for about 13 months. Run tokens expire in two hours and are consumed on submission. Daily boards and pending scores expire after three days. Weekly boards expire after 3 weeks. All-time scores stay until you remove them or we remove them for breaking the rules. Spam-check hashes are deleted after 60 seconds. Moderation reasons and decision sources are kept in a capped history (100 decisions, up to 90 days); the affected player can see a notice for 60 days."),
   ("Your rights", f"Singapore's PDPA is our baseline. Where EU or UK law applies you may also request access, correction, deletion, restriction, portability or object, and may complain to your local regulator. Remove your rankings data instantly with <b>Remove my scores</b> in Rankings, or email {EMAIL} with your player ID from the Delete my data page."),
   ("Children", "Forkade is made to be played by everyone. Players under 13 should ask a parent before posting a nickname to the rankings."),
   ("AI training", "We do not use anything you post or submit to train AI models, and we do not give it to anyone else to train AI models."),
@@ -51,7 +51,7 @@ TPL = """<!doctype html>
 <title>{title} - FORKADE</title><meta name="theme-color" content="#0b0a10"><link rel="icon" href="icons/icon-192.png">
 <style>
   body{{margin:0; font-family:"Consolas","SF Mono",ui-monospace,monospace; color:#f1f3ff; line-height:1.7;
-    background:radial-gradient(1200px 600px at 50% -10%,#10303a 0%,#0b0a10 60%); min-height:100vh;}}
+    background:radial-gradient(1200px 600px at 50% -10%,#10303a 0%,#0b0a10 60%); min-height:100dvh;}}
   main{{max-width:760px; margin:0 auto; padding:40px 22px 60px;}}
   a{{color:#22e1ff;}} .back{{display:inline-block; margin-bottom:26px; text-decoration:none; border:1px solid #22e1ff; border-radius:10px; padding:6px 12px; font-size:13px; font-weight:700;}}
   .eyebrow{{color:#9a9fc4; letter-spacing:3px; font-size:12px; font-weight:800;}}

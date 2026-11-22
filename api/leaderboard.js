@@ -11,6 +11,7 @@
 // (or UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN).
 
 const crypto = require("crypto");
+const Policy = require("../web/policy");
 const Runs = require("../lib/runs");
 
 // highest believable score per game - anything above is rejected
@@ -40,7 +41,7 @@ function redis() {
     }
     const r = await fetch(url.replace(/\/$/, "") + "/pipeline", {
       method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify(cmds),
+      body: JSON.stringify(cmds), signal: AbortSignal.timeout(5000),
     });
     if (!r.ok) throw new Error("store " + r.status);
     return (await r.json()).map(x => { if (x.error) throw Error(x.error); return x.result; });
@@ -95,18 +96,25 @@ function ownerOk(k) {
   const a = Buffer.from(k), w = Buffer.from(key);
   return a.length === w.length && crypto.timingSafeEqual(a, w);
 }
+async function auditModeration(R,b){
+  await R([['HSET','lb:moderation-history',crypto.randomUUID(),JSON.stringify({action:b.do,target:b.target,source:b.source,reason:b.reason,at:Date.now()})],['EXPIRE','lb:moderation-history','7776000'],['SET','lb:notice:'+b.target,JSON.stringify({action:b.do,reason:b.reason,at:Date.now()}),'EX','5184000']]);
+  const [flat]=await R([['HGETALL','lb:moderation-history']]);const rows=[];for(let i=0;i<flat.length;i+=2)rows.push([flat[i],JSON.parse(flat[i+1])]);rows.sort((a,b)=>b[1].at-a[1].at);
+  const expired=rows.filter((r,i)=>i>=100||r[1].at<Date.now()-7776000000);if(expired.length)await R(expired.map(r=>['HDEL','lb:moderation-history',r[0]]));
+}
 async function moderate(R, b, res, week) {
   if (!ownerOk(b.key)) return send(res, 401, { error: "Wrong key." });
   if (b.do === "list") {
-    const [flat] = await R([["HGETALL", "lb:reported"]]);
+    const [flat,historyFlat] = await R([["HGETALL", "lb:reported"],["HGETALL","lb:moderation-history"]]);
+    const history=[];for(let i=1;i<(historyFlat||[]).length;i+=2)history.push(JSON.parse(historyFlat[i]));history.sort((a,b)=>b.at-a.at);
     const items = [];
     for (let i = 0; i < (flat || []).length; i += 2) items.push({ pid: flat[i], game: flat[i + 1].split("|")[0] });
-    if (!items.length) return send(res, 200, { reports: [], pending: await Runs.pending(R) });
+    if (!items.length) return send(res, 200, { history, reports: [], pending: await Runs.pending(R) });
     const out = await R(items.flatMap(it => [["SCARD", `lb:rep:${it.pid}`], ["HMGET", "lb:names", it.pid], ["SISMEMBER", "lb:hidden", it.pid]]));
     items.forEach((it, i) => { it.reports = out[i * 3]; it.name = (out[i * 3 + 1] || [])[0] || "(removed)"; it.hidden = out[i * 3 + 2] === 1; });
-    return send(res, 200, { reports: items.sort((x, y) => y.reports - x.reports), pending: await Runs.pending(R) });
+    return send(res, 200, { history, reports: items.sort((x, y) => y.reports - x.reports), pending: await Runs.pending(R) });
   }
-  if (b.do === 'approve-score' || b.do === 'reject-score') {
+  if(typeof b.reason!=='string'||b.reason.trim().length<3||b.reason.length>240||!['User asked','Admin decision'].includes(b.source))return send(res,400,{error:'A reason and decision source are required.'});
+  if (b.do === 'approve-score'  || b.do === 'reject-score') {
     if (!validPid(b.target) || !CAPS[b.game]) return send(res,400,{error:'Invalid review.'});
     const key = `lb:pending:${b.target}:${b.game}`;
     const [raw] = await R([['GET', key]]);
@@ -114,7 +122,7 @@ async function moderate(R, b, res, week) {
     const item = JSON.parse(raw);
     if (b.do === 'approve-score') await publish(R, item.game, item.score, item.name, item.pid, item.week, item.daily);
     await R([['DEL',key],['ZREM','lb:pending',key]]);
-    return send(res,200,{ok:true});
+    await auditModeration(R,b);return send(res,200,{ok:true});
   }
   const pid = b.target; if (!validPid(pid)) return send(res, 400, { error: "Bad player id." });
   if (b.do === "hide") await R([["SADD", "lb:hidden", pid], ["HSET", "lb:names", pid, "Player"], ["HDEL", "lb:reported", pid], ["DEL", `lb:rep:${pid}`]]);
@@ -128,6 +136,7 @@ async function moderate(R, b, res, week) {
       cmds.push(["ZREM", `lb:${g}:all`, pid]); for (const w of weeks) cmds.push(["ZREM", `lb:${g}:w:${w}`, pid]); }
     await R(cmds);
   } else return send(res, 400, { error: "Unknown action." });
+  await auditModeration(R,b);
   return send(res, 200, { ok: true });
 }
 
@@ -141,8 +150,10 @@ async function publish(R,game,score,name,pid,week,daily) {
   if (dk) cmds.push(['ZADD',dk,'GT',String(score),pid],['EXPIREAT',dk,String(expires)]);
   await R(cmds);
   const [wr,ar,wb,ab] = await R([['ZREVRANK',wk,pid],['ZREVRANK',all,pid],['ZSCORE',wk,pid],['ZSCORE',all,pid]]);
+  const [count,lower]=await R([['ZCARD',wk],['ZCOUNT',wk,'-inf','('+Number(wb)]]);
+  const percent=count>=Policy.socialMinimum?Math.floor(Number(lower)*100/count):null;
   const [dr] = dk ? await R([['ZREVRANK',dk,pid]]) : [null];
-  return {ok:true,week:{rank:wr+1,best:Number(wb)},all:{rank:ar+1,best:Number(ab)},daily:dk?{rank:dr+1,date:daily}:null};
+  return {ok:true,week:{rank:wr+1,best:Number(wb),count,percent},all:{rank:ar+1,best:Number(ab)},daily:dk?{rank:dr+1,date:daily}:null};
 }
 
 module.exports = async function handler(req, res) {
@@ -168,8 +179,11 @@ module.exports = async function handler(req, res) {
       // a nickname hidden by reports or the owner shows as "Player" (the player still sees their own)
       top.forEach((t, i) => { t.rank = i + 1; t.me = ids[i] === pid;
         t.name = hidden && hidden[i] && !t.me ? "Player" : (names[i] || "ECHO"); });
-      return send(res, 200, { game, period, week, count: count || 0, top,
-        me: myRank == null ? null : { rank: myRank + 1, score: Number(myScore) } });
+      const [lower]=myRank!=null && count>=Policy.socialMinimum ? await R([['ZCOUNT',key,'-inf','('+Number(myScore)]]) : [null];
+      const percent=lower==null?null:Math.floor(Number(lower)*100/count);
+      const [notice]=validPid(pid)?await R([['GET','lb:notice:'+pid]]):[null];
+      return send(res, 200, { notice:notice?JSON.parse(notice):null,game, period, week, count: count || 0, top,
+        me: myRank == null ? null : { rank: myRank + 1, score: Number(myScore), percent } });
     }
 
     if (req.method === "POST") {

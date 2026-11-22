@@ -25,3 +25,8 @@
 - Section 19 growth features must use real counts and deadlines: no resetting urgency timers, pre-ticked paid or marketing options, hidden “No thanks”, or device-data pricing.
 - Before any third-party submission, post the section 13 approvals table: connector, exact requested scopes, console app ID actually used, status, and who must click. Submit missing approvals in one round.
 - Keep the existing branch/PR and secret rules: never push to main or force-push; migrations require an owner GO naming the exact file hash. Draft missing Appendix A settings from code and obtain approval before editing the shared playbook.
+
+## Reward and experiment invariants
+- Gift/Machine/Assist/Bonus constants live in engine.js; social-proof minimum and the layout experiment live in policy.js. Fair play renders these values; update tests with any rule change.
+- Never redraw a committed prize after reload. Keep duplicate refunds and second re-roll guarantee visible. Assist is explicit, fixed for the round, excluded from Daily and ranked/badge progress. Bonus tiers affect round cores only.
+- A/B is a local letter, never an identifier. Only existing anonymous-count events carry it; all opt-out/DNT/GPC gates remain. Day-one returns are approximate device-reported aggregates, not a claim of identified users.

@@ -27,6 +27,7 @@
         }
       }
       if (best) { this.grid = best.grid; this.left = best.left; } else { this.build(1); this.left = 6; }
+      if(NE.assist(this.id))this.left++;
       this.line = 3; this.charges = []; this.phase = "plan";
       this.queue = []; this.boomT = 0; this.fallT = 0; this.idle = 0; this.debris = []; this.prevDown = false;
       this.initial = this.grid.reduce((n, v) => n + (v ? 1 : 0), 0);

@@ -1,0 +1,1 @@
+(function(root){const rules=Object.freeze({socialMinimum:20,experiment:{enabled:true,name:"start-here-v1",startHere:{A:"skyhop",B:"breaker"}}});if(typeof module==='object'&&module.exports)module.exports=rules;else root.ForkadePolicy=rules;})(globalThis);

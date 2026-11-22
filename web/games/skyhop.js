@@ -14,7 +14,7 @@
       this.state = "play";
     }
     // jump reaches ~150px high; gaps stay well under that, and grow a little with height
-    gap() { return NE.rand(70, 95) + Math.min(15, this.best / 400); }
+    gap() { const normal=NE.rand(70, 95) + Math.min(15, this.best / 400); return NE.assist(this.id) ? normal * 0.8 : normal; }
     addPlat(y) {
       const w = Math.max(70, NE.rand(100, 170) - Math.min(50, this.best / 250));
       // keep each platform within a reachable sideways distance of the one below
