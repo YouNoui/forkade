@@ -202,6 +202,8 @@
   .ios-sheet{max-width:420px;}
   .nodata{display:inline-block; margin-top:10px; color:var(--muted);}
   .privacy-line{margin-top:10px; font-size:12px; color:var(--muted);}
+  .privacy-line a, .fairnote a{color:var(--brand); display:inline-block; padding:15px 2px; margin:-15px 0; line-height:14px;}
+  .fairnote{color:var(--muted); font-size:12px; margin-top:-6px;}
   .wbtns{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; width:100%;}
   .offline{text-align:center; margin-top:28px;}
   .wbtns .settings-button{font-weight:800; color:var(--text); font-size:13px; border-radius:10px; padding:5px 12px;}
@@ -389,7 +391,7 @@
       <h1 class="title">FORKADE</h1>
       <div class="sub">13 arcade games &middot; rewind any mistake &middot; no sign-ups</div>
       <div class="chip" id="rewindtip">&#9199; Mess up? Hold <b>R</b> or <b>Shift</b> to rewind time.</div>
-      <div class="privacy-line">&#128274; Nothing tracked. Your progress stays on this device.</div>
+      <div class="privacy-line">&#128274; Nothing tracked. Same rules for everyone. <a href="fair.html">Fair play</a></div>
       <div class="wallet" id="wallet">
         <span>&#9670; <b id="w-cores">0</b> cores</span>
         <span>RANK <b id="w-rank">1</b></span>
@@ -412,7 +414,7 @@
       Built with HTML5 Canvas + JavaScript &middot; MIT licensed &middot; fork it, extend it, add your own.<br>
       In every game: hold <b>R</b> or <b>Shift</b> to rewind &middot; <b>P</b> pause &middot; <b>Esc</b> back to menu.
       <span class="nodata">🔒 Your play stays on this device by default. No cookies or third-party trackers. Rankings and anonymous counts are optional in Settings; only Post shares your nickname and score.</span>
-      <span class="legal"><a href="terms.html">Terms</a> &middot; <a href="privacy.html">Privacy</a> &middot; <a href="guidelines.html">Community rules</a> &middot; <a href="delete.html">Delete my data</a> &middot; <a href="mailto:hello@iamynoui.com">Contact</a> &middot; &copy; 2026 IAMYNOUI</span>
+      <span class="legal"><a href="fair.html">Fair play</a> &middot; <a href="terms.html">Terms</a> &middot; <a href="privacy.html">Privacy</a> &middot; <a href="guidelines.html">Community rules</a> &middot; <a href="delete.html">Delete my data</a> &middot; <a href="mailto:hello@iamynoui.com">Contact</a> &middot; &copy; 2026 IAMYNOUI</span>
     </div>
   </div>
 
@@ -421,6 +423,7 @@
       <button class="x" id="close-locker" aria-label="Close">&times;</button>
       <h2>LOCKER</h2>
       <p class="hint">Earn cores in every game: finish rounds, clear levels, beat your best and win badges. Spend them on ECHO skins that show up in every game.</p>
+      <p class="hint fairnote">&#9878; Fixed prices. No loot boxes, no ads, cores can't be bought. <a href="fair.html">Every number</a></p>
       <div class="skins" id="skins"></div>
       <h2>BADGES <span id="badge-count"></span></h2>
       <div class="badges" id="badges"></div>
@@ -437,7 +440,7 @@
       <p class="hint">No sign-up needed. Your device gets a random hidden ID and you pick a nickname.
         Scores only appear here if you tap <b>Post</b> after a game. We only store your nickname, the game and your score.
         See a rude or fake nickname? Tap &#9873; next to it.
-        <a href="privacy.html">Privacy</a> &middot; <a href="guidelines.html">Rules</a></p>
+        <a href="fair.html">Fair play</a> &middot; <a href="privacy.html">Privacy</a> &middot; <a href="guidelines.html">Rules</a></p>
       <p class="hint"><button class="btn btn-danger forget" id="forget">Remove my scores</button> <span id="forget-msg"></span></p>
     </div>
   </div>

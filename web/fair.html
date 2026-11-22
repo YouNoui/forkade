@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b0a10">
+<title>Fair play - FORKADE</title>
+<meta name="description" content="Same rules for everyone. No hidden difficulty, no loot boxes, no ads, no secret tests. Every reward number in FORKADE, read straight from the game code.">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+  body{margin:0; font-family:"Consolas","SF Mono",ui-monospace,monospace; color:#f1f3ff; line-height:1.7;
+    background:radial-gradient(1200px 600px at 50% -10%,#10303a 0%,#0b0a10 60%); min-height:100vh;}
+  main{max-width:760px; margin:0 auto; padding:40px 22px 60px;}
+  a{color:#22e1ff;} .back{display:inline-block; margin-bottom:26px; text-decoration:none; border:1px solid #22e1ff; border-radius:10px; padding:6px 12px; font-size:13px; font-weight:700;}
+  .eyebrow{color:#9a9fc4; letter-spacing:3px; font-size:12px; font-weight:800;}
+  h1{margin:6px 0 8px; color:#22e1ff; font-size:clamp(24px,5vw,34px); text-shadow:0 0 14px rgba(34,225,255,.45);}
+  .meta{color:#9a9fc4; font-size:12px;} .draft{color:#ffd84d; font-size:12px;}
+  .intro{font-size:15px;} h2{font-size:16px; color:#22e1ff; margin:26px 0 4px;} p{margin:0 0 10px; font-size:14px;}
+  nav.docs{margin-top:34px; padding-top:16px; border-top:1px solid rgba(141,146,189,.3); font-size:13px; color:#9a9fc4;}
+  .box{margin:16px 0; padding:14px 16px; border:1px solid rgba(150,156,190,.32); border-radius:12px; background:#15131d;}
+  .box code{color:#22e1ff; overflow-wrap:anywhere;}
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:8px 16px; border-radius:12px; font-family:inherit; font-weight:800; font-size:14px;
+    cursor:pointer; background:#1d1a28; color:#f1f3ff; border:1px solid rgba(150,156,190,.32); transition:transform .16s ease, border-color .16s ease, background-color .16s ease;}
+  .btn:active:not(:disabled){transform:translateY(1px);} .btn:disabled{opacity:.6; cursor:not-allowed;}
+  .btn-danger{background:transparent; color:#ff5a6e; border-color:rgba(255,90,110,.6);} .btn.done{color:#4ade80; border-color:rgba(74,222,128,.5); opacity:1;}
+  nav.docs a, p a{display:inline-block; padding:14px 2px; margin:-14px 0;}
+  a.back{display:inline-flex; align-items:center; min-height:44px; box-sizing:border-box; padding:6px 14px; margin:0 0 22px;}
+  .cf{position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; padding:16px;} .cf[hidden]{display:none;}
+  .cf .sh{width:min(440px,100%); background:#15131d; border:1px solid rgba(150,156,190,.32); border-radius:18px; padding:22px;}
+  .cf h2{margin:0 0 8px; color:#f1f3ff;} .cf .row{display:flex; gap:10px; justify-content:flex-end;}
+  @media (max-width:600px){ .cf{align-items:flex-end; padding:0;} .cf .sh{border-radius:20px 20px 0 0; padding-bottom:calc(22px + env(safe-area-inset-bottom));} .cf .row .btn{flex:1;} }
+  @media (prefers-reduced-motion:reduce){ .btn{transition:none;} }
+</head><body><main>
+
+  table{width:100%; border-collapse:collapse; font-size:14px; margin:10px 0 6px;}
+  th,td{text-align:left; padding:9px 8px; border-bottom:1px solid rgba(150,156,190,.2); vertical-align:top;}
+  th{color:#9a9fc4; font-weight:700; font-size:12px; letter-spacing:1px;}
+  td.n{text-align:right; font-variant-numeric:tabular-nums; color:#22e1ff; font-weight:800; white-space:nowrap;}
+  ul.never{list-style:none; padding:0; margin:12px 0;} ul.never li{position:relative; padding:10px 0 10px 34px; border-bottom:1px solid rgba(150,156,190,.15);}
+  ul.never li::before{content:"\2715"; position:absolute; left:4px; top:9px; width:22px; height:22px; border-radius:50%; text-align:center; line-height:22px;
+    font-size:12px; font-weight:900; color:#14121a; background:#22e1ff;}
+  ul.never b{color:#f1f3ff;}
+  .formula{display:inline-block; font-weight:800; color:#f1f3ff; background:#15131d; border:1px solid rgba(150,156,190,.32); border-radius:8px; padding:2px 8px;}
+  .cta{display:inline-flex; align-items:center; min-height:44px; padding:8px 16px; border-radius:12px; font-weight:900; text-decoration:none;
+    background:#ffd84d; color:#14121a; border:2px solid #14121a; box-shadow:3px 3px 0 #22e1ff;}
+  .scroll{overflow-x:auto;}
+</style>
+</head>
+<body>
+<main>
+<a class="back" href="index.html">&larr; Back to the arcade</a>
+<div class="eyebrow">FAIR PLAY</div>
+<h1>Same rules for everyone.</h1>
+<p class="lead">Lots of free games quietly change the rules on you. FORKADE doesn't. Every number below is read live from the game's own code, so this page can't say one thing while the game does another. The code is open: <a href="https://github.com/YouNoui/forkade/blob/main/web/engine.js" target="_blank" rel="noopener noreferrer">check it yourself</a>.</p>
+
+<h2>What FORKADE never does</h2>
+<ul class="never">
+  <li><b>No hidden difficulty.</b> Levels don't quietly get easier or harder depending on how often you lose. Random levels use plain randomness, and Demolition Chain only deals levels it has checked can be solved.</li>
+  <li><b>No loot boxes or re-rolls.</b> Skins have fixed prices. Nothing you buy with cores is random.</li>
+  <li><b>No ads and no paid boosts.</b> Cores can't be bought, and no game is easier for people who pay.</li>
+  <li><b>No secret tests.</b> Everyone gets the same rules, rewards and levels. No A/B tests, no player segments.</li>
+  <li><b>Rewards never shrink the more you play.</b> Round 1 and round 1,000 pay by the same rule.</li>
+  <li><b>No made-up numbers.</b> The cores you see after a round are exactly what you earned, line by line.</li>
+  <li><b>No phone details.</b> FORKADE doesn't read your phone model, screen brightness, internet speed, photos or contacts. The only thing sent is an anonymous &ldquo;visit&rdquo; or &ldquo;play&rdquo; count (you can switch it off in Settings) and scores you choose to Post. <a href="privacy.html">Privacy</a></li>
+</ul>
+
+<h2>How you earn cores</h2>
+<div class="scroll"><table id="earn"><thead><tr><th>WHEN</th><th>RULE</th><th style="text-align:right">CORES</th></tr></thead><tbody></tbody></table></div>
+<p class="note" id="rankrule"></p>
+
+<h2>Badge goals</h2>
+<p>Reach the score once to earn the badge for that game.</p>
+<div class="scroll"><table id="badges"><thead><tr><th>GAME</th><th style="text-align:right" id="t0"></th><th style="text-align:right" id="t1"></th><th style="text-align:right" id="t2"></th></tr></thead><tbody></tbody></table></div>
+
+<h2>Skins</h2>
+<p>Fixed prices, paid with cores only. Every skin looks the same for everyone and changes nothing in the games.</p>
+<div class="scroll"><table id="skins"><thead><tr><th>SKIN</th><th style="text-align:right">PRICE</th></tr></thead><tbody></tbody></table></div>
+
+<h2>Daily challenge</h2>
+<p id="daily"></p>
+
+<h2>Rankings</h2>
+<p>Optional. Nothing is sent unless you tap Post. The server checks that each score came from a real round of the right length, holds impossible jumps for review, and hides a nickname as &ldquo;Player&rdquo; after 3 reports. Your local cores, badges and skins never depend on the rankings. <a href="guidelines.html">Community rules</a></p>
+
+<p style="margin-top:28px"><a class="cta" href="index.html">&#9654; Play</a></p>
+<nav class="docs"><a href="fair.html">Fair play</a> &middot; <a href="terms.html">Terms</a> &middot; <a href="privacy.html">Privacy</a> &middot; <a href="guidelines.html">Community rules</a> &middot; <a href="delete.html">Delete my data</a></nav>
+</main>
+<script src="daily.js"></script>
+<script src="settings.js"></script>
+<script src="engine.js"></script>
+<script src="games/skyhop.js"></script>
+<script src="games/swarm.js"></script>
+<script src="games/striker.js"></script>
+<script src="games/breaker.js"></script>
+<script src="games/trail.js"></script>
+<script src="games/drift.js"></script>
+<script src="games/prism.js"></script>
+<script src="games/wrecker.js"></script>
+<script src="games/glass.js"></script>
+<script src="games/demo.js"></script>
+<script src="games/match.js"></script>
+<script>
+// Everything below comes from the same objects the games use (engine.js), not from copy written by hand.
+(function () {
+  const F = window.Forkade, R = F.rewards, $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const NAMES = Object.fromEntries(F.registry.map(g => [g.id, g.meta.title]));
+  NAMES.echo3d = "ECHO 3D"; NAMES.rampage = "RAMPAGE 3D";
+  const T = R.TIERS, row = (a, b, c) => `<tr><td>${a}</td><td>${b}</td><td class="n">${c}</td></tr>`;
+  const ex = s => Math.round(Math.max(1, Math.sqrt(s) * 0.6));
+  $("earn").tBodies[0].innerHTML = [
+    row("Every finished round", `<span class="formula">&radic;score &times; 0.6</span>, at least 1. A 100 score pays ${ex(100)}, a 2,500 score pays ${ex(2500)}.`, "1+"),
+    row("New personal best", "On top of the round's cores.", "+10"),
+    ...T.map(t => row(t.name.charAt(0) + t.name.slice(1).toLowerCase() + " badge", "Once per game, when you first reach its goal (table below).", "+" + t.cores)),
+    row("Starter goal", "Try 3 different games. Once.", "+" + R.STARTER),
+    row("Daily challenge", "First finished round of the day's challenge.", "+25"),
+    row("Daily top 10", "Finish in the top 10 of a daily board, then claim it the next day.", "+75"),
+    row("Daily streak", "Opening FORKADE on day N of a streak pays 10 &times; N, capped at day 7.", "10&ndash;70"),
+  ].join("");
+  $("rankrule").innerHTML = `Your rank is <span class="formula">1 + &lfloor;&radic;(lifetime cores &divide; 25)&rfloor;</span>. Spending cores on skins never lowers it.`;
+  T.forEach((t, i) => $("t" + i).textContent = t.name);
+  $("badges").tBodies[0].innerHTML = Object.keys(R.GOALS).map(id => `<tr><td>${esc(NAMES[id] || id)}</td>${R.GOALS[id].map(v => `<td class="n">${v.toLocaleString("en")}</td>`).join("")}</tr>`).join("");
+  $("skins").tBodies[0].innerHTML = R.SKINS.map(s => `<tr><td>${esc(s.name)}</td><td class="n">${s.cost ? "&#9670; " + s.cost.toLocaleString("en") : "Free"}</td></tr>`).join("");
+  const D = window.ForkadeDaily, c = D.challenge();
+  $("daily").innerHTML = `One game a day, the same game and the same level for everyone: the level is built from the date (today's seed is <span class="formula">${esc(c.seed)}</span>). It rotates through ${D.games.map(g => esc(NAMES[g] || g)).join(", ")} and resets at midnight Singapore time.`;
+})();
+</script>
+</body>
+</html>

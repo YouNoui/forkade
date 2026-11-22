@@ -351,23 +351,24 @@
     // called once when a round ends; returns cores earned
     roundEnd(id, score, newBest, meta) {
       if (!this.enabled || !id) return 0;
+      const parts = this.breakdown = [];   // what this round paid, line by line (shown under the total)
       board.last = { id, score: Math.floor(score), at: Date.now(), run: board.run, daily: board.daily };
       if (board.daily && score > 0) {
         const key = 'forkade-daily-play:' + board.daily;
-        if (!load(key, false)) { save(key, true); this.add(25); this.daily(); this.toast('Daily played! +25 cores'); }
+        if (!load(key, false)) { save(key, true); parts.push(["daily", this.add(25)]); this.daily(); this.toast('Daily played! +25 cores'); }
       }
-      let got = this.add(Math.max(1, Math.sqrt(Math.max(0, score)) * 0.6));
-      if (newBest && score > 0) got += this.add(10);
+      let got = this.add(Math.max(1, Math.sqrt(Math.max(0, score)) * 0.6)); parts.push(["round", got]);
+      if (newBest && score > 0) { const nb = this.add(10); got += nb; parts.push(["new best", nb]); }
       const g = this.goals(id, meta), b = this.badges(), had = b[id] || 0;
       let tier = had; while (tier < 3 && score >= g[tier]) tier++;
       for (let k = had; k < tier; k++) {
-        got += this.add(TIERS[k].cores);
+        const bc = this.add(TIERS[k].cores); got += bc; parts.push([TIERS[k].name.toLowerCase(), bc]);
         this.toast(`${TIERS[k].name} BADGE  +${TIERS[k].cores} cores`, TIERS[k].color);
         sfx.win();
       }
       if (tier > had) { b[id] = tier; save("forkade-badges", b); }
-      got += this.starter();
-      return got;
+      const st = this.starter(); if (st) { got += st; parts.push(["starter", st]); }
+      return got + parts.filter(p => p[0] === "daily").reduce((a, p) => a + p[1], 0);
     },
     // starter goal: try 3 different games -> +30 cores, once. The visit itself counts as step 1 of 4.
     STARTER: 30,
@@ -532,12 +533,12 @@
       if (this.state !== this._prevState) {
         if (this.state === "over" && this._prevState === "play") {
           sfx.die(); this.newBest = this.id ? scores.submit(this.id, this.score) : false;
-          this.earned = rewards.roundEnd(this.id, this.score, this.newBest, this.meta);
+          this.earned = rewards.roundEnd(this.id, this.score, this.newBest, this.meta); this.breakdown = (rewards.breakdown || []).slice();
         } else if (this.state === "win" && this._prevState === "play") {
           sfx.win(); this.newBest = this.id ? scores.submit(this.id, this.score) : false;
-          this.earned = rewards.roundEnd(this.id, this.score, this.newBest, this.meta);
+          this.earned = rewards.roundEnd(this.id, this.score, this.newBest, this.meta); this.breakdown = (rewards.breakdown || []).slice();
         } else if (this.state === "play") {
-          this.newBest = false; this.earned = 0; this._keys = new Set();   // restarted
+          this.newBest = false; this.earned = 0; this.breakdown = []; this._keys = new Set();   // restarted
           board.last = null;
         }
         this._prevState = this.state;
@@ -564,6 +565,9 @@
           const k = still ? 1 : 1 - Math.pow(1 - Math.min(1, Math.max(0, t - 0.15) / 0.6), 3);
           const shown = Math.round(this.earned * k), total = rewards.cores() - this.earned + shown;
           text(ctx, `+${shown} cores   (total ${total})`, this.W / 2, this.H / 2 + 76, { size: 16, color: palette.lime, align: "center" });
+          const br = this.breakdown || [];
+          if (br.length > 1 && k >= 1) text(ctx, br.filter(p => p[1]).map(p => `${p[0]} +${p[1]}`).join("  \u00b7  "), this.W / 2, this.H / 2 + 98,
+            { size: 12, color: palette.dim, align: "center" });
         }
       }
       // reward toasts, top centre
