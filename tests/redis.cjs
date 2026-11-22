@@ -39,8 +39,8 @@ class Redis {
     return ()=>{global.fetch=original;};
   }
 }
-function request(handler,method,body={},url='/api/leaderboard'){
+function request(handler,method,body={},url='/api/leaderboard',headers={}){
   return new Promise((resolve,reject)=>{const res={headers:{},setHeader(k,v){this.headers[k]=v;},end(raw){resolve({status:this.statusCode,headers:this.headers,body:raw?JSON.parse(raw):null});}};
-    Promise.resolve(handler({method,body,url,headers:{}},res)).catch(reject);});
+    Promise.resolve(handler({method,body,url,headers},res)).catch(reject);});
 }
 module.exports={Redis,request};

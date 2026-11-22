@@ -46,11 +46,12 @@
     <div class="card"><b id="c-players">0</b><span>players on the rankings</span></div>
   </div>
   <h2>VISITORS PER DAY</h2><div class="chart" id="chart"></div>
+  <h2>LAYOUT EXPERIMENT</h2><p class="note">Anonymous A/B groups only. Day-1 return is an approximate, device-reported share of first-counted visitors returning the next Singapore day. No persistent server identifier. Cleared storage, shared networks and missed events affect accuracy. Today’s cohort is not complete.</p><div id="ab-report"></div>
   <h2>PLAYS PER GAME</h2><div class="bars" id="bars"></div>
   <h2>SCORES PENDING REVIEW</h2><div id="pending" class="mod"></div>
   <h2>REPORTED NICKNAMES</h2>
   <div id="mod" class="mod"><span class="dimtxt">Loading…</span></div>
-  <h2>DAY BY DAY</h2><table><thead><tr><th>Day (UTC)</th><th>Visits</th><th>Visitors</th><th>Plays</th></tr></thead><tbody id="tbody"></tbody></table>
+  <h2>DAY BY DAY</h2><table><thead><tr><th>Day (SGT)</th><th>Visits</th><th>Visitors</th><th>Plays</th></tr></thead><tbody id="tbody"></tbody></table>
 </div>
 <p class="note">The key is the <code>STATS_KEY</code> value set in Vercel. It's remembered on this device only.
   Counts skip bots and browsers that send Do Not Track / Global Privacy Control, so real numbers are a little higher.</p>
@@ -77,6 +78,10 @@
         `<div><span class="n">${NAMES[g]}</span><i style="width:${Math.max(2, n / pmax * 60)}%"></i><span class="v">${n}</span></div>`).join("");
       $("tbody").innerHTML = d.days.slice().reverse().map(x =>
         `<tr><td>${x.day}</td><td>${x.visits}</td><td>${x.visitors}</td><td>${Object.values(x.plays).reduce((a, b) => a + b, 0)}</td></tr>`).join("");
+      $('ab-report').innerHTML=['A','B'].map(b=>{let first=0,returned=0;for(let i=0;i<d.days.length-1;i++){const cohort=d.days[i].buckets?.[b],next=d.days[i+1].buckets?.[b];if(cohort&&next&&d.days[i+1].day!==new Date(Date.now()+8*3600000).toISOString().slice(0,10)){first+=cohort.first;returned+=next.returnDay1;}}
+        const plays=d.days.reduce((n,x)=>n+Object.values(x.buckets?.[b]?.plays||{}).reduce((a,v)=>a+v,0),0);
+        const rate=first&&returned<=first?Math.floor(returned*100/first)+'%':'Not enough reliable data';
+        return '<p><b>Group '+b+'</b> · '+plays+' plays · Day-1 return: '+rate+' ('+returned+' returns / '+first+' first-counted visitors)</p>';}).join('');
       $("out").hidden = false; $("msg").textContent = "";
       loadReports(key);
     } catch (err) { $("msg").textContent = err.message; }

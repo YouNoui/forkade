@@ -699,7 +699,7 @@
     });
 
     // first visit: one clear place to start instead of 12 equal choices (gone after the first game)
-    const START_ID = "skyhop", isNew = R.tried() === 0;
+    const START_ID = Forkade.experiment.start(), isNew = R.tried() === 0;
     Forkade.registry.forEach((g, i) => {
       const m = g.meta;
       const card = document.createElement("div");
@@ -714,7 +714,7 @@
         <span class="play">&#9654; Play now</span>
         <div class="best" data-id="${g.id}">BEST <b>${Forkade.scores.get(g.id)}</b></div>
         <div class="stars" data-id="${g.id}"></div>`;
-      if (isNew && g.id === START_ID) { card.classList.add("start"); card.insertAdjacentHTML("afterbegin", '<span class="starttag">START HERE &middot; ONE TAP TO JUMP</span>'); }
+      if (isNew && g.id === START_ID) { card.classList.add("start"); card.insertAdjacentHTML("afterbegin", '<span class="starttag">START HERE &middot; TRY THIS FIRST</span>'); }
       card.addEventListener("click", () => openGame(g.id));
       grid.appendChild(card);
     });

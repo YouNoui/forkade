@@ -133,7 +133,7 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
    await pg.close(); }
   // first visit: one 'Start here' card; settings say Saved
   { const pg=await browser.newPage({viewport:{width:390,height:844}});await pg.goto(base);await pg.waitForFunction(()=>window.Forkade);
-   assert.equal(await pg.locator('.card.start').count(),1,'one start card for new players');assert.match(await pg.locator('.card.start').innerText(),/START HERE[\s\S]*SKY HOP/i);
+   assert.equal(await pg.locator('.card.start').count(),1,'one start card for new players');assert.match(await pg.locator('.card.start').innerText(),/START HERE/);assert.equal(await pg.locator('.card.start .name').innerText(),await pg.evaluate(()=>GAME_NAMES()[Forkade.experiment.start()]));
    await pg.evaluate(()=>document.querySelector('.settings-button').click());await pg.locator('[data-setting=colourBlind]').click();
    assert.match(await pg.locator('#settings .saved.on').innerText(),/Saved/);await pg.keyboard.press('Escape');
    await pg.evaluate(()=>{Forkade.scores.submit('glass',10);});await pg.reload();await pg.waitForFunction(()=>window.Forkade);

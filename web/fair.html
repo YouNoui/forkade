@@ -58,7 +58,7 @@
   <li><b>No hidden difficulty.</b> Levels don't quietly get easier or harder depending on how often you lose. Random levels use plain randomness, and Demolition Chain only deals levels it has checked can be solved.</li>
   <li><b>Disclosed prize machine.</b> Optional spins use local cores only. Chances are shown before spinning; duplicate refunds and the re-roll guarantee are listed below.</li>
   <li><b>No ads and no paid boosts.</b> Cores can't be bought, and no game is easier for people who pay.</li>
-  <li><b>No secret tests.</b> Everyone gets the same rules, rewards and levels. No A/B tests, no player segments.</li>
+  <li id="ab-rule"></li>
   <li><b>Daily round bonuses are limited.</b> The full, half and quarter rates below apply only to round cores, never to other rewards.</li>
   <li><b>No made-up numbers.</b> The cores you see after a round are exactly what you earned, line by line.</li>
   <li><b>No phone details.</b> FORKADE doesn't read your phone model, screen brightness, internet speed, photos or contacts. The only thing sent is an anonymous &ldquo;visit&rdquo; or &ldquo;play&rdquo; count (you can switch it off in Settings) and scores you choose to Post. <a href="privacy.html">Privacy</a></li>
@@ -116,6 +116,7 @@
   const B=F.bonus.rules;
   $('bonus-rules').innerHTML='<h3>Daily bonus rounds</h3><p>Singapore midnight resets the counter. First '+B.full+' finished rounds: full round cores. Rounds '+(B.full+1)+'–'+B.half+': '+B.halfRate*100+'%. Rounds '+(B.half+1)+' onward: '+B.quarterRate*100+'%. Round base and final payout round to the nearest whole core. New best, badges, daily rewards, gifts and starter goal are unaffected. The wallet shows remaining full-bonus rounds when fewer than 10 remain.</p>';
   $('percent-rule').textContent="The 'beat' percentage uses your posted weekly best and real players with a strictly lower score, divided by everyone on that board, rounded down. Ties are not beaten. Hidden below "+F.policy.socialMinimum+" players; a local unposted score never becomes social proof.";
+  $('ab-rule').textContent='We test small layout choices (like which game says Start here) using the anonymous counts only. Rules, rewards, odds and levels are the same for everyone. '+(F.experiment.rules.enabled?'Current experiment: '+F.experiment.rules.name+'; A = '+NAMES[F.experiment.rules.startHere.A]+', B = '+NAMES[F.experiment.rules.startHere.B]+'.':'No layout experiment is active.');
   const T = R.TIERS, row = (a, b, c) => `<tr><td>${a}</td><td>${b}</td><td class="n">${c}</td></tr>`;
   const ex = s => Math.round(Math.max(1, Math.sqrt(s) * 0.6));
   $("earn").tBodies[0].innerHTML = [

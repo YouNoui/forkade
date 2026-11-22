@@ -462,12 +462,19 @@
   /* ------------------------------------------------------------- stats ---- */
   // Anonymous counts only (visits, plays per game) - no cookies, no ids, no IP stored.
   // Skipped entirely when the browser sends Do Not Track or Global Privacy Control.
+  const experiment={rules:global.ForkadePolicy.experiment,
+    bucket(){let b=load('forkade-ab',null);if(!['A','B'].includes(b)){const n=new Uint8Array(1);crypto.getRandomValues(n);b=n[0]%2?'B':'A';save('forkade-ab',b);}return b;},
+    start(){return this.rules.enabled?this.rules.startHere[this.bucket()]:'skyhop';}
+  };
   const stats = {
     api: (typeof location !== "undefined" && location.protocol === "file:" ? "https://playforkade.com" : "") + "/api/stats",
     off() { try { return !settings.analytics || navigator.doNotTrack === "1" || window.doNotTrack === "1" || navigator.globalPrivacyControl === true; } catch (_) { return true; } },
     send(e, game) {
       if (this.off() || (typeof location !== "undefined" && /^(localhost|127\.)/.test(location.hostname) && !global.__forkadeTestStats)) return;
-      const body = JSON.stringify(game ? { e, game, consent: true } : { e, consent: true });
+      const today=global.ForkadeDaily.date(Date.now());let first=load('forkade-count-first',null);if(!first){first=today;save('forkade-count-first',first);}
+      const payload={e,consent:true,ab:experiment.bucket()};if(game)payload.game=game;
+      if(e==='visit'){payload.first=first===today;payload.returnDay1=global.ForkadeDaily.date(Date.now()-86400000)===first;}
+      const body=JSON.stringify(payload);
       try { if (navigator.sendBeacon && navigator.sendBeacon(this.api, body)) return; } catch (_) {}
       try { fetch(this.api, { method: "POST", body, keepalive: true }).catch(() => {}); } catch (_) {}
     },
@@ -692,7 +699,7 @@
   global.Forkade = {
     palette, ECHO_COLOR, rand, rng, seed, settings, symbol, TAU, policy: global.ForkadePolicy,
     glowRect, glowCircle, glowLine, drawEcho, fillBg, text, bar, banner,
-    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats, gifts, machine, assist, assistMode, bonus,
+    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats, gifts, machine, assist, assistMode, bonus, experiment,
     register, boot, play, stop, registry,
     current: () => current,          // the running game (handy for tests and the Playground)
   };

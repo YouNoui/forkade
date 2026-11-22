@@ -26,7 +26,7 @@ function redis() {
     return (await r.json()).map(x => (x.error ? null : x.result));
   };
 }
-const day = (d = new Date()) => d.toISOString().slice(0, 10);   // UTC day
+const day = (d = new Date()) => require("../web/daily").date(d.getTime()); // Singapore day
 const TTL = String(60 * 60 * 24 * 400);                          // keep daily totals ~13 months
 
 function send(res, code, body) {
@@ -65,6 +65,13 @@ module.exports = async function handler(req, res) {
       } else if (b.e === "play" && GAMES.includes(b.game)) {
         cmds.push(["HINCRBY", `st:${d}:plays`, b.game, "1"], ["EXPIRE", `st:${d}:plays`, TTL]);
       } else return send(res, 400, { error: "Unknown event." });
+      if(['A','B'].includes(b.ab)){
+        const prefix=`st:${d}:ab:${b.ab}`;
+        if(b.e==='visit'){
+          cmds.push(['INCR',prefix+':visits'],['EXPIRE',prefix+':visits',TTL]);
+          for(const field of ['first','returnDay1'])if(b[field]===true)cmds.push(['PFADD',prefix+':'+field,visitor],['EXPIRE',prefix+':'+field,TTL]);
+        }else cmds.push(['HINCRBY',prefix+':plays',b.game,'1'],['EXPIRE',prefix+':plays',TTL]);
+      }
       await R(cmds);
       return send(res, 204, {});
     }
@@ -82,6 +89,8 @@ module.exports = async function handler(req, res) {
         for (let k = 0; k < flat.length; k += 2) plays[flat[k]] = Number(flat[k + 1]);
         return { day: d, visits: Number(out[i * 3] || 0), visitors: Number(out[i * 3 + 1] || 0), plays };
       });
+      const abData=await R(days.flatMap(d=>['A','B'].flatMap(b=>[['GET',`st:${d}:ab:${b}:visits`],['HGETALL',`st:${d}:ab:${b}:plays`],['PFCOUNT',`st:${d}:ab:${b}:first`],['PFCOUNT',`st:${d}:ab:${b}:returnDay1`]])));
+      rows.forEach((row,i)=>{row.buckets={};['A','B'].forEach((b,j)=>{const k=i*8+j*4,flat=abData[k+1]||[],plays={};for(let n=0;n<flat.length;n+=2)plays[flat[n]]=Number(flat[n+1]);row.buckets[b]={visits:Number(abData[k]||0),plays,first:Number(abData[k+2]||0),returnDay1:Number(abData[k+3]||0)};});});
       const [players] = await R([["HLEN", "lb:names"]]);
       return send(res, 200, { days: rows, rankedPlayers: players || 0 });
     }
