@@ -41,6 +41,7 @@
     <button class="x" id="close-settings" aria-label="Close settings">×</button><h2 id="settings-title">SETTINGS</h2>
     <p class="hint">Your progress and settings stay on this device. No cookies, ads or third-party trackers. Your nickname and score only leave this device when you tap Post.</p>
     <label class="nick">Nickname <input id="playername" maxlength="14" placeholder="ECHO" autocomplete="nickname" spellcheck="false"></label>
+    <label><input type="checkbox" data-setting="vibration"> Vibration</label>
     <label><input type="checkbox" data-setting="mute"> Mute sound</label>
     <label>Volume <input aria-label="Volume" type="range" min="0" max="1" step="0.05" data-setting="volume"></label>
     <label><input type="checkbox" data-setting="reduceMotion"> Reduce motion, shake and flashes</label>
@@ -49,11 +50,11 @@
     <p class="hint">First-party visits and game counts only, no raw IP storage. Always off with Do Not Track or Global Privacy Control.</p>
   </section>`;
   document.body.appendChild(settings);
-  const settingHelp={mute:'Only this device — turns all game sounds off.',volume:'Only this device — adjusts every game sound.',reduceMotion:'Only this device — removes shake, flashes and UI animation.',colourBlind:'Only this device — adds distinct symbols to Match and Prism.',analytics:'Anonymous counts leave this device while enabled; turn off to stop future counts.'};
+  const settingHelp={vibration:'Only this device — brief feedback on supported phones; off in Reduce motion.',mute:'Only this device — turns all game sounds off.',volume:'Only this device — adjusts every game sound.',reduceMotion:'Only this device — removes shake, flashes and UI animation.',colourBlind:'Only this device — adds distinct symbols to Match and Prism.',analytics:'Anonymous counts leave this device while enabled; turn off to stop future counts.'};
   for(const el of settings.querySelectorAll('[data-setting]')){const help=document.createElement('small');help.className='setting-help';help.textContent=settingHelp[el.dataset.setting];el.closest('label').after(help);}
   const nickHelp=document.createElement('p');nickHelp.className='hint';nickHelp.textContent='Nickname stays here until you tap Post; then it is public on rankings.';settings.querySelector('.nick').after(nickHelp);
-  const resetSettings=document.createElement('button');resetSettings.className='btn';resetSettings.textContent='Reset settings';resetSettings.onclick=()=>{Object.assign(S,{mute:false,volume:.6,reduceMotion:matchMedia('(prefers-reduced-motion: reduce)').matches,colourBlind:false,analytics:true});S.save();showSettings();toast('Settings reset on this device. Anonymous counts are on.');};settings.querySelector('.sheet').appendChild(resetSettings);
-  const defaults={mute:false,volume:.6,reduceMotion:matchMedia('(prefers-reduced-motion: reduce)').matches,colourBlind:false,analytics:true};
+  const resetSettings=document.createElement('button');resetSettings.className='btn';resetSettings.textContent='Reset settings';resetSettings.onclick=()=>{Object.assign(S,{mute:false,volume:.6,reduceMotion:matchMedia('(prefers-reduced-motion: reduce)').matches,colourBlind:false,vibration:true,analytics:true});S.save();showSettings();toast('Settings reset on this device. Anonymous counts are on.');};settings.querySelector('.sheet').appendChild(resetSettings);
+  const defaults={mute:false,volume:.6,reduceMotion:matchMedia('(prefers-reduced-motion: reduce)').matches,colourBlind:false,vibration:true,analytics:true};
   function markSettings(){for(const el of settings.querySelectorAll('[data-setting]')){const label=el.closest('label');label.dataset.changed=String(S[el.dataset.setting]!==defaults[el.dataset.setting]);}}
   addEventListener('forkade-settings',markSettings);markSettings();
   const assistRow=document.createElement('div');assistRow.innerHTML='<h3>Assist — this device</h3><label>Game <select id="assist-game"></select></label><label><input type="checkbox" id="assist-toggle"> Assist next round</label><p class="hint" id="assist-description"></p><p class="hint">Assisted rounds earn cores, but cannot post scores or unlock badges. Never applies to Daily challenges. Changes apply next round.</p><span id="assist-saved" role="status"></span>';

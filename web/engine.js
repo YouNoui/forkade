@@ -81,28 +81,15 @@
 
   /* --------------------------------------------------------- particles --- */
   class Particles {
-    constructor() { this.p = []; }
-    emit(x, y, color, { n = 10, speed = 3, life = 0.6, size = 3,
-                        angle = null, spread = TAU, gravity = 0 } = {}) {
-      for (let i = 0; i < n; i++) {
-        const a = angle == null ? fxrand(0, TAU) : angle + fxrand(-spread / 2, spread / 2);
-        const sp = speed * fxrand(0.3, 1) * 60;
-        this.p.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
-                      life: life * fxrand(0.6, 1), max: life, color, size, gravity });
-      }
+    constructor() { this.p = []; this.pool=Array.from({length:240},()=>({})); }
+    emit(x,y,color,{n=10,speed=3,life=.6,size=3,angle=null,spread=TAU,gravity=0}={}) {
+      if(settings.reduceMotion)n=Math.min(n,3);
+      for(let i=0;i<n && this.pool.length;i++) { const q=this.pool.pop(),a=angle==null?fxrand(0,TAU):angle+fxrand(-spread/2,spread/2),sp=speed*fxrand(.3,1)*60;
+        q.x=x;q.y=y;q.vx=Math.cos(a)*sp;q.vy=Math.sin(a)*sp;q.life=life*fxrand(.6,1);q.max=life;q.color=color;q.size=size;q.gravity=gravity;this.p.push(q); }
     }
-    update(dt) {
-      for (const q of this.p) {
-        q.x += q.vx * dt; q.y += q.vy * dt; q.vy += q.gravity * dt; q.life -= dt;
-      }
-      this.p = this.p.filter(q => q.life > 0);
-    }
-    render(ctx) {
-      for (const q of this.p) {
-        const k = Math.max(0, q.life / q.max);
-        glowCircle(ctx, q.color, q.x, q.y, Math.max(1, q.size * k));
-      }
-    }
+    update(dt) { for(let i=this.p.length-1;i>=0;i--){const q=this.p[i];q.x+=q.vx*dt;q.y+=q.vy*dt;q.vy+=q.gravity*dt;q.life-=dt;if(q.life<=0){this.pool.push(q);this.p[i]=this.p[this.p.length-1];this.p.pop();}} }
+    clear(){while(this.p.length)this.pool.push(this.p.pop());}
+    render(ctx){ctx.save();ctx.globalCompositeOperation='lighter';for(const q of this.p){ctx.globalAlpha=Math.max(0,q.life/q.max);ctx.fillStyle=q.color;const r=Math.max(1,q.size*q.life/q.max);ctx.fillRect(q.x-r,q.y-r,r*2,r*2);}ctx.restore();}
   }
 
   /* -------------------------------------------------------------- shake --- */
@@ -315,7 +302,7 @@
   // Cores (currency), badges (bronze/silver/gold per game), ECHO skins, rank and a
   // daily streak. Everything lives in localStorage on this device - nothing is sent anywhere.
   const GOALS = {               // score needed for bronze / silver / gold
-    skyhop: [150, 500, 1200], swarm: [150, 500, 1200], striker: [300, 1000, 2500],
+    skyhop: [200, 650, 1500], swarm: [150, 500, 1200], striker: [300, 1000, 2500],
     breaker: [1000, 4000, 10000], trail: [100, 300, 600], drift: [500, 2000, 5000],
     prism: [500, 2000, 6000], match: [2000, 6000, 12000], wrecker: [1500, 5000, 12000],
     echo3d: [50, 120, 200], rampage: [1500, 6000, 12000], glass: [1500, 5000, 12000], demo: [1000, 3000, 7000],
@@ -540,6 +527,41 @@
     },
   };
 
+  // Procedural worlds are cached once per round. Cosmetic state never consumes gameplay RNG.
+  class World {
+    constructor(w,h,colors){this.w=w;this.h=h;this.layers=[];
+      for(let l=0;l<3;l++){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
+        if(l===0){const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,colors[0]);g.addColorStop(1,colors[1]);x.fillStyle=g;x.fillRect(0,0,w,h);}
+        x.fillStyle=colors[2];x.globalAlpha=.12+l*.12;
+        for(let i=0;i<34;i++){const px=(i*173+l*71)%w,py=(i*137+l*53)%h;
+          if(l===1){x.beginPath();x.moveTo(px,py);x.lineTo(px+34,py-80-(i%4)*20);x.lineTo(px+68,py);x.fill();}
+          else {x.fillRect(px,py,l===0?2:3,l===0?2:16);}}
+        this.layers.push(c);}
+      this.light=document.createElement('canvas');this.light.width=this.light.height=160;const x=this.light.getContext('2d'),g=x.createRadialGradient(80,80,0,80,80,80);g.addColorStop(0,colors[2]+'66');g.addColorStop(1,colors[2]+'00');x.fillStyle=g;x.fillRect(0,0,160,160);
+    }
+    render(ctx,t,cam=0){ctx.drawImage(this.layers[0],0,0);for(let l=1;l<3;l++){const y=settings.reduceMotion?0:((cam*(l*.08)+t*l*5)%this.h+this.h)%this.h;ctx.drawImage(this.layers[l],0,y);ctx.drawImage(this.layers[l],0,y-this.h);}}
+    glow(ctx,x,y,r=80){ctx.save();ctx.globalCompositeOperation='lighter';ctx.drawImage(this.light,x-r,y-r,r*2,r*2);ctx.restore();}
+  }
+  class Juice {
+    constructor(){this.reset();this.pops=Array.from({length:12},()=>({life:0}));}
+    reset(){this.combo=0;this.best=0;this.window=0;this.freeze=0;this.slow=0;this.flash=0;this.direction=1;this.beat=0;this.note=0;this.duck=0;}
+    hit(x,y,label,big=false,damage=false){this.combo++;this.best=Math.max(this.best,this.combo);this.window=2.5;this.duck=.3;
+      if(!settings.reduceMotion){this.freeze=big?.055:0;this.slow=big?.22:0;this.flash=damage?.12:0;this.direction=x<450?-1:1;}
+      if(settings.vibration!==false&&!settings.reduceMotion&&navigator.vibrate)try{navigator.vibrate(big?25:8);}catch(_){}
+      const p=this.pops.find(p=>p.life<=0)||this.pops[0];p.x=x;p.y=y;p.label=label;p.life=1;
+      sfx._tone(440*Math.pow(1.05946,Math.min(12,this.combo)),.09,'triangle',.07,800);
+    }
+    step(dt,meta){this.window=Math.max(0,this.window-dt);if(!this.window)this.combo=0;this.freeze=Math.max(0,this.freeze-dt);this.slow=Math.max(0,this.slow-dt);this.flash=Math.max(0,this.flash-dt);this.duck=Math.max(0,this.duck-dt);
+      for(const p of this.pops)if(p.life>0){p.life-=dt;if(!settings.reduceMotion)p.y-=dt*32;}
+      this.beat-=dt;if(meta.music&&this.beat<=0){this.beat=60/meta.music.tempo/2;const scale=[0,7,12,7,3,10,15,10],n=scale[this.note++%8];sfx._tone(meta.music.root*Math.pow(2,n/12),.16,meta.music.wave,this.duck?.008:.025);}
+    }
+    render(ctx,w,h){for(const p of this.pops)if(p.life>0)text(ctx,p.label,p.x,p.y,{size:20,color:palette.amber,align:'center',glow:false});
+      if(this.combo>1)text(ctx,'COMBO ×'+this.combo,w-20,60,{size:18,color:palette.amber,align:'right',glow:false});
+      if(this.flash&&!settings.reduceMotion){ctx.fillStyle='rgba(255,79,110,.15)';ctx.fillRect(0,0,w,h);}}
+    snapshot(){return {combo:this.combo,best:this.best,window:this.window,freeze:this.freeze,slow:this.slow,flash:this.flash,direction:this.direction};}
+    restore(s){Object.assign(this,s);for(const p of this.pops)p.life=0;}
+  }
+
   /* --------------------------------------------------------- game base --- */
   class GameBase {
     constructor() {
@@ -568,6 +590,7 @@
     reset() {}
 
     frame(ctx, dt) {
+      if(this.juice && this.state==="play"){this.juice.step(dt,this.meta);if(!settings.reduceMotion){if(this.juice.freeze>0)dt=0;else if(this.juice.slow>0)dt*=.55;}}
       this.t += dt;
       if (this.input.pressed.KeyP && (this.state === "play" || this.state === "pause"))
         this.state = this.state === "play" ? "pause" : "play";
@@ -578,7 +601,7 @@
         this._overT = (this._overT || 0) + dt;
         const I = this.input;
         if (this._overT > 0.6 && (I.pressed.Enter || I.pressed.NumpadEnter || I.pressed.Space || I.tapped)) {
-          this._overT = 0; this.particles.p = []; this.rewind.frames = []; this.rewind.energy = 1;
+          this._overT = 0; this.particles.clear(); this.rewind.frames = []; this.rewind.energy = 1;
           this.reset(); this.state = "play";
         }
       } else this._overT = 0;
@@ -611,13 +634,17 @@
         this._prevState = this.state;
       }
 
-      fillBg(ctx, this.W, this.H);
-      this.stars.update(dt); this.stars.render(ctx);
+      if(this.world)this.world.render(ctx,this.t,this.cam||0);
+      else {fillBg(ctx, this.W, this.H);this.stars.update(dt); this.stars.render(ctx);}
       const [ox, oy] = this.shake.offset(dt);
       ctx.save(); ctx.translate(ox, oy);
       this.render(ctx);
       this.particles.render(ctx);
       ctx.restore();
+      if(this.juice){this.juice.render(ctx,this.W,this.H);
+        if(this.hint){if(this.input.tapped||Object.keys(this.input.pressed).length){this.hint=false;try{localStorage.setItem('forkade-hint-'+this.id,'1');}catch(_){}}
+          else {const x=this.W/2+(settings.reduceMotion?0:Math.sin(this.t*3)*14);text(ctx,this.meta.hint||'TAP / ARROWS TO PLAY',x,this.H-88,{size:20,align:'center',color:palette.white});}}
+      }
       this.rewind.overlay(ctx, this.W, this.H);
       if (this.state === "pause") banner(ctx, this.W, this.H, "PAUSED", "P resume   ESC menu");
       // best-score line under any game-over / win banner
@@ -680,7 +707,9 @@
     const reset = current.reset.bind(current);
     current.reset = function () { seed(options.seed || null); this.t = 0; this._prevState = 'play'; this.rewind.frames = []; this.rewind.energy = 1;
       this.assisted=!options.daily && !!ASSIST[id] && assistMode.preference(id);
+      if(this.juice){this.juice.reset();this.particles.clear();this.world=new World(this.W,this.H,entry.meta.world);try{this.hint=!localStorage.getItem('forkade-hint-'+id);}catch(_){this.hint=true;}}
       board.begin(id, options.daily || null, this.assisted); reset(); };
+    if(entry.meta.polished){current.juice=new Juice();const snap=current.snapshot.bind(current),restore=current.restore.bind(current);current.snapshot=function(){const s=snap();if(s)s.juice=this.juice.snapshot();return s;};current.restore=function(s){restore(s);if(s.juice)this.juice.restore(s.juice);};}
     current.reset(); rewards.toasts = [];
     if (!running) { running = true; last = performance.now(); frameId = requestAnimationFrame(loop); }
   }
@@ -699,7 +728,7 @@
   global.Forkade = {
     palette, ECHO_COLOR, rand, rng, seed, settings, symbol, TAU, policy: global.ForkadePolicy,
     glowRect, glowCircle, glowLine, drawEcho, fillBg, text, bar, banner,
-    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats, gifts, machine, assist, assistMode, bonus, experiment,
+    World, Juice, Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats, gifts, machine, assist, assistMode, bonus, experiment,
     register, boot, play, stop, registry,
     current: () => current,          // the running game (handy for tests and the Playground)
   };
