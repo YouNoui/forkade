@@ -302,7 +302,7 @@
   // Cores (currency), badges (bronze/silver/gold per game), ECHO skins, rank and a
   // daily streak. Everything lives in localStorage on this device - nothing is sent anywhere.
   const GOALS = {               // score needed for bronze / silver / gold
-    skyhop: [200, 650, 1500], swarm: [200, 650, 1500], striker: [300, 1000, 2500],
+    skyhop: [200, 650, 1500], swarm: [200, 650, 1500], striker: [400, 1400, 3500],
     breaker: [1000, 4000, 10000], trail: [100, 300, 600], drift: [500, 2000, 5000],
     prism: [500, 2000, 6000], match: [2000, 6000, 12000], wrecker: [1500, 5000, 12000],
     echo3d: [50, 120, 200], rampage: [1500, 6000, 12000], glass: [1500, 5000, 12000], demo: [1000, 3000, 7000],
@@ -534,7 +534,8 @@
         if(l===0){const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,colors[0]);g.addColorStop(1,colors[1]);x.fillStyle=g;x.fillRect(0,0,w,h);}
         x.fillStyle=colors[2];x.globalAlpha=.12+l*.12;
         for(let i=0;i<34;i++){const px=(i*173+l*71)%w,py=(i*137+l*53)%h;
-          if(l===1&&scene==='reactor'){x.strokeStyle=colors[2];x.lineWidth=2;x.beginPath();x.moveTo(px,py);x.lineTo(px+40,py);x.lineTo(px+40,py+55);x.stroke();x.beginPath();x.arc(px,py,10,0,TAU);x.stroke();}
+          if(l===1&&scene==='clouds'){x.beginPath();x.ellipse(px,py,80+(i%3)*20,22,0,0,TAU);x.fill();x.globalAlpha=.08;x.beginPath();x.ellipse(px+35,py-16,55,20,0,0,TAU);x.fill();x.globalAlpha=.24;}
+          else if(l===1&&scene==='reactor'){x.strokeStyle=colors[2];x.lineWidth=2;x.beginPath();x.moveTo(px,py);x.lineTo(px+40,py);x.lineTo(px+40,py+55);x.stroke();x.beginPath();x.arc(px,py,10,0,TAU);x.stroke();}
           else if(l===1){x.beginPath();x.moveTo(px,py);x.lineTo(px+34,py-80-(i%4)*20);x.lineTo(px+68,py);x.fill();}
           else {x.fillRect(px,py,l===0?2:3,l===0?2:16);}}
         this.layers.push(c);}
