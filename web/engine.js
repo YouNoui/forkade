@@ -302,7 +302,7 @@
   // Cores (currency), badges (bronze/silver/gold per game), ECHO skins, rank and a
   // daily streak. Everything lives in localStorage on this device - nothing is sent anywhere.
   const GOALS = {               // score needed for bronze / silver / gold
-    skyhop: [200, 650, 1500], swarm: [150, 500, 1200], striker: [300, 1000, 2500],
+    skyhop: [200, 650, 1500], swarm: [200, 650, 1500], striker: [300, 1000, 2500],
     breaker: [1000, 4000, 10000], trail: [100, 300, 600], drift: [500, 2000, 5000],
     prism: [500, 2000, 6000], match: [2000, 6000, 12000], wrecker: [1500, 5000, 12000],
     echo3d: [50, 120, 200], rampage: [1500, 6000, 12000], glass: [1500, 5000, 12000], demo: [1000, 3000, 7000],
@@ -529,12 +529,13 @@
 
   // Procedural worlds are cached once per round. Cosmetic state never consumes gameplay RNG.
   class World {
-    constructor(w,h,colors){this.w=w;this.h=h;this.layers=[];
+    constructor(w,h,colors,scene='islands'){this.w=w;this.h=h;this.layers=[];
       for(let l=0;l<3;l++){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
         if(l===0){const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,colors[0]);g.addColorStop(1,colors[1]);x.fillStyle=g;x.fillRect(0,0,w,h);}
         x.fillStyle=colors[2];x.globalAlpha=.12+l*.12;
         for(let i=0;i<34;i++){const px=(i*173+l*71)%w,py=(i*137+l*53)%h;
-          if(l===1){x.beginPath();x.moveTo(px,py);x.lineTo(px+34,py-80-(i%4)*20);x.lineTo(px+68,py);x.fill();}
+          if(l===1&&scene==='reactor'){x.strokeStyle=colors[2];x.lineWidth=2;x.beginPath();x.moveTo(px,py);x.lineTo(px+40,py);x.lineTo(px+40,py+55);x.stroke();x.beginPath();x.arc(px,py,10,0,TAU);x.stroke();}
+          else if(l===1){x.beginPath();x.moveTo(px,py);x.lineTo(px+34,py-80-(i%4)*20);x.lineTo(px+68,py);x.fill();}
           else {x.fillRect(px,py,l===0?2:3,l===0?2:16);}}
         this.layers.push(c);}
       this.light=document.createElement('canvas');this.light.width=this.light.height=160;const x=this.light.getContext('2d'),g=x.createRadialGradient(80,80,0,80,80,80);g.addColorStop(0,colors[2]+'66');g.addColorStop(1,colors[2]+'00');x.fillStyle=g;x.fillRect(0,0,160,160);
@@ -545,11 +546,11 @@
   class Juice {
     constructor(){this.reset();this.pops=Array.from({length:12},()=>({life:0}));}
     reset(){this.combo=0;this.best=0;this.window=0;this.freeze=0;this.slow=0;this.flash=0;this.direction=1;this.beat=0;this.note=0;this.duck=0;}
-    hit(x,y,label,big=false,damage=false){this.combo++;this.best=Math.max(this.best,this.combo);this.window=2.5;this.duck=.3;
-      if(!settings.reduceMotion){this.freeze=big?.055:0;this.slow=big?.22:0;this.flash=damage?.12:0;this.direction=x<450?-1:1;}
+    hit(x,y,label,big=false,damage=false){this.combo=damage?0:this.combo+1;this.best=Math.max(this.best,this.combo);this.window=damage?0:2.5;this.duck=.3;
+      if(!settings.reduceMotion){this.freeze=big?.055:0;this.slow=big?.22:0;this.flash=damage?.12:0;this.direction=x<(current?.W||900)/2?-1:1;}
       if(settings.vibration!==false&&!settings.reduceMotion&&navigator.vibrate)try{navigator.vibrate(big?25:8);}catch(_){}
       const p=this.pops.find(p=>p.life<=0)||this.pops[0];p.x=x;p.y=y;p.label=label;p.life=1;
-      sfx._tone(440*Math.pow(1.05946,Math.min(12,this.combo)),.09,'triangle',.07,800);
+      if(damage)sfx.hit();else sfx._tone(440*Math.pow(1.05946,Math.min(12,this.combo))*fxrand(.985,1.015),.09,'triangle',.07,800);
     }
     step(dt,meta){this.window=Math.max(0,this.window-dt);if(!this.window)this.combo=0;this.freeze=Math.max(0,this.freeze-dt);this.slow=Math.max(0,this.slow-dt);this.flash=Math.max(0,this.flash-dt);this.duck=Math.max(0,this.duck-dt);
       for(const p of this.pops)if(p.life>0){p.life-=dt;if(!settings.reduceMotion)p.y-=dt*32;}
@@ -698,7 +699,7 @@
     sfx.ensure();                       // unlock audio on this user gesture
     seed(options.seed || null);
     current = new entry.cls(); current.id = id; current.meta = entry.meta;
-    const portrait = ['skyhop', 'striker', 'breaker'].includes(id) && (options.daily ? id === 'skyhop' : innerWidth < innerHeight && innerWidth < 700);
+    const portrait = ['skyhop', 'swarm', 'striker', 'breaker'].includes(id) && (options.daily ? id === 'skyhop' : innerWidth < innerHeight && innerWidth < 700);
     current.W = portrait ? 560 : 900; current.H = portrait ? 900 : 560;
     canvas.width = current.W; canvas.height = current.H;
     canvas.style.aspectRatio = current.W + '/' + current.H;
@@ -707,7 +708,7 @@
     const reset = current.reset.bind(current);
     current.reset = function () { seed(options.seed || null); this.t = 0; this._prevState = 'play'; this.rewind.frames = []; this.rewind.energy = 1;
       this.assisted=!options.daily && !!ASSIST[id] && assistMode.preference(id);
-      if(this.juice){this.juice.reset();this.particles.clear();this.world=new World(this.W,this.H,entry.meta.world);try{this.hint=!localStorage.getItem('forkade-hint-'+id);}catch(_){this.hint=true;}}
+      if(this.juice){this.juice.reset();this.particles.clear();this.world=new World(this.W,this.H,entry.meta.world,entry.meta.scene);try{this.hint=!localStorage.getItem('forkade-hint-'+id);}catch(_){this.hint=true;}}
       board.begin(id, options.daily || null, this.assisted); reset(); };
     if(entry.meta.polished){current.juice=new Juice();const snap=current.snapshot.bind(current),restore=current.restore.bind(current);current.snapshot=function(){const s=snap();if(s)s.juice=this.juice.snapshot();return s;};current.restore=function(s){restore(s);if(s.juice)this.juice.restore(s.juice);};}
     current.reset(); rewards.toasts = [];

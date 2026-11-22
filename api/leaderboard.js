@@ -15,6 +15,7 @@ const Policy = require("../web/policy");
 const Runs = require("../lib/runs");
 
 // highest believable score per game - anything above is rejected
+// Swarm: 150-point guardians, 10-drone +50 and no-hit +25 fit the retained 200,000 cap.
 // Sky Hop: +50 per five sparks; existing cap remains above reachable two-hour runs.
 const CAPS = {
   skyhop: 100000, swarm: 200000, striker: 200000, breaker: 2000000, trail: 20000,
