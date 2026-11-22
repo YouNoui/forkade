@@ -4,7 +4,7 @@ Three cached storm-cloud layers, a shaped/leaning fighter, exhaust trail, shaped
 
 Catch an eight-second spread-shot cell every fifth kill. Ten ships pay +100; each dangerous near miss pays +5 once and triggers a brief reduced-motion-aware slowdown. Carrier defeat pays +300 and restores one hull with five seconds of protection. End-of-run stats use actual kills/grazes/combo and distance to the real local best. Music has its own key, tempo and instrument through the master gain.
 
-Snapshot/restore now includes weapon/spawn timers, invulnerability, pickup timers, boss deadline and per-projectile graze flags. CPU render timing 0.035ms → 0.065ms; full-frame sample ~0.285ms at 390×844. Source 4.83 → 9.25 KiB. Measurements are headless desktop CPU command-submission timings, not physical-phone/GPU guarantees. 30 simulated seconds, identical seed replay, approximately three seconds of rewind, boss spawn and power/timer restoration pass.
+Snapshot/restore now includes weapon/spawn timers, invulnerability, pickup timers, boss deadline and per-projectile graze flags. CPU render timing 0.035ms → 0.089ms; full-frame sample ~0.285ms at 390×844. Source 4.83 → 9.25 KiB. Measurements are headless desktop CPU command-submission timings, not physical-phone/GPU guarantees. 30 simulated seconds, identical seed replay, approximately three seconds of rewind, boss spawn and power/timer restoration pass.
 
 Badge tiers 400/1400/3500; server cap raised to 600,000 for long bonus-rich runs, rate limit remains 500 points/second. Old ranking entries remain untouched. Projectile/enemy/pickup bounds and the shared 240-particle pool limit work.
 
@@ -16,3 +16,4 @@ UX §22: portrait readability, existing 44px controls, one-tap replay, truthful 
 ![1280](desktop-1280.png)
 
 12-second before/after clip: `C:\Users\Younes\Desktop\shared process\forkade-games-before-after\striker.gif`.
+

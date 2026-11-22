@@ -1162,8 +1162,8 @@
       for(let l=0;l<3;l++){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
         if(l===0){const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,colors[0]);g.addColorStop(1,colors[1]);x.fillStyle=g;x.fillRect(0,0,w,h);}
         x.fillStyle=colors[2];x.globalAlpha=.12+l*.12;
-        for(let i=0;i<34;i++){const px=(i*173+l*71)%w,py=(i*137+l*53)%h;
-          if(l===1&&scene==='clouds'){x.beginPath();x.ellipse(px,py,80+(i%3)*20,22,0,0,TAU);x.fill();x.globalAlpha=.08;x.beginPath();x.ellipse(px+35,py-16,55,20,0,0,TAU);x.fill();x.globalAlpha=.24;}
+        for(let i=0;i<(scene==='clouds'&&l===1?12:34);i++){const px=scene==='clouds'?((Math.sin(i*127.1+l*311.7)*43758.5453)%1+1)%1*w:(i*173+l*71)%w,py=scene==='clouds'?((Math.sin(i*269.5+l*183.3)*28347.15)%1+1)%1*h:(i*137+l*53)%h;
+          if(l===1&&scene==='clouds'){x.save();x.translate(px,py);const g=x.createLinearGradient(0,-40,0,35);g.addColorStop(0,colors[2]+'55');g.addColorStop(1,colors[2]+'00');x.fillStyle=g;x.globalAlpha=.6;x.beginPath();x.moveTo(-90,12);x.bezierCurveTo(-100,-10,-65,-30,-44,-18);x.bezierCurveTo(-38,-55,12,-52,24,-23);x.bezierCurveTo(54,-40,87,-12,77,4);x.bezierCurveTo(115,0,115,28,80,30);x.lineTo(-66,30);x.bezierCurveTo(-100,30,-111,18,-90,12);x.fill();x.restore();}
           else if(l===1&&scene==='reactor'){x.strokeStyle=colors[2];x.lineWidth=2;x.beginPath();x.moveTo(px,py);x.lineTo(px+40,py);x.lineTo(px+40,py+55);x.stroke();x.beginPath();x.arc(px,py,10,0,TAU);x.stroke();}
           else if(l===1){x.beginPath();x.moveTo(px,py);x.lineTo(px+34,py-80-(i%4)*20);x.lineTo(px+68,py);x.fill();}
           else {x.fillRect(px,py,l===0?2:3,l===0?2:16);}}
