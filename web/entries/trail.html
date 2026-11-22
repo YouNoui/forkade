@@ -76,7 +76,7 @@
   .card.start:hover{box-shadow:7px 7px 0 var(--pop);}
   .card.daily, #daily-claim{order:-2;} .card.start{order:-1;}
   @media (max-width:600px){ .card.start{order:-3;} }
-  .card.start .play, .card.daily .dplay{background:var(--pop); color:var(--pop-ink); border:2px solid var(--pop-ink); font-weight:900; box-shadow:3px 3px 0 var(--brand);}
+  body.hero-out .card.start .play, body.hero-out .card.daily .dplay{background:var(--pop); color:var(--pop-ink); border:2px solid var(--pop-ink); font-weight:900; box-shadow:3px 3px 0 var(--brand);}
   .card.start{padding-top:50px;}
   .card .starttag{position:absolute; top:14px; left:20px; white-space:nowrap; background:var(--brand); color:var(--pop-ink); font-size:11px; font-weight:900;
     letter-spacing:.12em; padding:4px 10px; border-radius:6px;}
@@ -313,6 +313,40 @@
   }
   html.reduce-motion .modal, html.reduce-motion .modal .sheet{transition:none;}
   @media (prefers-reduced-motion:reduce){ .modal, .modal .sheet{transition:none;} ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*){animation:none !important;} }
+
+  /* ---- Landing anatomy (playbook §18), real data only ---- */
+  .promise{margin:6px 0 4px; font-size:clamp(17px,4.6vw,30px); font-weight:900; letter-spacing:.02em; color:var(--text);}
+  .promise b{white-space:nowrap; font-weight:900;} .promise .hl{color:var(--brand);}
+  .hero-cta{display:flex; flex-wrap:wrap; gap:8px 14px; justify-content:center; align-items:center; margin:14px 0 6px;}
+  .hero-cta #hero-play{font-size:16px; padding:10px 22px; min-height:48px;}
+  body.gift-ready #f-play{background:var(--panel2); color:var(--text); border:1px solid var(--line); box-shadow:none;}
+  body.gift-ready #hero-play{background:var(--panel2); color:var(--text); border:1px solid var(--line); box-shadow:none;}
+  .proof{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; max-width:520px; margin:18px auto 4px;}
+  .proof div{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:10px 6px; text-align:center;}
+  .proof b{display:block; font-size:24px; color:var(--brand); font-variant-numeric:tabular-nums; line-height:1.1;}
+  .proof span{font-size:11px; color:var(--muted); letter-spacing:.06em;}
+  .finder{max-width:520px; margin:28px auto 8px; padding:18px; background:var(--panel); border:1px solid var(--line); border-radius:18px;}
+  .finder h2{margin:0 0 10px; font-size:18px;}
+  .f-progress{display:flex; align-items:center; gap:10px; font-size:12px; color:var(--muted);}
+  .f-bar{flex:1; height:6px; border-radius:3px; background:rgba(150,156,190,.18); overflow:hidden;}
+  .f-bar i{display:block; height:100%; width:34%; background:var(--brand); border-radius:3px; transition:width .35s var(--ease-out);}
+  .f-pic{position:relative; margin:14px 0; aspect-ratio:1200/630; border-radius:12px; overflow:hidden; border:1px solid var(--line);
+    background:repeating-linear-gradient(90deg, rgba(34,225,255,.06) 0 1px, transparent 1px 28px), repeating-linear-gradient(0deg, rgba(34,225,255,.06) 0 1px, transparent 1px 28px), var(--base);}
+  .f-pic img{width:100%; height:100%; object-fit:cover; display:block; transition:filter .45s var(--ease-out), opacity .45s var(--ease-out), transform .45s var(--ease-out);}
+  .f-pic.half img{filter:blur(8px) saturate(.6); opacity:.55; transform:scale(1.04);}
+  .f-pic b{position:absolute; left:12px; bottom:10px; font-size:13px; letter-spacing:.08em; color:var(--text); text-shadow:0 1px 8px #000;}
+  .f-q h3{margin:0 0 10px; font-size:16px;}
+  .f-chips{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .f-chips button{min-height:56px; text-align:left; flex-direction:column; align-items:flex-start; justify-content:center; gap:2px; font-size:14px;}
+  .f-chips button small{display:block; font-weight:400; font-size:11px; color:var(--muted);}
+  .f-done{display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
+  .f-done .chips{flex:1 0 100%; display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+  .f-done .chips button{min-height:36px; padding:4px 10px; font-size:12px; font-weight:700;}
+  .gallery-title{max-width:1100px; margin:30px auto 12px; font-size:18px; text-align:left;} .gallery-title span{color:var(--muted); font-weight:400; font-size:13px;}
+  .closing{max-width:520px; margin:40px auto 0; text-align:center; padding:26px 18px; border-radius:18px; border:1px solid var(--line);
+    background:radial-gradient(400px 160px at 50% 0%, rgba(34,225,255,.12), transparent 70%), var(--panel);}
+  .closing-line{font-size:18px; font-weight:800; color:var(--text); margin:0 0 14px;} .closing-line span{display:block; color:var(--brand);}
+  html.reduce-motion .f-pic img, html.reduce-motion .f-bar i{transition:none;}
   [hidden]{display:none !important;}
   /* ---- shared buttons (UX playbook §4): one look, every state ---- */
   .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:8px 16px; border-radius:12px;
@@ -401,7 +435,7 @@
   .modal .sheet{animation-timing-function:var(--ease-drawer)}
   .rlist{height:300px;overflow:auto;overscroll-behavior:contain}.rlist button.rep,body.touch .ps{min-height:44px;min-width:44px}
   .setting-help{display:block;color:var(--muted);font-size:12px;line-height:1.5;margin:0 0 12px}#settings label[data-changed="true"]::after{content:"Changed";font-size:11px;color:var(--brand)}
-  @media(max-width:600px){body:not(.playing) #gift-open:not([hidden]),body:not(.playing):not(.gift-ready) .grid:has(.card.start) .card.start .play,body:not(.playing):not(.gift-ready) .grid:not(:has(.card.start)) .daily .dplay{position:fixed;z-index:95;bottom:max(12px,env(safe-area-inset-bottom));left:20px;width:calc(100% - 40px);min-height:44px;justify-content:center;box-sizing:border-box;background:var(--pop);color:var(--pop-ink);border:2px solid var(--pop-ink);box-shadow:3px 3px 0 var(--brand)}body.playing #gift-open{display:none}.wrap{padding-bottom:100px}}
+  @media(max-width:600px){body:not(.playing) #gift-open:not([hidden]),body.hero-out:not(.playing):not(.gift-ready) .grid:has(.card.start) .card.start .play,body.hero-out:not(.playing):not(.gift-ready) .grid:not(:has(.card.start)) .daily .dplay{position:fixed;z-index:95;bottom:max(12px,env(safe-area-inset-bottom));left:20px;width:calc(100% - 40px);min-height:44px;justify-content:center;box-sizing:border-box;background:var(--pop);color:var(--pop-ink);border:2px solid var(--pop-ink);box-shadow:3px 3px 0 var(--brand)}body.playing #gift-open{display:none}.wrap{padding-bottom:100px}}
   #more-games{display:flex;margin:20px auto}
   @media(max-width:600px){body:not(.playing) .toasts{bottom:calc(78px + env(safe-area-inset-bottom))!important}}
   </style>
@@ -446,9 +480,15 @@
   <div class="wrap">
     <div class="head">
       <h1 class="title">FORKADE</h1>
-      <div class="sub">13 arcade games &middot; rewind any mistake &middot; no sign-ups</div>
+      <p class="promise"><b>Play it.</b> <b class="hl">Rewind it.</b> <b>Fork it.</b></p>
+      <div class="sub" id="hero-sub">Free arcade games in your browser &middot; no sign-ups</div>
+      <div class="hero-cta">
+        <button class="btn btn-pop" id="hero-play" type="button">&#9654; Play now</button>
+        <a class="btn btn-link" id="hero-build" href="playground.html">Build your own game &rsaquo;</a>
+      </div>
       <div class="chip" id="rewindtip">&#9199; Mess up? Hold <b>R</b> or <b>Shift</b> to rewind time.</div>
       <div class="privacy-line">&#128274; No sign-ups, no ads. Only anonymous play counts — switch off in Settings. <a href="fair.html">Fair play</a></div>
+      <div class="proof" id="proof" aria-label="FORKADE in numbers"></div>
       <div class="wallet" id="wallet">
         <span>&#9670; <b id="w-cores">0</b> cores</span>
         <span>RANK <b id="w-rank">1</b></span>
@@ -458,7 +498,19 @@
       </div>
       <div class="goal" id="goal" hidden><div class="g-t"><span id="g-name"></span><span id="g-num"></span></div><div class="g-bar" role="progressbar" aria-labelledby="g-name" id="g-bar"><i id="g-fill"></i></div><div id="g-hint" style="margin-top:5px"></div></div>
     </div>
+    <section class="finder" id="finder" aria-labelledby="finder-title">
+      <h2 id="finder-title">Find your game in 10 seconds</h2>
+      <div class="f-progress"><span id="f-step">Step 1 of 2</span><div class="f-bar"><i id="f-fill"></i></div></div>
+      <div class="f-pic" id="f-pic" aria-hidden="true"><img id="f-img" alt="" width="1200" height="630" hidden><b id="f-name"></b></div>
+      <div class="f-q" id="f-q"></div>
+      <div class="f-done" id="f-done" hidden></div>
+    </section>
+    <h2 class="gallery-title">Every game <span>&middot; tap one to play</span></h2>
     <div class="grid" id="grid"></div>
+    <section class="closing" aria-label="Start playing">
+      <p class="closing-line">One tap, no account, and every mistake can be rewound. <span>Go on, have a go.</span></p>
+      <button class="btn" id="closing-play" type="button">&#9654; Play now</button>
+    </section>
     <div class="offline">
       <button class="btn install show" id="install">&#11015; Play offline / install</button>
       <div class="dlbox" id="dlbox" hidden>
@@ -1125,6 +1177,51 @@
       });
       setInterval(() => { if (refreshPending && !stage.classList.contains("on")) { refreshPending = false; refreshNow(); } }, 1000);
     }
+    // ---- Landing anatomy (playbook §18): hero, real numbers, game finder, closing band. Real data only. ----
+    (function landing() {
+      const N3D = 2, total = Forkade.registry.length + N3D, names = GAME_NAMES();
+      document.getElementById("hero-sub").innerHTML = `${total} free arcade games in your browser &middot; no sign-ups`;
+      // proof: only numbers that are true for everyone, right now (no ratings or reviews exist yet, so none are shown)
+      document.getElementById("proof").innerHTML = [[total, "GAMES"], [N3D, "IN 3D"], [0, "SIGN-UPS"], [0, "ADS"]]
+        .map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join("");
+      const start = () => document.querySelector(".card.start");
+      const label = () => start() ? "▶ Play " + start().querySelector(".name").textContent.trim() : "▶ Play today's challenge";
+      const play = () => { const s = start(); if (s) return s.click(); const d = document.getElementById("daily-challenge"); if (d) d.click(); else openGame(Forkade.registry[0].id); };
+      for (const id of ["hero-play", "closing-play"]) { const b = document.getElementById(id); b.textContent = label(); b.addEventListener("click", play); }
+      // the cards' Play becomes the (sticky) main action once the hero's Play has scrolled away: one yellow button on screen
+      if ("IntersectionObserver" in window) new IntersectionObserver(([e]) => document.body.classList.toggle("hero-out", !e.isIntersecting))
+        .observe(document.getElementById("hero-play"));
+      else document.body.classList.add("hero-out");
+      // finder: one question per step, tap to answer, the picture sharpens as you answer
+      const KINDS = [
+        { k: "jump", t: "Jump & climb", d: "platforms and timing", quick: "skyhop", long: "echo3d" },
+        { k: "shoot", t: "Shoot", d: "waves of enemies", quick: "swarm", long: "striker" },
+        { k: "smash", t: "Smash things", d: "physics and debris", quick: "glass", long: "rampage" },
+        { k: "think", t: "Think", d: "puzzles and combos", quick: "match", long: "demo" }];
+      const LENS = [{ k: "quick", t: "Short rounds", d: "quick restarts" }, { k: "long", t: "Longer runs", d: "a course or a level" }];
+      const $ = id => document.getElementById(id), ans = {};
+      const pic = (id, half) => { const img = $("f-img"); img.hidden = false; img.src = "og/" + id + ".png"; $("f-pic").classList.toggle("half", half);
+        $("f-name").textContent = half ? "" : names[id]; };
+      const chips = (list, onPick) => `<div class="f-chips">${list.map(o => `<button class="btn" type="button" data-k="${o.k}">${o.t}<small>${o.d}</small></button>`).join("")}</div>`;
+      function step(n) {
+        $("f-done").hidden = true; $("f-q").hidden = false;
+        $("f-step").textContent = `Step ${n} of 2`; $("f-fill").style.width = (n === 1 ? 34 : 67) + "%";
+        if (n === 1) { $("f-q").innerHTML = `<h3>What do you feel like?</h3>` + chips(KINDS);
+          $("f-q").onclick = e => { const b = e.target.closest("button[data-k]"); if (!b) return; ans.kind = KINDS.find(o => o.k === b.dataset.k); pic(ans.kind.quick, true); step(2); }; }
+        else { $("f-q").innerHTML = `<h3>How long do you want to play?</h3>` + chips(LENS);
+          $("f-q").onclick = e => { const b = e.target.closest("button[data-k]"); if (!b) return; ans.len = LENS.find(o => o.k === b.dataset.k); done(); }; }
+      }
+      function done() {
+        const id = ans.kind[ans.len.k]; pic(id, false);
+        $("f-step").textContent = "Your game"; $("f-fill").style.width = "100%"; $("f-q").hidden = true;
+        const d = $("f-done"); d.hidden = false;
+        d.innerHTML = `<div class="chips"><button class="btn" type="button" data-step="1">${ans.kind.t} &#10005;</button><button class="btn" type="button" data-step="2">${ans.len.t} &#10005;</button></div>` +
+          `<button class="btn btn-pop" type="button" id="f-play">▶ Play ${names[id]}</button>`;
+        d.onclick = e => { const c = e.target.closest("[data-step]"); if (c) return step(+c.dataset.step);
+          if (e.target.closest("#f-play")) (["echo3d", "rampage"].includes(id) ? open3D(id) : openGame(id)); };
+      }
+      step(1);
+    })();
   </script>
   <script src="features.js"></script>
 <script src="dialogs.js"></script>

@@ -147,6 +147,16 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
    await pg.locator('#open-locker').click();await pg.waitForTimeout(300);
    assert.ok(await pg.evaluate(()=>!!document.querySelector('#locker .sheet').style.getPropertyValue('--ox')),'sheet grows from its button');
    await ctx.close(); }
+  // landing anatomy (playbook 18): real numbers only, a finder that ends on a game, no invented ratings
+  { const pg=await browser.newPage({viewport:{width:390,height:844}});await pg.goto(base);await pg.waitForFunction(()=>window.Forkade);
+   const proof=await pg.evaluate(()=>[...document.querySelectorAll('#proof b')].map(b=>+b.textContent));
+   assert.deepEqual(proof,[await pg.evaluate(()=>Forkade.registry.length+2),2,0,0],'proof numbers come from the code');
+   assert.doesNotMatch(await pg.locator('.head').innerText(),/★|review|rating/i,'no rating until there are real reviews');
+   await pg.locator('#f-q button[data-k=think]').click();assert.match(await pg.locator('#f-step').innerText(),/Step 2 of 2/);
+   await pg.locator('#f-q button[data-k=long]').click();assert.match(await pg.locator('#f-play').innerText(),/DEMOLITION CHAIN/);
+   await pg.locator('#f-done button[data-step="1"]').click();assert.match(await pg.locator('#f-step').innerText(),/Step 1 of 2/,'tap an answer chip to change it');
+   await pg.locator('#f-q button[data-k=jump]').click();await pg.locator('#f-q button[data-k=quick]').click();await pg.locator('#f-play').click();
+   await pg.waitForFunction(()=>Forkade.current()&&Forkade.current().id==='skyhop');await pg.evaluate(()=>closeStage());await pg.close(); }
   // first visit: one 'Start here' card; settings say Saved
   { const pg=await browser.newPage({viewport:{width:390,height:844}});await pg.goto(base);await pg.waitForFunction(()=>window.Forkade);
    assert.equal(await pg.locator('.card.start').count(),1,'one start card for new players');assert.match(await pg.locator('.card.start').innerText(),/START HERE/);assert.equal(await pg.locator('.card.start .name').innerText(),await pg.evaluate(()=>GAME_NAMES()[Forkade.experiment.start()]));
