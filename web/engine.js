@@ -331,6 +331,9 @@
     { id: "violet",  name: "Ultraviolet", color: "#a07bff", cost: 350 },
     { id: "ghost",   name: "Ghost",     color: "#f4f6ff", cost: 500 },
     { id: "rainbow", name: "Rainbow",   color: "rainbow", cost: 1000 },
+    ...[{id:'aurora',name:'Aurora Byte',color:'#58ffd2'}, {id:'ember',name:'Ember Loop',color:'#ff784f'},
+       {id:'orbit',name:'Orbit Pearl',color:'#b8d5ff'}, {id:'moss',name:'Moss Signal',color:'#b5df70'},
+       {id:'tide',name:'Tidal Pulse',color:'#579cff'}, {id:'rose',name:'Rose Circuit',color:'#ff91c9'}].map(s=>({...s,machineOnly:true,cost:null})),
   ];
   const load = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (_) { return d; } };
   const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} };
@@ -347,6 +350,26 @@
       else { let roll=random()*100; amount=GIFTS.regular.at(-1).amount; for(const row of GIFTS.regular){roll-=row.weight;if(roll<0){amount=row.amount;break;}} }
       st.next=now+GIFTS.waits[Math.min(st.count,GIFTS.waits.length-1)]*1000;st.count++;
       save('forkade-gifts',st);rewards.add(amount);return {amount,...st};
+    }
+  };
+  const MACHINE = Object.freeze({cost:100,rerollCost:60,refund:25,guarantee:2,odds:[70,60,50,40,30,20,10]});
+  const machine = {
+    rules:MACHINE,
+    state(){let st=load('forkade-machine',null);if(!st){const b=new Uint32Array(1);crypto.getRandomValues(b);st={seed:b[0]||1,rerolls:0,last:null};save('forkade-machine',st);}return st;},
+    chance(count=rewards.owned().length){return MACHINE.odds[Math.min(6,Math.floor(count/2))];},
+    spin(reroll=false){
+      if(!rewards.enabled)return null;const st=this.state(),own=rewards.owned(),missing=SKINS.filter(s=>!own.includes(s.id));
+      if(!missing.length)return null;if(reroll&&(!st.last?.duplicate||!st.rerolls))return null;
+      const cost=reroll?MACHINE.rerollCost:MACHINE.cost;if(rewards.cores()<cost)return null;
+      // A persisted PRNG advances once per committed draw. Reload never redraws a pending reveal.
+      const random=()=>{let x=st.seed;x^=x<<13;x^=x>>>17;x^=x<<5;st.seed=x>>>0;return st.seed/4294967296;};
+      const chance=reroll?st.chance:this.chance(own.length),guaranteed=reroll&&st.rerolls===MACHINE.guarantee;
+      const isNew=guaranteed||random()*100<chance,pool=isNew?missing:SKINS.filter(s=>own.includes(s.id));
+      const skin=pool[Math.floor(random()*pool.length)],duplicate=!isNew;
+      st.chance=chance;st.rerolls=duplicate?(reroll?st.rerolls+1:1):0;
+      st.last={skin:skin.id,name:skin.name,duplicate,cost,refund:duplicate?MACHINE.refund:0,chance:guaranteed?100:chance,at:Date.now()};
+      save('forkade-machine',st);save('forkade-cores',rewards.cores()-cost+st.last.refund);
+      if(isNew){own.push(skin.id);save('forkade-skins',own);}rewards.listeners.forEach(f=>f());return st.last;
     }
   };
   const rewards = {
@@ -399,7 +422,7 @@
     buy(id) {
       const sk = SKINS.find(s => s.id === id); if (!sk) return false;
       const own = this.owned(); if (own.includes(id)) { save("forkade-skin", id); this.listeners.forEach(f => f()); return true; }
-      if (this.cores() < sk.cost) return false;
+      if (sk.machineOnly || this.cores() < sk.cost) return false;
       save("forkade-cores", this.cores() - sk.cost); own.push(id); save("forkade-skins", own); save("forkade-skin", id);
       this.listeners.forEach(f => f()); return true;
     },
@@ -645,7 +668,7 @@
   global.Forkade = {
     palette, ECHO_COLOR, rand, rng, seed, settings, symbol, TAU,
     glowRect, glowCircle, glowLine, drawEcho, fillBg, text, bar, banner,
-    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats, gifts,
+    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats, gifts, machine,
     register, boot, play, stop, registry,
     current: () => current,          // the running game (handy for tests and the Playground)
   };

@@ -15,6 +15,24 @@
     if(result){UI.burst(giftButton);toast('Gift opened! +'+result.amount+' cores');refreshRewards();}
   }finally{UI.reset(giftButton);paintGift();}};
   paintGift();setInterval(paintGift,1000);addEventListener('storage',paintGift);
+  const machine=document.createElement('section');machine.id='prize-machine';machine.className='gift-card';
+  machine.innerHTML='<h3>Prize machine</h3><p id="machine-odds"></p><button class="btn btn-pop" id="machine-spin">Spin — 100 cores</button><button class="btn" id="machine-reroll" hidden>Re-roll — 60 cores</button><p id="machine-hint"></p><p id="machine-result" role="status"></p><a href="fair.html#chances">All chances and rules</a>';
+  document.getElementById('skins').before(machine);
+  let revealing=false;
+  function paintMachine(){const M=F.machine,st=M.state(),complete=F.rewards.owned().length===F.rewards.SKINS.length;
+    machine.querySelector('#machine-odds').textContent=complete?'Collection complete — no more spins.':'Chance of a NEW skin: '+M.chance()+'%';
+    const spin=machine.querySelector('#machine-spin'),reroll=machine.querySelector('#machine-reroll');
+    spin.disabled=revealing||complete||F.rewards.cores()<M.rules.cost;reroll.hidden=!st.last?.duplicate||complete;
+    reroll.disabled=revealing||F.rewards.cores()<M.rules.rerollCost;
+    machine.querySelector('#machine-hint').textContent=complete?'All skins owned.':st.last?.duplicate?'Re-roll for 60 — 2nd re-roll in a row is guaranteed new. Next re-roll: '+(st.rerolls===2?100:st.chance)+'% new.':F.rewards.cores()<M.rules.cost?'Need '+(M.rules.cost-F.rewards.cores())+' more cores.':'Duplicates refund '+M.rules.refund+' cores. No ads or money.';
+    if(!revealing)machine.querySelector('#machine-result').textContent=st.last?(st.last.duplicate?'Duplicate: ':'New skin: ')+st.last.name+(st.last.duplicate?' · +25 cores refunded':''):'';
+  }
+  async function spinMachine(reroll){if(revealing)return;revealing=true;paintMachine();machine.querySelector('#machine-result').textContent='Opening…';
+    const act=()=>F.machine.spin(reroll);let result;try{result=navigator.locks?await navigator.locks.request('forkade-machine',act):act();
+      if(!F.settings.reduceMotion)await new Promise(r=>setTimeout(r,1000));
+    }finally{revealing=false;paintMachine();refreshRewards();}if(result)UI.burst(machine);}
+  machine.querySelector('#machine-spin').onclick=()=>spinMachine(false);machine.querySelector('#machine-reroll').onclick=()=>spinMachine(true);
+  F.rewards.listeners.push(paintMachine);paintMachine();addEventListener('storage',paintMachine);
   const settings = document.createElement('div'); settings.className = 'modal'; settings.id = 'settings'; settings.hidden = true;
   settings.innerHTML = `<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="settings-title">
     <button class="x" id="close-settings" aria-label="Close settings">×</button><h2 id="settings-title">SETTINGS</h2>

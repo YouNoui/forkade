@@ -427,7 +427,7 @@
       <button class="x" id="close-locker" aria-label="Close">&times;</button>
       <h2>LOCKER</h2>
       <p class="hint">Earn cores in every game: finish rounds, clear levels, beat your best and win badges. Spend them on ECHO skins that show up in every game.</p>
-      <p class="hint fairnote">&#9878; Fixed prices. No loot boxes, no ads, cores can't be bought. <a href="fair.html">Every number</a></p>
+      <p class="hint fairnote">&#9878; Original skins have fixed prices. Machine chances are shown before you spin. No ads; cores cannot be bought. <a href="fair.html">Every number</a></p>
       <div class="skins" id="skins"></div>
       <h2>BADGES <span id="badge-count"></span></h2>
       <div class="badges" id="badges"></div>
@@ -856,6 +856,9 @@
     { id: "violet",  name: "Ultraviolet", color: "#a07bff", cost: 350 },
     { id: "ghost",   name: "Ghost",     color: "#f4f6ff", cost: 500 },
     { id: "rainbow", name: "Rainbow",   color: "rainbow", cost: 1000 },
+    ...[{id:'aurora',name:'Aurora Byte',color:'#58ffd2'}, {id:'ember',name:'Ember Loop',color:'#ff784f'},
+       {id:'orbit',name:'Orbit Pearl',color:'#b8d5ff'}, {id:'moss',name:'Moss Signal',color:'#b5df70'},
+       {id:'tide',name:'Tidal Pulse',color:'#579cff'}, {id:'rose',name:'Rose Circuit',color:'#ff91c9'}].map(s=>({...s,machineOnly:true,cost:null})),
   ];
   const load = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (_) { return d; } };
   const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} };
@@ -872,6 +875,26 @@
       else { let roll=random()*100; amount=GIFTS.regular.at(-1).amount; for(const row of GIFTS.regular){roll-=row.weight;if(roll<0){amount=row.amount;break;}} }
       st.next=now+GIFTS.waits[Math.min(st.count,GIFTS.waits.length-1)]*1000;st.count++;
       save('forkade-gifts',st);rewards.add(amount);return {amount,...st};
+    }
+  };
+  const MACHINE = Object.freeze({cost:100,rerollCost:60,refund:25,guarantee:2,odds:[70,60,50,40,30,20,10]});
+  const machine = {
+    rules:MACHINE,
+    state(){let st=load('forkade-machine',null);if(!st){const b=new Uint32Array(1);crypto.getRandomValues(b);st={seed:b[0]||1,rerolls:0,last:null};save('forkade-machine',st);}return st;},
+    chance(count=rewards.owned().length){return MACHINE.odds[Math.min(6,Math.floor(count/2))];},
+    spin(reroll=false){
+      if(!rewards.enabled)return null;const st=this.state(),own=rewards.owned(),missing=SKINS.filter(s=>!own.includes(s.id));
+      if(!missing.length)return null;if(reroll&&(!st.last?.duplicate||!st.rerolls))return null;
+      const cost=reroll?MACHINE.rerollCost:MACHINE.cost;if(rewards.cores()<cost)return null;
+      // A persisted PRNG advances once per committed draw. Reload never redraws a pending reveal.
+      const random=()=>{let x=st.seed;x^=x<<13;x^=x>>>17;x^=x<<5;st.seed=x>>>0;return st.seed/4294967296;};
+      const chance=reroll?st.chance:this.chance(own.length),guaranteed=reroll&&st.rerolls===MACHINE.guarantee;
+      const isNew=guaranteed||random()*100<chance,pool=isNew?missing:SKINS.filter(s=>own.includes(s.id));
+      const skin=pool[Math.floor(random()*pool.length)],duplicate=!isNew;
+      st.chance=chance;st.rerolls=duplicate?(reroll?st.rerolls+1:1):0;
+      st.last={skin:skin.id,name:skin.name,duplicate,cost,refund:duplicate?MACHINE.refund:0,chance:guaranteed?100:chance,at:Date.now()};
+      save('forkade-machine',st);save('forkade-cores',rewards.cores()-cost+st.last.refund);
+      if(isNew){own.push(skin.id);save('forkade-skins',own);}rewards.listeners.forEach(f=>f());return st.last;
     }
   };
   const rewards = {
@@ -924,7 +947,7 @@
     buy(id) {
       const sk = SKINS.find(s => s.id === id); if (!sk) return false;
       const own = this.owned(); if (own.includes(id)) { save("forkade-skin", id); this.listeners.forEach(f => f()); return true; }
-      if (this.cores() < sk.cost) return false;
+      if (sk.machineOnly || this.cores() < sk.cost) return false;
       save("forkade-cores", this.cores() - sk.cost); own.push(id); save("forkade-skins", own); save("forkade-skin", id);
       this.listeners.forEach(f => f()); return true;
     },
@@ -1170,7 +1193,7 @@
   global.Forkade = {
     palette, ECHO_COLOR, rand, rng, seed, settings, symbol, TAU,
     glowRect, glowCircle, glowLine, drawEcho, fillBg, text, bar, banner,
-    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats, gifts,
+    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats, gifts, machine,
     register, boot, play, stop, registry,
     current: () => current,          // the running game (handy for tests and the Playground)
   };
@@ -2923,8 +2946,9 @@
           ? "linear-gradient(135deg,#ff3ea5,#ffb23f,#9dff57,#22e4ff,#a07bff)" : sk.color;   /* skin = game colour, not UI */
         const btn = sk.id === eq ? `<button class="btn done" disabled>&#10003; Equipped</button>`
           : has ? `<button class="btn" data-skin="${sk.id}">Equip</button>`
+          : sk.machineOnly ? `<span class="why">Prize machine only</span>`
           : cores < sk.cost ? `<button class="btn" disabled aria-describedby="why-${sk.id}">&#9670; ${sk.cost}</button><small class="why" id="why-${sk.id}">Need ${sk.cost - cores} more cores</small>`
-          : `<button class="btn btn-pop" data-skin="${sk.id}">&#9670; ${sk.cost} Buy</button>`;
+          : `<button class="btn" data-skin="${sk.id}">&#9670; ${sk.cost} Buy</button>`;
         return `<div class="skin ${sk.id === eq ? "eq" : ""}"><div class="sw" style="background:${bg};color:${sk.color === "rainbow" ? "#a07bff" : sk.color}"></div>${sk.name}${btn}</div>`;
       }).join("");
       const names = GAME_NAMES(); let total = 0;
@@ -3312,6 +3336,24 @@
     if(result){UI.burst(giftButton);toast('Gift opened! +'+result.amount+' cores');refreshRewards();}
   }finally{UI.reset(giftButton);paintGift();}};
   paintGift();setInterval(paintGift,1000);addEventListener('storage',paintGift);
+  const machine=document.createElement('section');machine.id='prize-machine';machine.className='gift-card';
+  machine.innerHTML='<h3>Prize machine</h3><p id="machine-odds"></p><button class="btn btn-pop" id="machine-spin">Spin — 100 cores</button><button class="btn" id="machine-reroll" hidden>Re-roll — 60 cores</button><p id="machine-hint"></p><p id="machine-result" role="status"></p><a href="fair.html#chances">All chances and rules</a>';
+  document.getElementById('skins').before(machine);
+  let revealing=false;
+  function paintMachine(){const M=F.machine,st=M.state(),complete=F.rewards.owned().length===F.rewards.SKINS.length;
+    machine.querySelector('#machine-odds').textContent=complete?'Collection complete — no more spins.':'Chance of a NEW skin: '+M.chance()+'%';
+    const spin=machine.querySelector('#machine-spin'),reroll=machine.querySelector('#machine-reroll');
+    spin.disabled=revealing||complete||F.rewards.cores()<M.rules.cost;reroll.hidden=!st.last?.duplicate||complete;
+    reroll.disabled=revealing||F.rewards.cores()<M.rules.rerollCost;
+    machine.querySelector('#machine-hint').textContent=complete?'All skins owned.':st.last?.duplicate?'Re-roll for 60 — 2nd re-roll in a row is guaranteed new. Next re-roll: '+(st.rerolls===2?100:st.chance)+'% new.':F.rewards.cores()<M.rules.cost?'Need '+(M.rules.cost-F.rewards.cores())+' more cores.':'Duplicates refund '+M.rules.refund+' cores. No ads or money.';
+    if(!revealing)machine.querySelector('#machine-result').textContent=st.last?(st.last.duplicate?'Duplicate: ':'New skin: ')+st.last.name+(st.last.duplicate?' · +25 cores refunded':''):'';
+  }
+  async function spinMachine(reroll){if(revealing)return;revealing=true;paintMachine();machine.querySelector('#machine-result').textContent='Opening…';
+    const act=()=>F.machine.spin(reroll);let result;try{result=navigator.locks?await navigator.locks.request('forkade-machine',act):act();
+      if(!F.settings.reduceMotion)await new Promise(r=>setTimeout(r,1000));
+    }finally{revealing=false;paintMachine();refreshRewards();}if(result)UI.burst(machine);}
+  machine.querySelector('#machine-spin').onclick=()=>spinMachine(false);machine.querySelector('#machine-reroll').onclick=()=>spinMachine(true);
+  F.rewards.listeners.push(paintMachine);paintMachine();addEventListener('storage',paintMachine);
   const settings = document.createElement('div'); settings.className = 'modal'; settings.id = 'settings'; settings.hidden = true;
   settings.innerHTML = `<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="settings-title">
     <button class="x" id="close-settings" aria-label="Close settings">×</button><h2 id="settings-title">SETTINGS</h2>
