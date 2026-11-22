@@ -108,7 +108,7 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
    assert.equal(await pops(),1,'new player: one main action on the first screen');assert.deepEqual(await small(),[],'44px taps on home');
    await pg.evaluate(()=>{Forkade.scores.submit('glass',10);});await pg.reload();await pg.waitForFunction(()=>window.Forkade);await pg.waitForTimeout(400);
    assert.equal(await pops(),1,'returning player: one main action (Daily)');
-   const bottom=async id=>{const r=await pg.evaluate(i=>{const s=document.querySelector('#'+i+' .sheet').getBoundingClientRect();return Math.round(innerHeight-s.bottom);},id);assert.ok(Math.abs(r)<=2,id+' is a bottom sheet');};
+   const bottom=async id=>{await pg.evaluate(async i=>{const s=document.querySelector('#'+i+' .sheet');await Promise.all(s.getAnimations().map(a=>a.finished.catch(()=>{})));},id);const r=await pg.evaluate(i=>{const s=document.querySelector('#'+i+' .sheet').getBoundingClientRect();return Math.round(innerHeight-s.bottom);},id);assert.ok(Math.abs(r)<=2,id+' is a bottom sheet; gap='+r);};
    await pg.evaluate(()=>document.getElementById('open-locker').click());await pg.waitForTimeout(350);await bottom('locker');
    await pg.keyboard.press('Escape');await pg.locator('#locker').waitFor({state:'hidden',timeout:1500});
    await pg.evaluate(()=>document.getElementById('open-ranks').click());await pg.waitForTimeout(350);await bottom('ranks');
