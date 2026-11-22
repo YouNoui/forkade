@@ -758,7 +758,8 @@
       }
       function enter(id, run) {
         const again = stage.classList.contains("on");
-        const card = tapped && tapped.isConnected ? tapped : document.querySelector(`.card[data-game="${id}"]`); tapped = null;
+        const hit = tapped && tapped.isConnected ? tapped : null; tapped = null;   // only a tapped card morphs; code-opened games start at once
+        const card = hit || document.querySelector(`.card[data-game="${id}"]`);
         { const w = document.getElementById("where"), sep = document.createElement("i"); sep.textContent = "\u203a";
           w.replaceChildren("Arcade", sep, name(id)); }
         if (again) { run(); return; }
@@ -771,7 +772,7 @@
         } catch (_) {}
         // phones that go full screen for this game skip the morph (full screen and the animation fight)
         const fs = document.body.classList.contains("touch") && !["skyhop", "striker", "breaker"].includes(id);
-        if (fs) run(); else morph(run, card, () => stage, "fwd");
+        if (fs || !hit) run(); else morph(run, hit, () => stage, "fwd");
       }
       function leave(close) {
         const card = from && from.isConnected && from.offsetParent ? from : null;
