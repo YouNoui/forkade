@@ -355,6 +355,10 @@
   body.touch .stagebar,body.touch .ps{top:max(8px,env(safe-area-inset-top));}
   .stage.on{padding-bottom:max(16px,env(safe-area-inset-bottom));}
   .stage.d3 .stagebar{display:none;}
+  .gift-card{margin:20px auto 0;max-width:420px;padding:18px;border:1px solid var(--line);border-radius:16px;background:var(--panel);font-size:13px;}
+  .gift-card h2{font-size:18px;margin:0 0 8px}.gift-card p{color:var(--muted);line-height:1.6}.gift-card a{color:var(--brand);display:inline-block;padding:14px 0}
+  body.gift-ready .card.start{border-color:var(--line);box-shadow:none}
+  body.gift-ready .card.start .play,body.gift-ready .card.daily .dplay{background:var(--panel2);color:var(--text);border:1px solid var(--line);box-shadow:none}
   </style>
 <meta name="description" content="Free open-source browser arcade with thirteen games, rewind controls and a Playground game builder.">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://iamynoui.com/#organization","name":"IAMYNOUI","url":"https://iamynoui.com/","address":{"@type":"PostalAddress","addressCountry":"SG"}},{"@type":"SoftwareApplication","@id":"https://playforkade.com/#website","name":"Forkade","url":"https://playforkade.com/","description":"Free open-source browser arcade with thirteen games, rewind controls and a Playground game builder.","publisher":{"@id":"https://iamynoui.com/#organization"},"applicationCategory":"GameApplication","operatingSystem":"Web browser","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}</script>
@@ -855,6 +859,21 @@
   ];
   const load = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (_) { return d; } };
   const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} };
+  const GIFTS = Object.freeze({ welcome: [100,110,120,130], welcomeCount: 3,
+    regular: [{amount:25,weight:80},{amount:35,weight:15},{amount:50,weight:5}], waits: [180,360,1800,3600,7200,10800] });
+  const gifts = {
+    rules: GIFTS,
+    state() { return load('forkade-gifts', {count:0,next:0}); },
+    ready(now=Date.now()) { return now >= this.state().next; },
+    claim(now=Date.now(), random=Math.random) {
+      const st=this.state(); if (now < st.next || !rewards.enabled) return null;
+      let amount;
+      if(st.count<GIFTS.welcomeCount) amount=GIFTS.welcome[Math.floor(random()*GIFTS.welcome.length)];
+      else { let roll=random()*100; amount=GIFTS.regular.at(-1).amount; for(const row of GIFTS.regular){roll-=row.weight;if(roll<0){amount=row.amount;break;}} }
+      st.next=now+GIFTS.waits[Math.min(st.count,GIFTS.waits.length-1)]*1000;st.count++;
+      save('forkade-gifts',st);rewards.add(amount);return {amount,...st};
+    }
+  };
   const rewards = {
     enabled: true, GOALS, TIERS, SKINS, toasts: [], listeners: [],
     cores() { return load("forkade-cores", 0); },
@@ -1151,7 +1170,7 @@
   global.Forkade = {
     palette, ECHO_COLOR, rand, rng, seed, settings, symbol, TAU,
     glowRect, glowCircle, glowLine, drawEcho, fillBg, text, bar, banner,
-    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats,
+    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats, gifts,
     register, boot, play, stop, registry,
     current: () => current,          // the running game (handy for tests and the Playground)
   };
@@ -3279,6 +3298,20 @@
 /* Launcher enhancements. Classic script: also inlined into the offline distribution. */
 (function () {
   const F = Forkade, S = F.settings, D = ForkadeDaily;
+  const gift=document.createElement('section');gift.id='free-gift';gift.className='gift-card';
+  gift.innerHTML='<h2>Free gift</h2><p id="gift-hint"></p><button id="gift-open" class="btn btn-pop">Open gift</button><p id="gift-time" role="status"></p><a href="fair.html#chances">Chances and timers</a>';
+  document.querySelector('.wallet').after(gift);
+  const giftButton=gift.querySelector('button');
+  function paintGift(){const st=F.gifts.state(),ready=F.gifts.ready(),n=Math.max(0,Math.ceil((st.next-Date.now())/1000));
+    document.body.classList.toggle('gift-ready',ready);giftButton.hidden=!ready;
+    gift.querySelector('#gift-hint').textContent=st.count<3?'Welcome gifts: 3 bigger ones ('+(3-st.count)+' left)':'25 cores (80%), 35 (15%), or 50 (5%).';
+    gift.querySelector('#gift-time').textContent=ready?'Ready when you are.':'Next gift in '+Math.floor(n/3600)+':'+String(Math.floor(n/60)%60).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
+  }
+  giftButton.onclick=async()=>{UI.busy(giftButton,'Opening…');try{
+    const claim=()=>F.gifts.claim();const result=navigator.locks?await navigator.locks.request('forkade-gift',claim):claim();
+    if(result){UI.burst(giftButton);toast('Gift opened! +'+result.amount+' cores');refreshRewards();}
+  }finally{UI.reset(giftButton);paintGift();}};
+  paintGift();setInterval(paintGift,1000);addEventListener('storage',paintGift);
   const settings = document.createElement('div'); settings.className = 'modal'; settings.id = 'settings'; settings.hidden = true;
   settings.innerHTML = `<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="settings-title">
     <button class="x" id="close-settings" aria-label="Close settings">×</button><h2 id="settings-title">SETTINGS</h2>
