@@ -11,6 +11,7 @@ Publisher: IAMYNOUI, Singapore.
 - https://playforkade.com/playground.html
 - https://playforkade.com/games3d/echo3d.html
 - https://playforkade.com/download/forkade.html
+- https://playforkade.com/fair.html (fair play: every reward number, no hidden difficulty, no loot boxes, no ads)
 - https://playforkade.com/privacy.html
 - https://playforkade.com/terms.html
 - https://playforkade.com/guidelines.html

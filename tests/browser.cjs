@@ -122,6 +122,15 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
    assert.match(await pg.locator('#log').innerText(),/Running/,'Playground runs player code under its CSP');
    await pg.goto(base+'/delete.html');await pg.locator('#wipe').click();assert.equal(await pg.locator('#cf').isHidden(),false,'clear asks first');await pg.locator('#cf-no').click();
    assert.deepEqual(csp,[],'no CSP violations');await ctx.close(); }
+  // fair play: the page reads its numbers from the engine, and a round's breakdown adds up to what it paid
+  { const pg=await browser.newPage({viewport:{width:390,height:844}});await pg.goto(base+'/fair.html');await pg.waitForFunction(()=>document.querySelectorAll('#badges tbody tr').length);
+   const f=await pg.evaluate(()=>({rows:document.querySelectorAll('#badges tbody tr').length,goals:Object.keys(Forkade.rewards.GOALS).length,skins:document.querySelectorAll('#skins tbody tr').length,
+     skinN:Forkade.rewards.SKINS.length,sky:document.querySelector('#badges').innerText.includes('SKY HOP'),gold:document.querySelector('#badges tbody tr').innerText.includes(Forkade.rewards.GOALS[Object.keys(Forkade.rewards.GOALS)[0]][2].toLocaleString('en'))}));
+   assert.deepEqual([f.rows,f.skins,f.sky,f.gold],[f.goals,f.skinN,true,true],'fair page matches the code');
+   await pg.goto(base);await pg.waitForFunction(()=>window.Forkade);assert.equal(await pg.locator('.privacy-line a[href="fair.html"]').count(),1);
+   const r=await pg.evaluate(()=>{const R=Forkade.rewards,got=R.roundEnd('trail',350,true,null);return {got,sum:R.breakdown.reduce((a,p)=>a+p[1],0),names:R.breakdown.map(p=>p[0])};});
+   assert.equal(r.sum,r.got,'breakdown adds up');assert.ok(r.names.includes('round')&&r.names.includes('new best')&&r.names.includes('silver'),'breakdown names each part');
+   await pg.close(); }
   // first visit: one 'Start here' card; settings say Saved
   { const pg=await browser.newPage({viewport:{width:390,height:844}});await pg.goto(base);await pg.waitForFunction(()=>window.Forkade);
    assert.equal(await pg.locator('.card.start').count(),1,'one start card for new players');assert.match(await pg.locator('.card.start').innerText(),/START HERE[\s\S]*SKY HOP/i);
