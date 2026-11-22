@@ -19,7 +19,7 @@ const Runs = require("../lib/runs");
 // Swarm: 150-point guardians, 10-drone +50 and no-hit +25 fit the retained 200,000 cap.
 // Sky Hop: +50 per five sparks; existing cap remains above reachable two-hour runs.
 const CAPS = {
-  skyhop: 100000, swarm: 200000, striker: 600000, breaker: 2000000, trail: 20000,
+  skyhop: 100000, swarm: 200000, striker: 600000, breaker: 3000000, trail: 20000,
   drift: 1000000, prism: 5000000, match: 5000000, wrecker: 2000000, echo3d: 1000,
   glass: 3000000, demo: 2000000, rampage: 200000,
 };
