@@ -1,0 +1,9 @@
+{
+  "viewport": "390x844",
+  "DPR": 1,
+  "renderDPR": 1,
+  "renderer": "headless Chromium / SwiftShader, desktop host",
+  "frames": 287,
+  "meanIntervalMs": 27.12055749128917,
+  "p95IntervalMs": 33.400000000000546
+}

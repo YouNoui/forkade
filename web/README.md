@@ -1,6 +1,6 @@
 # FORKADE — web version (plays in the browser)
 
-ECHO RUMBLE beta leads the grid: a local-only mutation run, replayed echo squad and twelve free avatar options. Its three toy worlds and boss are generated from a Singapore-date seed; no uploads or rankings in Phase 1.
+ECHO RUMBLE beta leads the grid: a local-only mutation run, replayed echo squad and 24 free avatar options. Its three toy worlds and boss are generated from a Singapore-date seed; no uploads or rankings in Phase 1.
 
 Thirteen classic games remain: eleven 2D games plus ECHO 3D and RAMPAGE 3D. Same hero (**ECHO**), same neon look, same twist
 (**rewind time** — hold **R** or **Shift**). Pure HTML5 Canvas + JavaScript.

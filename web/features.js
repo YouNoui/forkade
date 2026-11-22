@@ -156,7 +156,7 @@
   function paintMore(){extra.forEach(c=>c.hidden=!expanded);more.textContent=expanded?'Fewer games':'More games ('+extra.length+')';more.setAttribute('aria-expanded',String(expanded));}
   more.onclick=()=>{expanded=!expanded;try{localStorage.setItem('forkade-more-games',expanded?'1':'0');}catch(_){}paintMore();};paintMore();
   const rumble=document.createElement('button');rumble.className='card rumble-hero';rumble.dataset.game='rumble';rumble.style.setProperty('--c','var(--brand)');
-  rumble.innerHTML='<span class="genre">NEW: ECHO RUMBLE (beta)</span><h3 class="name">The arcade that forks itself.</h3><p class="desc">90 seconds. Three worlds. One boss. Rewind your mistakes into a squad of allies.</p><span class="play">Play the beta →</span><span class="desc"> Local play · 12 free avatar parts</span>';
+  rumble.innerHTML='<span class="genre">NEW: ECHO RUMBLE (beta)</span><h3 class="name">The arcade that forks itself.</h3><p class="desc">90 seconds. Three worlds. One boss. Rewind your mistakes into a squad of allies.</p><span class="play">Play the beta →</span><span class="desc"> Local play · 24 free avatar choices</span>';
   rumble.onclick=()=>open3D('rumble');document.getElementById('hero-sub').after(rumble);document.getElementById('hero-play').classList.remove('btn-pop');
   // Delay until the distribution has installed its inline 3D pages.
   setTimeout(() => {

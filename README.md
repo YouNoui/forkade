@@ -2,7 +2,7 @@
 
 Open-source neon arcade. Play it, rewind it, fork it.
 
-**ECHO RUMBLE beta** is a local-only flagship prototype: a 90-second seeded mutation run through three toy worlds and a squad-gated boss. Fork an attempt into an input-replayed ally (up to three); hold Shift to rewind. Choose twelve free starter avatar parts, saved on this device. No Rumble rankings, uploaded ghosts, purchases or Forge yet.
+**ECHO RUMBLE beta** is a local-only flagship prototype: a 90-second seeded mutation run through three toy worlds and a squad-gated boss. Fork an attempt into an input-replayed ally (up to three); hold Shift to rewind. Choose 24 free starter avatar choices, saved on this device. Phase 1.1 adds eight seeded chaos events, original toy characters, delayed echo emotes, Silly sounds and KING WOBBLETON’s telegraphed belly flops. No Rumble rankings, uploaded ghosts, purchases or Forge yet.
 
 The browser edition also has **thirteen classic games**, including ECHO 3D, RAMPAGE 3D and three 2D destruction games: Tower Wrecker, Glass City and Demolition Chain. RAMPAGE turns ECHO into a giant city-stomper with a timer, chunks, joystick controls and rewind.
 

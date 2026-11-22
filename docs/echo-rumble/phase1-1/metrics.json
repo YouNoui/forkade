@@ -1,0 +1,50 @@
+[
+  {
+    "name": "android",
+    "cpuFrameMs": 7.600999999410576,
+    "simulationMs": 0.04100000000662274,
+    "renderSubmitMs": 7.559999999403954,
+    "score": 125,
+    "platformWarnings": []
+  },
+  {
+    "name": "iphone",
+    "cpuFrameMs": 1.2444444444444445,
+    "simulationMs": 0.011111111111111112,
+    "renderSubmitMs": 1.2333333333333334,
+    "score": 125,
+    "platformWarnings": []
+  },
+  {
+    "name": "desktop",
+    "cpuFrameMs": 5.57116666742497,
+    "simulationMs": 0.03533333324723774,
+    "renderSubmitMs": 5.535833334177733,
+    "score": 125,
+    "platformWarnings": []
+  },
+  {
+    "name": "landscape",
+    "cpuFrameMs": 4.981888889140553,
+    "simulationMs": 0.027722222225533593,
+    "renderSubmitMs": 4.954166666915019,
+    "score": 125,
+    "platformWarnings": []
+  },
+  {
+    "name": "offline",
+    "cpuFrameMs": 3.258611111872726,
+    "simulationMs": 0.017777777744664085,
+    "renderSubmitMs": 3.240833334128062,
+    "score": 125,
+    "platformWarnings": []
+  },
+  {
+    "name": "offline-webkit",
+    "cpuFrameMs": 5.486111111111112,
+    "simulationMs": 0.08611111111111111,
+    "renderSubmitMs": 5.4,
+    "score": 125,
+    "platformWarnings": []
+  }
+]
