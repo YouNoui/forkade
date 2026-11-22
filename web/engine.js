@@ -303,7 +303,7 @@
   // daily streak. Everything lives in localStorage on this device - nothing is sent anywhere.
   const GOALS = {               // score needed for bronze / silver / gold
     skyhop: [200, 650, 1500], swarm: [200, 650, 1500], striker: [400, 1400, 3500],
-    breaker: [1000, 4000, 10000], trail: [100, 300, 600], drift: [500, 2000, 5000],
+    breaker: [1500, 5000, 12000], trail: [100, 300, 600], drift: [500, 2000, 5000],
     prism: [500, 2000, 6000], match: [2000, 6000, 12000], wrecker: [1500, 5000, 12000],
     echo3d: [50, 120, 200], rampage: [1500, 6000, 12000], glass: [1500, 5000, 12000], demo: [1000, 3000, 7000],
   };
@@ -534,7 +534,8 @@
         if(l===0){const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,colors[0]);g.addColorStop(1,colors[1]);x.fillStyle=g;x.fillRect(0,0,w,h);}
         x.fillStyle=colors[2];x.globalAlpha=.12+l*.12;
         for(let i=0;i<(scene==='clouds'&&l===1?12:34);i++){const px=scene==='clouds'?((Math.sin(i*127.1+l*311.7)*43758.5453)%1+1)%1*w:(i*173+l*71)%w,py=scene==='clouds'?((Math.sin(i*269.5+l*183.3)*28347.15)%1+1)%1*h:(i*137+l*53)%h;
-          if(l===1&&scene==='clouds'){x.save();x.translate(px,py);const g=x.createLinearGradient(0,-40,0,35);g.addColorStop(0,colors[2]+'55');g.addColorStop(1,colors[2]+'00');x.fillStyle=g;x.globalAlpha=.6;x.beginPath();x.moveTo(-90,12);x.bezierCurveTo(-100,-10,-65,-30,-44,-18);x.bezierCurveTo(-38,-55,12,-52,24,-23);x.bezierCurveTo(54,-40,87,-12,77,4);x.bezierCurveTo(115,0,115,28,80,30);x.lineTo(-66,30);x.bezierCurveTo(-100,30,-111,18,-90,12);x.fill();x.restore();}
+          if(l===1&&scene==='forge'){x.strokeStyle=colors[2];x.lineWidth=3;x.beginPath();for(let j=0;j<6;j++){const a=j*TAU/6;x.lineTo(px+Math.cos(a)*40,py+Math.sin(a)*40);}x.closePath();x.stroke();x.fillRect(px-20,py-2,40,4);}
+          else if(l===1&&scene==='clouds'){x.save();x.translate(px,py);const g=x.createLinearGradient(0,-40,0,35);g.addColorStop(0,colors[2]+'55');g.addColorStop(1,colors[2]+'00');x.fillStyle=g;x.globalAlpha=.6;x.beginPath();x.moveTo(-90,12);x.bezierCurveTo(-100,-10,-65,-30,-44,-18);x.bezierCurveTo(-38,-55,12,-52,24,-23);x.bezierCurveTo(54,-40,87,-12,77,4);x.bezierCurveTo(115,0,115,28,80,30);x.lineTo(-66,30);x.bezierCurveTo(-100,30,-111,18,-90,12);x.fill();x.restore();}
           else if(l===1&&scene==='reactor'){x.strokeStyle=colors[2];x.lineWidth=2;x.beginPath();x.moveTo(px,py);x.lineTo(px+40,py);x.lineTo(px+40,py+55);x.stroke();x.beginPath();x.arc(px,py,10,0,TAU);x.stroke();}
           else if(l===1){x.beginPath();x.moveTo(px,py);x.lineTo(px+34,py-80-(i%4)*20);x.lineTo(px+68,py);x.fill();}
           else {x.fillRect(px,py,l===0?2:3,l===0?2:16);}}
