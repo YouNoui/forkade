@@ -30,3 +30,4 @@ jobs:
       - run: node tests/experiment.cjs
       - run: node tests/fair.cjs
       - run: node tests/ux.cjs
+      - run: node tests/social-browser.cjs

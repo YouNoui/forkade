@@ -113,7 +113,7 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
    await pg.evaluate(()=>document.getElementById('open-ranks').click());await pg.waitForTimeout(350);await bottom('ranks');
    await pg.mouse.click(195,20);await pg.waitForTimeout(150);assert.ok(await pg.locator('#ranks').isHidden(),'tap outside closes');
    await pg.evaluate(()=>document.querySelector('.wbtns .settings-button').click());await pg.waitForTimeout(350);
-   await pg.evaluate(()=>{const s=document.querySelector('#settings .sheet'),t=(type,y)=>s.dispatchEvent(new TouchEvent(type,{bubbles:true,touches:type==='touchend'?[]:[new Touch({identifier:1,target:s,clientX:200,clientY:y})]}));
+   await pg.evaluate(()=>{const s=document.querySelector('#settings .sheet'),t=(type,y)=>{const e=new Event(type,{bubbles:true});Object.defineProperty(e,'touches',{value:type==='touchend'?[]:[{identifier:1,target:s,clientX:200,clientY:y}]});s.dispatchEvent(e);};
      s.scrollTop=0;t('touchstart',300);t('touchmove',420);t('touchend',0);});await pg.waitForTimeout(150);
    assert.ok(await pg.locator('#settings').isHidden(),'swipe down closes');
    await pg.evaluate(()=>open3D());await pg.frameLocator('#gframe').locator('canvas').waitFor({state:'visible',timeout:15000});

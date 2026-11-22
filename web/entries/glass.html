@@ -369,6 +369,7 @@
   .setting-help{display:block;color:var(--muted);font-size:12px;line-height:1.5;margin:0 0 12px}#settings label[data-changed="true"]::after{content:"Changed";font-size:11px;color:var(--brand)}
   @media(max-width:600px){body:not(.playing) #gift-open:not([hidden]),body:not(.playing):not(.gift-ready) .grid:has(.card.start) .card.start .play,body:not(.playing):not(.gift-ready) .grid:not(:has(.card.start)) .daily .dplay{position:fixed;z-index:95;bottom:max(12px,env(safe-area-inset-bottom));left:20px;width:calc(100% - 40px);min-height:44px;justify-content:center;box-sizing:border-box;background:var(--pop);color:var(--pop-ink);border:2px solid var(--pop-ink);box-shadow:3px 3px 0 var(--brand)}body.playing #gift-open{display:none}.wrap{padding-bottom:100px}}
   #more-games{display:flex;margin:20px auto}
+  @media(max-width:600px){body:not(.playing) .toasts{bottom:calc(78px + env(safe-area-inset-bottom))!important}}
   </style>
 <meta name="description" content="Free open-source browser arcade with thirteen games, rewind controls and a Playground game builder.">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://iamynoui.com/#organization","name":"IAMYNOUI","url":"https://iamynoui.com/","address":{"@type":"PostalAddress","addressCountry":"SG"}},{"@type":"SoftwareApplication","@id":"https://playforkade.com/#website","name":"Forkade","url":"https://playforkade.com/","description":"Free open-source browser arcade with thirteen games, rewind controls and a Playground game builder.","publisher":{"@id":"https://iamynoui.com/#organization"},"applicationCategory":"GameApplication","operatingSystem":"Web browser","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}</script>
@@ -432,7 +433,7 @@
       </div>
     </div>
     <div class="foot">
-      <a href="playground.html" id="osslink">&#9998; Build your own game</a> &middot; <a href="https://github.com/YouNoui/forkade" target="_blank" rel="noopener noreferrer">Fork it on GitHub</a><br>
+      <a href="https://github.com/YouNoui/forkade" target="_blank" rel="noopener noreferrer">Fork it on GitHub</a><br>
       Built with HTML5 Canvas + JavaScript &middot; MIT licensed &middot; fork it, extend it, add your own.<br>
       In every game: hold <b>R</b> or <b>Shift</b> to rewind &middot; <b>P</b> pause &middot; <b>Esc</b> back to menu.
       <span class="nodata">🔒 Progress stays on this device. No cookies or third-party trackers. Anonymous counts are on by default; switch them off in Settings. Online rounds start anonymous timing tokens; only Post shares your nickname and score.</span>
