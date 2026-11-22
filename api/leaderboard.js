@@ -15,6 +15,7 @@ const Policy = require("../web/policy");
 const Runs = require("../lib/runs");
 
 // highest believable score per game - anything above is rejected
+// Sky Hop: +50 per five sparks; existing cap remains above reachable two-hour runs.
 const CAPS = {
   skyhop: 100000, swarm: 200000, striker: 200000, breaker: 2000000, trail: 20000,
   drift: 1000000, prism: 5000000, match: 5000000, wrecker: 2000000, echo3d: 1000,

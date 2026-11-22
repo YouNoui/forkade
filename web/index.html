@@ -279,6 +279,8 @@
     body.touch .postbar #pb-msg{flex:1 0 100%; text-align:center;}
     body.touch.pb-open .touchctl{display:none !important;}
   }
+  .postbar.polished #pb-again{background:var(--pop);color:var(--pop-ink);min-height:48px;font-size:17px;border:2px solid var(--pop-ink)}
+  .postbar.polished #pb-post{background:transparent;color:var(--text);box-shadow:none}
   .postbar #pb-again{background:transparent; border-color:transparent; color:var(--brand); box-shadow:none;}
   body.playing .toasts{top:calc(64px + var(--ibh,0px)) !important;}
 
@@ -786,7 +788,7 @@
     const Place = (() => {
       const still = () => !!(Forkade.settings && Forkade.settings.reduceMotion) || document.documentElement.classList.contains("reduce-motion") || matchMedia("(prefers-reduced-motion: reduce)").matches;
       const http = /^https?:$/.test(location.protocol);
-      let tapped = null, from = null, y0 = 0, popping = false, pushed = false, pendingBacks = 0;
+      let tapped = null, from = null, y0 = 0, popping = false, pushed = false, pendingBacks = 0, backTimer = null;
       grid.addEventListener("click", e => { const c = e.target.closest(".card"); if (c) tapped = c; }, true);
       const onScreen = el => { if (!el || !el.isConnected || !el.offsetParent) return false; const r = el.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; };
       const name = id => (GAME_NAMES()[id] || id).toUpperCase();
@@ -801,6 +803,8 @@
         t.finished.finally(() => { const n = b(); if (n) n.style.viewTransitionName = ""; root.classList.remove("vt-fwd", "vt-back"); });
       }
       function enter(id, run) {
+        // Complete the prior traversal before pushing a new game entry (Safari may defer it).
+        if(pendingBacks){setTimeout(()=>enter(id,run),40);return;}
         const again = stage.classList.contains("on");
         const hit = tapped && tapped.isConnected ? tapped : null; tapped = null;   // only a tapped card morphs; code-opened games start at once
         const card = hit || document.querySelector(`.card[data-game="${id}"]`);
@@ -823,12 +827,16 @@
         morph(() => { close(); scrollTo({ top: y0, behavior: "instant" }); }, stage, () => card, "back");
         if (card && !still()) { card.classList.remove("back-pulse"); void card.offsetWidth; card.classList.add("back-pulse");
           setTimeout(() => card.classList.remove("back-pulse"), 900); }
-        if (http && !popping && pushed) { pushed = false; pendingBacks++; try { history.back(); } catch (_) { pendingBacks--; } }
+        if (http && !popping && pushed) { pushed = false; pendingBacks++; try { history.back(); } catch (_) { pendingBacks--; }
+          // Some WebKit hosts suppress a script-triggered second traversal. The grid is
+          // already visible: keep its URL truthful and release the pending navigation.
+          clearTimeout(backTimer);backTimer=setTimeout(()=>{if(pendingBacks&&!stage.classList.contains('on')){pendingBacks=0;history.replaceState({list:1},'', '/');}},300);
+        }
         if (popping) pushed = false;
       }
       // phone/browser Back and swipe-back close the game exactly like the on-screen Back
       addEventListener("popstate", e => {
-        if (pendingBacks) { pendingBacks--; return; }
+        if (pendingBacks) { pendingBacks--; clearTimeout(backTimer); return; }
         if (stage.classList.contains("on") && !(e.state && e.state.fg)) {
           popping = true;
           if (stage.classList.contains("d3") || !Forkade.current()) closeStage(); else Forkade.stop();
@@ -1058,6 +1066,7 @@
       const show = on && L && L.score >= 0;
       if (show && (pb.hidden || shownRound !== L)) {
         shownRound = L;
+        pb.classList.toggle('polished',!!Forkade.current()?.meta.polished);
         const percentile=document.getElementById('pb-percent');percentile.textContent='';
         if(!L.assisted&&localStorage.getItem('forkade-pid'))B.top(L.id,'week').then(d=>{if(B.last===L&&d.me?.percent!=null)percentile.textContent="Your posted best beat "+d.me.percent+"% of this week's players";}).catch(()=>{});
         pb.hidden = false; pbMsg.textContent = L.assisted ? "Assisted rounds aren’t ranked" : "";
