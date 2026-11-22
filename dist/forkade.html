@@ -361,6 +361,7 @@
   body.gift-ready .card.start .play,body.gift-ready .card.daily .dplay{background:var(--panel2);color:var(--text);border:1px solid var(--line);box-shadow:none}
   #assist-game{font:inherit;min-height:44px;max-width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:8px;}
   body:has(.modal:not([hidden])) .toasts{visibility:hidden}
+  #pb-breakdown{flex:1 0 100%;font-size:12px;color:var(--muted);line-height:1.5;text-align:center}
   </style>
 <meta name="description" content="Free open-source browser arcade with thirteen games, rewind controls and a Playground game builder.">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://iamynoui.com/#organization","name":"IAMYNOUI","url":"https://iamynoui.com/","address":{"@type":"PostalAddress","addressCountry":"SG"}},{"@type":"SoftwareApplication","@id":"https://playforkade.com/#website","name":"Forkade","url":"https://playforkade.com/","description":"Free open-source browser arcade with thirteen games, rewind controls and a Playground game builder.","publisher":{"@id":"https://iamynoui.com/#organization"},"applicationCategory":"GameApplication","operatingSystem":"Web browser","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}</script>
@@ -470,7 +471,7 @@
       </div>
     </div>
     <div class="postbar" id="postbar" hidden>
-      <span id="pb-text"></span>
+      <span id="pb-percent" role="status"></span><span id="pb-breakdown" role="status"></span><span id="pb-text"></span>
       <input id="pb-name" maxlength="14" placeholder="nickname" aria-label="Nickname for the rankings" autocomplete="nickname" spellcheck="false">
       <button id="pb-post" class="btn btn-pop">&#127941; Post score</button>
       <span id="pb-msg"></span>
@@ -525,6 +526,10 @@
 
 </script>
   <script>
+(function(root){const rules=Object.freeze({socialMinimum:20,experiment:{enabled:true,name:"start-here-v1",startHere:{A:"skyhop",B:"breaker"}}});if(typeof module==='object'&&module.exports)module.exports=rules;else root.ForkadePolicy=rules;})(globalThis);
+
+</script>
+<script>
 /* ==========================================================================
    FORKADE  --  engine.js   (shared browser toolkit)
 
@@ -910,6 +915,13 @@
     record(id,lost,daily,assisted){if(daily||assisted||!ASSIST[id])return;const counts=load('forkade-losses',{});counts[id]=lost?(counts[id]||0)+1:0;save('forkade-losses',counts);
       if(counts[id]===3)dispatchEvent(new CustomEvent('forkade-assist-offer',{detail:{id}}));}
   };
+  const BONUS = Object.freeze({full:40,half:80,halfRate:0.5,quarterRate:0.25});
+  const bonus={rules:BONUS,
+    state(){const today=global.ForkadeDaily.date(Date.now()),st=load('forkade-bonus',{});return st.day===today?st:{day:today,count:0};},
+    next(){const st=this.state();st.count++;save('forkade-bonus',st);return st.count<=BONUS.full?1:st.count<=BONUS.half?BONUS.halfRate:BONUS.quarterRate;},
+    left(){return Math.max(0,BONUS.full-this.state().count);},
+    note(rate){return rate===1?'':rate===BONUS.halfRate?'½ after '+BONUS.full+' rounds today':'¼ after '+BONUS.half+' rounds today';}
+  };
   const rewards = {
     enabled: true, GOALS, TIERS, SKINS, toasts: [], listeners: [],
     cores() { return load("forkade-cores", 0); },
@@ -933,7 +945,8 @@
         const key = 'forkade-daily-play:' + board.daily;
         if (!load(key, false)) { save(key, true); parts.push(["daily", this.add(25)]); this.daily(); this.toast('Daily played! +25 cores'); }
       }
-      let got = this.add(Math.max(1, Math.sqrt(Math.max(0, score)) * 0.6)); parts.push(["round", got]);
+      const rate=bonus.next(),base=Math.round(Math.max(1,Math.sqrt(Math.max(0,score))*0.6));
+      let got = this.add(Math.round(base*rate)); parts.push(["round", got, bonus.note(rate)]);
       if (newBest && score > 0) { const nb = this.add(10); got += nb; parts.push(["new best", nb]); }
       const g = this.goals(id, meta), b = this.badges(), had = b[id] || 0;
       let tier = had; while (!board.assisted && tier < 3 && score >= g[tier]) tier++;
@@ -981,12 +994,19 @@
   /* ------------------------------------------------------------- stats ---- */
   // Anonymous counts only (visits, plays per game) - no cookies, no ids, no IP stored.
   // Skipped entirely when the browser sends Do Not Track or Global Privacy Control.
+  const experiment={rules:global.ForkadePolicy.experiment,
+    bucket(){let b=load('forkade-ab',null);if(!['A','B'].includes(b)){const n=new Uint8Array(1);crypto.getRandomValues(n);b=n[0]%2?'B':'A';save('forkade-ab',b);}return b;},
+    start(){return this.rules.enabled?this.rules.startHere[this.bucket()]:'skyhop';}
+  };
   const stats = {
     api: (typeof location !== "undefined" && location.protocol === "file:" ? "https://playforkade.com" : "") + "/api/stats",
     off() { try { return !settings.analytics || navigator.doNotTrack === "1" || window.doNotTrack === "1" || navigator.globalPrivacyControl === true; } catch (_) { return true; } },
     send(e, game) {
       if (this.off() || (typeof location !== "undefined" && /^(localhost|127\.)/.test(location.hostname) && !global.__forkadeTestStats)) return;
-      const body = JSON.stringify(game ? { e, game, consent: true } : { e, consent: true });
+      const today=global.ForkadeDaily.date(Date.now());let first=load('forkade-count-first',null);if(!first){first=today;save('forkade-count-first',first);}
+      const payload={e,consent:true,ab:experiment.bucket()};if(game)payload.game=game;
+      if(e==='visit'){payload.first=first===today;payload.returnDay1=global.ForkadeDaily.date(Date.now()-86400000)===first;}
+      const body=JSON.stringify(payload);
       try { if (navigator.sendBeacon && navigator.sendBeacon(this.api, body)) return; } catch (_) {}
       try { fetch(this.api, { method: "POST", body, keepalive: true }).catch(() => {}); } catch (_) {}
     },
@@ -1145,7 +1165,7 @@
           const shown = Math.round(this.earned * k), total = rewards.cores() - this.earned + shown;
           text(ctx, `+${shown} cores   (total ${total})`, this.W / 2, this.H / 2 + 76, { size: 16, color: palette.lime, align: "center" });
           const br = this.breakdown || [];
-          if (br.length > 1 && k >= 1) text(ctx, br.filter(p => p[1]).map(p => `${p[0]} +${p[1]}`).join("  \u00b7  "), this.W / 2, this.H / 2 + 98,
+          if (br.length && k >= 1) text(ctx, br.map(p => `${p[0]} +${p[1]}${p[2] ? " ("+p[2]+")" : ""}`).join("  \u00b7  "), this.W / 2, this.H / 2 + 98,
             { size: 12, color: palette.dim, align: "center" });
         }
       }
@@ -1209,9 +1229,9 @@
   }
 
   global.Forkade = {
-    palette, ECHO_COLOR, rand, rng, seed, settings, symbol, TAU,
+    palette, ECHO_COLOR, rand, rng, seed, settings, symbol, TAU, policy: global.ForkadePolicy,
     glowRect, glowCircle, glowLine, drawEcho, fillBg, text, bar, banner,
-    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats, gifts, machine, assist, assistMode,
+    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats, gifts, machine, assist, assistMode, bonus, experiment,
     register, boot, play, stop, registry,
     current: () => current,          // the running game (handy for tests and the Playground)
   };
@@ -3049,7 +3069,7 @@
     });
 
     // first visit: one clear place to start instead of 12 equal choices (gone after the first game)
-    const START_ID = "skyhop", isNew = R.tried() === 0;
+    const START_ID = Forkade.experiment.start(), isNew = R.tried() === 0;
     Forkade.registry.forEach((g, i) => {
       const m = g.meta;
       const card = document.createElement("div");
@@ -3064,7 +3084,7 @@
         <span class="play">&#9654; Play now</span>
         <div class="best" data-id="${g.id}">BEST <b>${Forkade.scores.get(g.id)}</b></div>
         <div class="stars" data-id="${g.id}"></div>`;
-      if (isNew && g.id === START_ID) { card.classList.add("start"); card.insertAdjacentHTML("afterbegin", '<span class="starttag">START HERE &middot; ONE TAP TO JUMP</span>'); }
+      if (isNew && g.id === START_ID) { card.classList.add("start"); card.insertAdjacentHTML("afterbegin", '<span class="starttag">START HERE &middot; TRY THIS FIRST</span>'); }
       card.addEventListener("click", () => openGame(g.id));
       grid.appendChild(card);
     });
@@ -3230,11 +3250,14 @@
       const show = on && L && L.score >= 0;
       if (show && (pb.hidden || shownRound !== L)) {
         shownRound = L;
+        const percentile=document.getElementById('pb-percent');percentile.textContent='';
+        if(!L.assisted&&localStorage.getItem('forkade-pid'))B.top(L.id,'week').then(d=>{if(B.last===L&&d.me?.percent!=null)percentile.textContent="Your posted best beat "+d.me.percent+"% of this week's players";}).catch(()=>{});
         pb.hidden = false; pbMsg.textContent = L.assisted ? "Assisted rounds aren’t ranked" : "";
         document.getElementById("pb-post").hidden=!!L.assisted;pbName.hidden=!!L.assisted; pbMsg.className = "";
         { const b = document.getElementById("pb-post"); UI.reset(b); b.innerHTML = "&#127941; Post score"; }
         const name = (rankGames().find(g => g.id === L.id) || {}).t || L.id;
         document.getElementById("pb-text").textContent = `${name}: ${L.score} points${L.assisted ? " · ASSIST" : ""}`;
+        document.getElementById("pb-breakdown").textContent=(R.breakdown||[]).map(p=>`${p[0]} +${p[1]}${p[2]?" ("+p[2]+")":""}`).join(" · ");
       } else if (!show) pb.hidden = true;
       if (!on) pb.hidden = true;
       document.body.classList.toggle("pb-open", !pb.hidden);
@@ -3256,6 +3279,7 @@
       try {
         const r = await B.post(L.id, L.score, name); posted = L;
         pbMsg.textContent = r.pending ? r.message : `Posted! You're #${r.week.rank} this week and #${r.all.rank} all time (best ${r.all.best}).`;
+        if(r.week?.percent!=null)document.getElementById('pb-percent').textContent="You beat "+r.week.percent+"% of this week's players";
         UI.done(btn, "Posted"); UI.burst(btn);      // stays locked for this round; Share stays available
       } catch (err) { pbMsg.textContent = err.message; pbMsg.className = "err"; UI.reset(btn); btn.innerHTML = label; }
       finally { posting = false; }
@@ -3342,6 +3366,9 @@
 /* Launcher enhancements. Classic script: also inlined into the offline distribution. */
 (function () {
   const F = Forkade, S = F.settings, D = ForkadeDaily;
+  const bonusLeft=document.createElement('p');bonusLeft.id='bonus-left';bonusLeft.className='hint';document.querySelector('.wallet').appendChild(bonusLeft);
+  function paintBonus(){const left=F.bonus.left();bonusLeft.hidden=left>=10;bonusLeft.textContent='Full-bonus rounds left today: '+left;}
+  F.rewards.listeners.push(paintBonus);paintBonus();setInterval(paintBonus,1000);
   const gift=document.createElement('section');gift.id='free-gift';gift.className='gift-card';
   gift.innerHTML='<h2>Free gift</h2><p id="gift-hint"></p><button id="gift-open" class="btn btn-pop">Open gift</button><p id="gift-time" role="status"></p><a href="fair.html#chances">Chances and timers</a>';
   document.querySelector('.wallet').after(gift);

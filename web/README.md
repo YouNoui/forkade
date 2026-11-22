@@ -107,3 +107,9 @@ MIT licensed — do whatever you like.
 - `games3d/rampage.js`: giant ECHO destroys a neon city. Run `python tools/build_rampage.py` to embed the existing licensed THREE r128 bundle. Both 3D pages are also embedded in the single-file distribution.
 - Run tokens expire in two hours and cannot be reused. Owner moderation handles pending jumps over 10× a previous best. Preview data uses a separate branch prefix.
 - Regenerate legal pages, previews and distribution after relevant edits; bump `sw.js` CACHE. Run `npm test` and the Chromium/WebKit browser matrix before a PR. See `../docs/upgrade-validation.md`.
+
+## Local rewards and honest rules
+
+Free gifts use stored deadlines, three welcome rewards and disclosed 80/15/5 regular chances. The optional prize machine has six exclusive skins, fixed collection-based chances, duplicate refunds and a guaranteed second re-roll. Assist is offered after three losses and enabled only by choice; it never affects Daily, rankings or badges. Singapore-day round cores pay full for 40 rounds, half through 80, then a quarter. Weekly social proof is server-calculated and hidden below 20 players. Anonymous A/B groups change only the Start here card; opt-out, DNT and GPC disable counting.
+
+Fair play reads rules directly from shared constants. Everything earned stays on this device. No ads, payments, accounts or third-party trackers. Additional tests: `node tests/growth.cjs`, `node tests/assist.cjs`, `node tests/bonus.cjs`, `node tests/experiment.cjs`, `node tests/fair.cjs`.

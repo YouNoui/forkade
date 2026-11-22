@@ -361,6 +361,7 @@
   body.gift-ready .card.start .play,body.gift-ready .card.daily .dplay{background:var(--panel2);color:var(--text);border:1px solid var(--line);box-shadow:none}
   #assist-game{font:inherit;min-height:44px;max-width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:8px;}
   body:has(.modal:not([hidden])) .toasts{visibility:hidden}
+  #pb-breakdown{flex:1 0 100%;font-size:12px;color:var(--muted);line-height:1.5;text-align:center}
   </style>
 <meta name="description" content="Free open-source browser arcade with thirteen games, rewind controls and a Playground game builder.">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://iamynoui.com/#organization","name":"IAMYNOUI","url":"https://iamynoui.com/","address":{"@type":"PostalAddress","addressCountry":"SG"}},{"@type":"SoftwareApplication","@id":"https://playforkade.com/#website","name":"Forkade","url":"https://playforkade.com/","description":"Free open-source browser arcade with thirteen games, rewind controls and a Playground game builder.","publisher":{"@id":"https://iamynoui.com/#organization"},"applicationCategory":"GameApplication","operatingSystem":"Web browser","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}</script>
@@ -478,7 +479,7 @@
       </div>
     </div>
     <div class="postbar" id="postbar" hidden>
-      <span id="pb-text"></span>
+      <span id="pb-percent" role="status"></span><span id="pb-breakdown" role="status"></span><span id="pb-text"></span>
       <input id="pb-name" maxlength="14" placeholder="nickname" aria-label="Nickname for the rankings" autocomplete="nickname" spellcheck="false">
       <button id="pb-post" class="btn btn-pop">&#127941; Post score</button>
       <span id="pb-msg"></span>
@@ -500,7 +501,8 @@
   </div>
   <script src="daily.js"></script>
   <script src="settings.js"></script>
-  <script src="engine.js"></script>
+  <script src="policy.js"></script>
+<script src="engine.js"></script>
   <script src="games/skyhop.js"></script>
   <script src="games/swarm.js"></script>
   <script src="games/striker.js"></script>
@@ -705,7 +707,7 @@
     });
 
     // first visit: one clear place to start instead of 12 equal choices (gone after the first game)
-    const START_ID = "skyhop", isNew = R.tried() === 0;
+    const START_ID = Forkade.experiment.start(), isNew = R.tried() === 0;
     Forkade.registry.forEach((g, i) => {
       const m = g.meta;
       const card = document.createElement("div");
@@ -720,7 +722,7 @@
         <span class="play">&#9654; Play now</span>
         <div class="best" data-id="${g.id}">BEST <b>${Forkade.scores.get(g.id)}</b></div>
         <div class="stars" data-id="${g.id}"></div>`;
-      if (isNew && g.id === START_ID) { card.classList.add("start"); card.insertAdjacentHTML("afterbegin", '<span class="starttag">START HERE &middot; ONE TAP TO JUMP</span>'); }
+      if (isNew && g.id === START_ID) { card.classList.add("start"); card.insertAdjacentHTML("afterbegin", '<span class="starttag">START HERE &middot; TRY THIS FIRST</span>'); }
       card.addEventListener("click", () => openGame(g.id));
       grid.appendChild(card);
     });
@@ -886,11 +888,14 @@
       const show = on && L && L.score >= 0;
       if (show && (pb.hidden || shownRound !== L)) {
         shownRound = L;
+        const percentile=document.getElementById('pb-percent');percentile.textContent='';
+        if(!L.assisted&&localStorage.getItem('forkade-pid'))B.top(L.id,'week').then(d=>{if(B.last===L&&d.me?.percent!=null)percentile.textContent="Your posted best beat "+d.me.percent+"% of this week's players";}).catch(()=>{});
         pb.hidden = false; pbMsg.textContent = L.assisted ? "Assisted rounds aren’t ranked" : "";
         document.getElementById("pb-post").hidden=!!L.assisted;pbName.hidden=!!L.assisted; pbMsg.className = "";
         { const b = document.getElementById("pb-post"); UI.reset(b); b.innerHTML = "&#127941; Post score"; }
         const name = (rankGames().find(g => g.id === L.id) || {}).t || L.id;
         document.getElementById("pb-text").textContent = `${name}: ${L.score} points${L.assisted ? " · ASSIST" : ""}`;
+        document.getElementById("pb-breakdown").textContent=(R.breakdown||[]).map(p=>`${p[0]} +${p[1]}${p[2]?" ("+p[2]+")":""}`).join(" · ");
       } else if (!show) pb.hidden = true;
       if (!on) pb.hidden = true;
       document.body.classList.toggle("pb-open", !pb.hidden);
@@ -912,6 +917,7 @@
       try {
         const r = await B.post(L.id, L.score, name); posted = L;
         pbMsg.textContent = r.pending ? r.message : `Posted! You're #${r.week.rank} this week and #${r.all.rank} all time (best ${r.all.best}).`;
+        if(r.week?.percent!=null)document.getElementById('pb-percent').textContent="You beat "+r.week.percent+"% of this week's players";
         UI.done(btn, "Posted"); UI.burst(btn);      // stays locked for this round; Share stays available
       } catch (err) { pbMsg.textContent = err.message; pbMsg.className = "err"; UI.reset(btn); btn.innerHTML = label; }
       finally { posting = false; }
