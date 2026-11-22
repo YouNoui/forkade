@@ -20,18 +20,20 @@ Twelve free choices across body, head, visor, colour, trail and victory/emote ar
 - Existing growth, assist, bonus, experiment, fair, ux, social-browser and game-upgrades suites passed. Offline file:// 2D + all three 3D games passed in Chromium and WebKit with zero network/errors.
 - `tests/rumble-browser.cjs`: Android UA 390, iPhone UA WebKit 390, desktop 1280, landscape 844, offline dist in both browsers; saved avatars, actual touch rewind, squad fork, pause, settings pause, back, no beta submissions, deterministic restore and 30-second scripted simulation.
 - Real-time scripted input run won with 2,432 points, 18× combo, four forks; no time skips. Video has four real-time excerpts plus the actual captured master audio, 40.00 seconds, H.264/AAC, 390×844. Three PNGs extracted from it. Artifacts: `C:\Users\Younes\Desktop\shared process\echo-rumble\phase1.mp4`.
-- CPU simulation + render submission results are in metrics.json. These are not GPU or physical-phone FPS. Dedicated 390×844 DPR2 SwiftShader sampling measured ~56.8 ms mean frame interval (~17.6 FPS); software rendering does not establish the requested 60 FPS on a mid-range Android phone. Physical Android FPS, haptics and speaker quality remain unverified.
+- CPU simulation + render submission results are in metrics.json. These are not GPU or physical-phone FPS. Dedicated 390×844 DPR2 SwiftShader sampling measured ~56.8 ms mean frame interval (~17.6 FPS); DPR1 measured ~20.4 ms (~49 FPS); software rendering does not establish the requested 60 FPS on a mid-range Android phone. Physical Android FPS, haptics and speaker quality remain unverified.
 - Windows WebKit uses reduced motion for navigation because its native Back + ViewTransition path crashes the test runner; Chromium covers animated navigation.
 
-## Release status
+## Release progression
 
-Pulse Breaker #29 is merged at 55bf860 with green checks. Its automatic production deployment was not created. Vercel API and authenticated CLI both report `api-deployments-free-per-day` (100/day, retry after reset); promoting its tested preview also failed. Production still serves the preceding release. Remaining per-game polish is stopped.
+Pulse Breaker #29 is merged at 55bf860 with green checks. Initial Vercel API/CLI deployment attempts hit the 100/day quota, but the Git-integrated ECHO RUMBLE preview subsequently reached READY at 731cbfd. The remaining per-game polish queue is stopped.
 
-ECHO RUMBLE is a tested candidate, not yet claimed live. Do not merge its PR until all required checks, including Vercel, are green. After quota reset: deploy the candidate preview, rerun `CHECK_URL=https://<preview> node tests/rumble-browser.cjs`, merge the reviewed green head, watch production, run the same checks on `https://playforkade.com`, then update this status and shared registry. Do not change billing automatically.
+PR #30 contains this phase. Merge only the reviewed green head; watch the production deployment and verify Android/iPhone 390 and desktop1280 on playforkade.com. Deployment/production results are recorded in the PR body and the shared checkpoint after release. No billing changes were made.
+
+The CLI `env run` preview-test attempt unexpectedly created a separate test-only `rumble-browser` project. Its source tree was inspected: exactly one file, src/rumble-browser.cjs, no secrets. The project was paused immediately. Preview tests now use a short-lived Vercel share link, scoped to the intended Forkade deployment; it is never committed. The user must explicitly authorize deletion of that paused accidental project because their guardrails prohibit deleting production projects/domains.
 
 ## UX checklist (§22)
 
-Checked 1–12 and 15–17: trio-B shell; separate game palettes; 44px controls; 390/1280 and landscape; instant local feedback; fixed canvas/loading layout; reduce motion; presets instead of text; closable focus-trapped avatar sheet (X/Esc/backdrop/swipe); reset-by-retry/local data deletion; saved scope; real score/combo/clock and no marketing countdowns. §3.1 radii/alpha borders/dvh and §5.1 pressed state respected. No auth/code/password flow (§6), accounts/Me/admin or third-party submission (§13) in this phase. §22.18 live verification remains blocked by deployment quota.
+Checked 1–12 and 15–17: trio-B shell; separate game palettes; 44px controls; 390/1280 and landscape; instant local feedback; fixed canvas/loading layout; reduce motion; presets instead of text; closable focus-trapped avatar sheet (X/Esc/backdrop/swipe); reset-by-retry/local data deletion; saved scope; real score/combo/clock and no marketing countdowns. §3.1 radii/alpha borders/dvh and §5.1 pressed state respected. No auth/code/password flow (§6), accounts/Me/admin or third-party submission (§13) in this phase. §22.18 production verification follows the green merge; the final outcome is in the PR body.
 
 | Connector | Scopes requested by this change | Console app ID | Status | Who must click |
 |---|---|---|---|---|
@@ -44,5 +46,5 @@ Checked 1–12 and 15–17: trio-B shell; separate game palettes; 44px controls;
 ## Needs Younes
 
 - Show the video to your son: **keep going / change X**.
-- Production release waits for Vercel's daily deployment quota to reset (or an owner-approved plan change). No payment or billing change was made.
+- Explicit cleanup approval for the paused accidental test-only project (no secrets/data). No payment or billing change was made.
 - A real mid-range Android phone is needed to verify 60 FPS and haptics; headless emulation cannot certify that target.
