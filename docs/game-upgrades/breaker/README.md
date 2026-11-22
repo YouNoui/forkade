@@ -16,4 +16,5 @@ UX §22: existing 44px controls, portrait readability, real goals/timers, local 
 ![1280](desktop-1280.png)
 
 Before/after clip: `C:\Users\Younes\Desktop\shared process\forkade-games-before-after\breaker.gif` (about 12s, capture timing preserved).
-`nThe shared performance pass also replaces per-frame projectile/pickup array filtering in Sky Striker with in-place compaction; gameplay and scores are unchanged.
+
+The shared performance pass also replaces per-frame projectile/pickup array filtering in Sky Striker with in-place compaction; gameplay and scores are unchanged.
