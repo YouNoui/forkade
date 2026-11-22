@@ -59,7 +59,7 @@
   <li><b>Disclosed prize machine.</b> Optional spins use local cores only. Chances are shown before spinning; duplicate refunds and the re-roll guarantee are listed below.</li>
   <li><b>No ads and no paid boosts.</b> Cores can't be bought, and no game is easier for people who pay.</li>
   <li><b>No secret tests.</b> Everyone gets the same rules, rewards and levels. No A/B tests, no player segments.</li>
-  <li><b>Rewards never shrink the more you play.</b> Round 1 and round 1,000 pay by the same rule.</li>
+  <li><b>Daily round bonuses are limited.</b> The full, half and quarter rates below apply only to round cores, never to other rewards.</li>
   <li><b>No made-up numbers.</b> The cores you see after a round are exactly what you earned, line by line.</li>
   <li><b>No phone details.</b> FORKADE doesn't read your phone model, screen brightness, internet speed, photos or contacts. The only thing sent is an anonymous &ldquo;visit&rdquo; or &ldquo;play&rdquo; count (you can switch it off in Settings) and scores you choose to Post. <a href="privacy.html">Privacy</a></li>
 </ul>
@@ -79,7 +79,7 @@
 <h2>Daily challenge</h2>
 <p id="daily"></p>
 
-<h2 id="chances">Chances and timers</h2><div id="gift-rules"></div><div id="machine-rules"></div><div id="assist-rules"></div>
+<h2 id="chances">Chances and timers</h2><div id="gift-rules"></div><div id="machine-rules"></div><div id="assist-rules"></div><div id="bonus-rules"></div>
 <h2>Rankings</h2>
 <p>Posting scores is optional: only Post sends your nickname and score. Online rounds start an anonymous timing token. Anonymous visit/play counts are on by default; switch them off in Settings. The server checks that each score came from a real round of the right length, holds impossible jumps for review, and hides a nickname as &ldquo;Player&rdquo; after 3 reports. Your local cores, badges and skins never depend on the rankings. <a href="guidelines.html">Community rules</a></p>
 
@@ -112,6 +112,8 @@
   const M=F.machine.rules;
   $('machine-rules').innerHTML='<p>Spin: '+M.cost+' cores. Duplicate refund: '+M.refund+'. Re-roll: '+M.rerollCost+'. The '+M.guarantee+'nd consecutive re-roll after duplicates guarantees a new skin. Ordinary re-roll chances stay at the initial spin chance; there are no ads or time-based changes. All collected: spinning stops.</p><table><thead><tr><th>Owned skins</th><th>New skin chance</th></tr></thead><tbody>'+M.odds.map((n,i)=>'<tr><td>'+(i===6?'12+':i*2+'–'+(i*2+1))+'</td><td>'+n+'%</td></tr>').join('')+'</tbody></table>';
   $('assist-rules').innerHTML='<h3>Assist is your choice</h3><p>Off unless you choose it. Offered after three consecutive losses; also available per game in Settings. Assisted rounds earn cores but no badges or ranking posts. Daily and 3D never use assist. Choices apply next round.</p><ul>'+Object.entries(F.assistMode.rules).map(([id,knob])=>'<li>'+esc(NAMES[id]||id)+': '+knob+'</li>').join('')+'</ul>';
+  const B=F.bonus.rules;
+  $('bonus-rules').innerHTML='<h3>Daily bonus rounds</h3><p>Singapore midnight resets the counter. First '+B.full+' finished rounds: full round cores. Rounds '+(B.full+1)+'–'+B.half+': '+B.halfRate*100+'%. Rounds '+(B.half+1)+' onward: '+B.quarterRate*100+'%. Round base and final payout round to the nearest whole core. New best, badges, daily rewards, gifts and starter goal are unaffected. The wallet shows remaining full-bonus rounds when fewer than 10 remain.</p>';
   const T = R.TIERS, row = (a, b, c) => `<tr><td>${a}</td><td>${b}</td><td class="n">${c}</td></tr>`;
   const ex = s => Math.round(Math.max(1, Math.sqrt(s) * 0.6));
   $("earn").tBodies[0].innerHTML = [

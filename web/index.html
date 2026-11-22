@@ -361,6 +361,7 @@
   body.gift-ready .card.start .play,body.gift-ready .card.daily .dplay{background:var(--panel2);color:var(--text);border:1px solid var(--line);box-shadow:none}
   #assist-game{font:inherit;min-height:44px;max-width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:8px;}
   body:has(.modal:not([hidden])) .toasts{visibility:hidden}
+  #pb-breakdown{flex:1 0 100%;font-size:12px;color:var(--muted);line-height:1.5;text-align:center}
   </style>
 <meta name="description" content="Free open-source browser arcade with thirteen games, rewind controls and a Playground game builder.">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://iamynoui.com/#organization","name":"IAMYNOUI","url":"https://iamynoui.com/","address":{"@type":"PostalAddress","addressCountry":"SG"}},{"@type":"SoftwareApplication","@id":"https://playforkade.com/#website","name":"Forkade","url":"https://playforkade.com/","description":"Free open-source browser arcade with thirteen games, rewind controls and a Playground game builder.","publisher":{"@id":"https://iamynoui.com/#organization"},"applicationCategory":"GameApplication","operatingSystem":"Web browser","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}</script>
@@ -470,7 +471,7 @@
       </div>
     </div>
     <div class="postbar" id="postbar" hidden>
-      <span id="pb-text"></span>
+      <span id="pb-breakdown" role="status"></span><span id="pb-text"></span>
       <input id="pb-name" maxlength="14" placeholder="nickname" aria-label="Nickname for the rankings" autocomplete="nickname" spellcheck="false">
       <button id="pb-post" class="btn btn-pop">&#127941; Post score</button>
       <span id="pb-msg"></span>
@@ -883,6 +884,7 @@
         { const b = document.getElementById("pb-post"); UI.reset(b); b.innerHTML = "&#127941; Post score"; }
         const name = (rankGames().find(g => g.id === L.id) || {}).t || L.id;
         document.getElementById("pb-text").textContent = `${name}: ${L.score} points${L.assisted ? " · ASSIST" : ""}`;
+        document.getElementById("pb-breakdown").textContent=(R.breakdown||[]).map(p=>`${p[0]} +${p[1]}${p[2]?" ("+p[2]+")":""}`).join(" · ");
       } else if (!show) pb.hidden = true;
       if (!on) pb.hidden = true;
       document.body.classList.toggle("pb-open", !pb.hidden);

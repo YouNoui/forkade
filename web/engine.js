@@ -383,6 +383,13 @@
     record(id,lost,daily,assisted){if(daily||assisted||!ASSIST[id])return;const counts=load('forkade-losses',{});counts[id]=lost?(counts[id]||0)+1:0;save('forkade-losses',counts);
       if(counts[id]===3)dispatchEvent(new CustomEvent('forkade-assist-offer',{detail:{id}}));}
   };
+  const BONUS = Object.freeze({full:40,half:80,halfRate:0.5,quarterRate:0.25});
+  const bonus={rules:BONUS,
+    state(){const today=global.ForkadeDaily.date(Date.now()),st=load('forkade-bonus',{});return st.day===today?st:{day:today,count:0};},
+    next(){const st=this.state();st.count++;save('forkade-bonus',st);return st.count<=BONUS.full?1:st.count<=BONUS.half?BONUS.halfRate:BONUS.quarterRate;},
+    left(){return Math.max(0,BONUS.full-this.state().count);},
+    note(rate){return rate===1?'':rate===BONUS.halfRate?'½ after '+BONUS.full+' rounds today':'¼ after '+BONUS.half+' rounds today';}
+  };
   const rewards = {
     enabled: true, GOALS, TIERS, SKINS, toasts: [], listeners: [],
     cores() { return load("forkade-cores", 0); },
@@ -406,7 +413,8 @@
         const key = 'forkade-daily-play:' + board.daily;
         if (!load(key, false)) { save(key, true); parts.push(["daily", this.add(25)]); this.daily(); this.toast('Daily played! +25 cores'); }
       }
-      let got = this.add(Math.max(1, Math.sqrt(Math.max(0, score)) * 0.6)); parts.push(["round", got]);
+      const rate=bonus.next(),base=Math.round(Math.max(1,Math.sqrt(Math.max(0,score))*0.6));
+      let got = this.add(Math.round(base*rate)); parts.push(["round", got, bonus.note(rate)]);
       if (newBest && score > 0) { const nb = this.add(10); got += nb; parts.push(["new best", nb]); }
       const g = this.goals(id, meta), b = this.badges(), had = b[id] || 0;
       let tier = had; while (!board.assisted && tier < 3 && score >= g[tier]) tier++;
@@ -618,7 +626,7 @@
           const shown = Math.round(this.earned * k), total = rewards.cores() - this.earned + shown;
           text(ctx, `+${shown} cores   (total ${total})`, this.W / 2, this.H / 2 + 76, { size: 16, color: palette.lime, align: "center" });
           const br = this.breakdown || [];
-          if (br.length > 1 && k >= 1) text(ctx, br.filter(p => p[1]).map(p => `${p[0]} +${p[1]}`).join("  \u00b7  "), this.W / 2, this.H / 2 + 98,
+          if (br.length && k >= 1) text(ctx, br.map(p => `${p[0]} +${p[1]}${p[2] ? " ("+p[2]+")" : ""}`).join("  \u00b7  "), this.W / 2, this.H / 2 + 98,
             { size: 12, color: palette.dim, align: "center" });
         }
       }
@@ -684,7 +692,7 @@
   global.Forkade = {
     palette, ECHO_COLOR, rand, rng, seed, settings, symbol, TAU,
     glowRect, glowCircle, glowLine, drawEcho, fillBg, text, bar, banner,
-    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats, gifts, machine, assist, assistMode,
+    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats, gifts, machine, assist, assistMode, bonus,
     register, boot, play, stop, registry,
     current: () => current,          // the running game (handy for tests and the Playground)
   };

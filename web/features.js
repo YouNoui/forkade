@@ -1,6 +1,9 @@
 /* Launcher enhancements. Classic script: also inlined into the offline distribution. */
 (function () {
   const F = Forkade, S = F.settings, D = ForkadeDaily;
+  const bonusLeft=document.createElement('p');bonusLeft.id='bonus-left';bonusLeft.className='hint';document.querySelector('.wallet').appendChild(bonusLeft);
+  function paintBonus(){const left=F.bonus.left();bonusLeft.hidden=left>=10;bonusLeft.textContent='Full-bonus rounds left today: '+left;}
+  F.rewards.listeners.push(paintBonus);paintBonus();setInterval(paintBonus,1000);
   const gift=document.createElement('section');gift.id='free-gift';gift.className='gift-card';
   gift.innerHTML='<h2>Free gift</h2><p id="gift-hint"></p><button id="gift-open" class="btn btn-pop">Open gift</button><p id="gift-time" role="status"></p><a href="fair.html#chances">Chances and timers</a>';
   document.querySelector('.wallet').after(gift);
