@@ -359,6 +359,7 @@
   .gift-card h2{font-size:18px;margin:0 0 8px}.gift-card p{color:var(--muted);line-height:1.6}.gift-card a{color:var(--brand);display:inline-block;padding:14px 0}
   body.gift-ready .card.start{border-color:var(--line);box-shadow:none}
   body.gift-ready .card.start .play,body.gift-ready .card.daily .dplay{background:var(--panel2);color:var(--text);border:1px solid var(--line);box-shadow:none}
+  #assist-game{font:inherit;min-height:44px;max-width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:8px;}
   </style>
 <meta name="description" content="Free open-source browser arcade with thirteen games, rewind controls and a Playground game builder.">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://iamynoui.com/#organization","name":"IAMYNOUI","url":"https://iamynoui.com/","address":{"@type":"PostalAddress","addressCountry":"SG"}},{"@type":"SoftwareApplication","@id":"https://playforkade.com/#website","name":"Forkade","url":"https://playforkade.com/","description":"Free open-source browser arcade with thirteen games, rewind controls and a Playground game builder.","publisher":{"@id":"https://iamynoui.com/#organization"},"applicationCategory":"GameApplication","operatingSystem":"Web browser","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}</script>
@@ -897,6 +898,17 @@
       if(isNew){own.push(skin.id);save('forkade-skins',own);}rewards.listeners.forEach(f=>f());return st.last;
     }
   };
+  // Explicit assistance, frozen for a whole round; never used in Daily or 3D.
+  const ASSIST = Object.freeze({skyhop:'20% smaller platform gaps',match:'5 extra moves per level',demo:'1 extra charge per level',
+    swarm:'20% slower simulation',striker:'20% slower simulation',breaker:'20% slower simulation',trail:'20% slower simulation',
+    drift:'20% slower simulation',prism:'20% slower simulation',wrecker:'20% slower simulation',glass:'20% slower simulation'});
+  function assist(id){return current?.id===id?!!current.assisted:!!load('forkade-assist',{})[id];}
+  const assistMode={rules:ASSIST,
+    set(id,on){if(!ASSIST[id])return;const prefs=load('forkade-assist',{});prefs[id]=!!on;save('forkade-assist',prefs);},
+    preference(id){return !!load('forkade-assist',{})[id];},
+    record(id,lost,daily,assisted){if(daily||assisted||!ASSIST[id])return;const counts=load('forkade-losses',{});counts[id]=lost?(counts[id]||0)+1:0;save('forkade-losses',counts);
+      if(counts[id]===3)dispatchEvent(new CustomEvent('forkade-assist-offer',{detail:{id}}));}
+  };
   const rewards = {
     enabled: true, GOALS, TIERS, SKINS, toasts: [], listeners: [],
     cores() { return load("forkade-cores", 0); },
@@ -915,7 +927,7 @@
     roundEnd(id, score, newBest, meta) {
       if (!this.enabled || !id) return 0;
       const parts = this.breakdown = [];   // what this round paid, line by line (shown under the total)
-      board.last = { id, score: Math.floor(score), at: Date.now(), run: board.run, daily: board.daily };
+      board.last = { id, score: Math.floor(score), at: Date.now(), run: board.run, daily: board.daily, assisted: board.assisted };
       if (board.daily && score > 0) {
         const key = 'forkade-daily-play:' + board.daily;
         if (!load(key, false)) { save(key, true); parts.push(["daily", this.add(25)]); this.daily(); this.toast('Daily played! +25 cores'); }
@@ -923,7 +935,7 @@
       let got = this.add(Math.max(1, Math.sqrt(Math.max(0, score)) * 0.6)); parts.push(["round", got]);
       if (newBest && score > 0) { const nb = this.add(10); got += nb; parts.push(["new best", nb]); }
       const g = this.goals(id, meta), b = this.badges(), had = b[id] || 0;
-      let tier = had; while (tier < 3 && score >= g[tier]) tier++;
+      let tier = had; while (!board.assisted && tier < 3 && score >= g[tier]) tier++;
       for (let k = had; k < tier; k++) {
         const bc = this.add(TIERS[k].cores); got += bc; parts.push([TIERS[k].name.toLowerCase(), bc]);
         this.toast(`${TIERS[k].name} BADGE  +${TIERS[k].cores} cores`, TIERS[k].color);
@@ -993,8 +1005,8 @@
   const board = {
     api: (typeof location !== "undefined" && location.protocol === "file:" ? "https://playforkade.com" : "") + "/api/leaderboard",
     last: null, run: null, daily: null,
-    begin(game, daily = null) {
-      this.last = null; this.daily = daily;
+    begin(game, daily = null, assisted = false) {
+      this.last = null; this.daily = daily; this.assisted = assisted; if(assisted){this.run=null;return;}
       // anonymous round token (game + start time only), so a posted score can be checked against time played
       this.run = (typeof navigator === 'undefined' || navigator.onLine !== false) ? fetch(this.api, { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'start', game, daily }) })
@@ -1028,6 +1040,7 @@
     },
     async post(game, score, name) {
       const round = this.last;
+      if(round?.assisted) throw Error("Assisted rounds are not ranked.");
       if (!round || !round.run) throw Error('Rankings need a connection when the round starts. Play a new round online to post.');
       const run = await Promise.race([round.run, new Promise(res => setTimeout(() => res({ error: 'That took too long. Check your connection and play a new round to post.' }), 7000))]);
       if (!run.token) throw Error(run.error || 'No run token. Start a new ranked round online.');
@@ -1084,7 +1097,7 @@
       if (this.state === "play") {
         const snap = this.rewind.step(this.input.rewind(), dt);
         if (snap != null) { this.restore(snap.game); rngState = snap.rng; this.t = snap.t; }
-        else { this.step(dt); const game = this.snapshot(); if (game) this.rewind.record({ game, rng: rngState, t: this.t }); }
+        else { this.step(this.assisted && ASSIST[this.id]?.includes('slower') ? dt * 0.8 : dt); const game = this.snapshot(); if (game) this.rewind.record({ game, rng: rngState, t: this.t }); }
         this.particles.update(dt);
       }
 
@@ -1095,10 +1108,12 @@
       // round end: sound + save high score, once
       if (this.state !== this._prevState) {
         if (this.state === "over" && this._prevState === "play") {
-          sfx.die(); this.newBest = this.id ? scores.submit(this.id, this.score) : false;
+          assistMode.record(this.id,true,board.daily,this.assisted);
+          sfx.die(); this.newBest = this.id && !this.assisted ? scores.submit(this.id, this.score) : false;
           this.earned = rewards.roundEnd(this.id, this.score, this.newBest, this.meta); this.breakdown = (rewards.breakdown || []).slice();
         } else if (this.state === "win" && this._prevState === "play") {
-          sfx.win(); this.newBest = this.id ? scores.submit(this.id, this.score) : false;
+          assistMode.record(this.id,false,board.daily,this.assisted);
+          sfx.win(); this.newBest = this.id && !this.assisted ? scores.submit(this.id, this.score) : false;
           this.earned = rewards.roundEnd(this.id, this.score, this.newBest, this.meta); this.breakdown = (rewards.breakdown || []).slice();
         } else if (this.state === "play") {
           this.newBest = false; this.earned = 0; this.breakdown = []; this._keys = new Set();   // restarted
@@ -1144,6 +1159,7 @@
         ty += 38;
       }
       rewards.toasts = rewards.toasts.filter(q => q.t < 2.9);
+      if(this.assisted)text(ctx,'ASSIST',16,this.H-24,{size:14,color:palette.amber,glow:false});
       // HUD corner: equipped skin + wallet
       text(ctx, `${rewards.cores()} cores`, this.W - 16, this.H - 24, { size: 13, color: palette.lime, align: "right", glow: false });
     }
@@ -1174,7 +1190,8 @@
     current.stars = new Stars(current.W, current.H);
     const reset = current.reset.bind(current);
     current.reset = function () { seed(options.seed || null); this.t = 0; this._prevState = 'play'; this.rewind.frames = []; this.rewind.energy = 1;
-      board.begin(id, options.daily || null); reset(); };
+      this.assisted=!options.daily && !!ASSIST[id] && assistMode.preference(id);
+      board.begin(id, options.daily || null, this.assisted); reset(); };
     current.reset(); rewards.toasts = [];
     if (!running) { running = true; last = performance.now(); frameId = requestAnimationFrame(loop); }
   }
@@ -1193,7 +1210,7 @@
   global.Forkade = {
     palette, ECHO_COLOR, rand, rng, seed, settings, symbol, TAU,
     glowRect, glowCircle, glowLine, drawEcho, fillBg, text, bar, banner,
-    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats, gifts, machine,
+    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats, gifts, machine, assist, assistMode,
     register, boot, play, stop, registry,
     current: () => current,          // the running game (handy for tests and the Playground)
   };
@@ -1218,7 +1235,7 @@
       this.state = "play";
     }
     // jump reaches ~150px high; gaps stay well under that, and grow a little with height
-    gap() { return NE.rand(70, 95) + Math.min(15, this.best / 400); }
+    gap() { const normal=NE.rand(70, 95) + Math.min(15, this.best / 400); return NE.assist(this.id) ? normal * 0.8 : normal; }
     addPlat(y) {
       const w = Math.max(70, NE.rand(100, 170) - Math.min(50, this.best / 250));
       // keep each platform within a reachable sideways distance of the one below
@@ -2501,6 +2518,7 @@
         }
       }
       if (best) { this.grid = best.grid; this.left = best.left; } else { this.build(1); this.left = 6; }
+      if(NE.assist(this.id))this.left++;
       this.line = 3; this.charges = []; this.phase = "plan";
       this.queue = []; this.boomT = 0; this.fallT = 0; this.idle = 0; this.debris = []; this.prevDown = false;
       this.initial = this.grid.reduce((n, v) => n + (v ? 1 : 0), 0);
@@ -2706,7 +2724,7 @@
       this.removeInitial();
       // tuned so an average level takes ~15-25 moves and the squeeze tightens each level
       this.need = 1500 + (L - 1) * 300;  // points needed THIS level
-      this.got = 0; this.moves = Math.min(34, 20 + 2 * (L - 1)); this.phase = "play"; this.sel = null;
+      this.got = 0; this.moves = Math.min(34, 20 + 2 * (L - 1)); this.phase = "play"; this.sel = null; if(NE.assist(this.id))this.moves+=5;
     }
     removeInitial() {
       // re-roll any cell that forms a line, until the board is clean
@@ -3211,10 +3229,11 @@
       const show = on && L && L.score >= 0;
       if (show && (pb.hidden || shownRound !== L)) {
         shownRound = L;
-        pb.hidden = false; pbMsg.textContent = ""; pbMsg.className = "";
+        pb.hidden = false; pbMsg.textContent = L.assisted ? "Assisted rounds aren’t ranked" : "";
+        document.getElementById("pb-post").hidden=!!L.assisted;pbName.hidden=!!L.assisted; pbMsg.className = "";
         { const b = document.getElementById("pb-post"); UI.reset(b); b.innerHTML = "&#127941; Post score"; }
         const name = (rankGames().find(g => g.id === L.id) || {}).t || L.id;
-        document.getElementById("pb-text").textContent = `${name}: ${L.score} points`;
+        document.getElementById("pb-text").textContent = `${name}: ${L.score} points${L.assisted ? " · ASSIST" : ""}`;
       } else if (!show) pb.hidden = true;
       if (!on) pb.hidden = true;
       document.body.classList.toggle("pb-open", !pb.hidden);
@@ -3367,6 +3386,19 @@
     <p class="hint">First-party visits and game counts only, no raw IP storage. Always off with Do Not Track or Global Privacy Control.</p>
   </section>`;
   document.body.appendChild(settings);
+  const assistRow=document.createElement('div');assistRow.innerHTML='<h3>Assist — this device</h3><label>Game <select id="assist-game"></select></label><label><input type="checkbox" id="assist-toggle"> Assist next round</label><p class="hint" id="assist-description"></p><p class="hint">Assisted rounds earn cores, but cannot post scores or unlock badges. Never applies to Daily challenges. Changes apply next round.</p><span id="assist-saved" role="status"></span>';
+  settings.querySelector('.sheet').appendChild(assistRow);
+  const assistSelect=assistRow.querySelector('select'),assistToggle=assistRow.querySelector('input');
+  for(const [id,knob] of Object.entries(F.assistMode.rules)){const o=document.createElement('option');o.value=id;o.textContent=GAME_NAMES()[id]||id;assistSelect.appendChild(o);}
+  function paintAssist(){assistToggle.checked=F.assistMode.preference(assistSelect.value);document.getElementById('assist-description').textContent=F.assistMode.rules[assistSelect.value];}
+  assistSelect.onchange=paintAssist;assistToggle.onchange=()=>{F.assistMode.set(assistSelect.value,assistToggle.checked);document.getElementById('assist-saved').textContent='Saved ✓ — next round, only on this device';};paintAssist();
+  const offer=document.createElement('div');offer.className='modal';offer.id='assist-offer';offer.hidden=true;
+  offer.innerHTML='<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="assist-title"><button class="x" aria-label="Close assist offer">×</button><h2 id="assist-title">Want a hand?</h2><p id="assist-offer-text"></p><button class="btn btn-pop" id="assist-yes">Turn on assist</button> <button class="btn btn-link" id="assist-no">No thanks</button></section>';document.body.appendChild(offer);
+  let offeredId,offerFocus;
+  const closeOffer=()=>{offer.hidden=true;offerFocus?.focus();};offer.querySelector('.x').onclick=closeOffer;offer.querySelector('#assist-no').onclick=closeOffer;
+  offer.querySelector('#assist-yes').onclick=()=>{F.assistMode.set(offeredId,true);paintAssist();closeOffer();toast('Assist enabled for your next '+(GAME_NAMES()[offeredId]||offeredId)+' round.');};
+  offer.onclick=e=>{if(e.target===offer)closeOffer();};offer.onkeydown=e=>{e.stopPropagation();if(e.key==='Escape')closeOffer();if(e.key==='Tab'){const all=[...offer.querySelectorAll('button')],first=all[0],last=all.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}};
+  addEventListener('forkade-assist-offer',e=>{setTimeout(()=>{if(document.querySelector('.modal:not([hidden])'))return;offeredId=e.detail.id;offerFocus=document.activeElement;document.getElementById('assist-offer-text').textContent='Assist makes '+(GAME_NAMES()[offeredId]||offeredId)+' a little easier: '+F.assistMode.rules[offeredId]+'. Assisted rounds earn cores but aren’t ranked and don’t unlock badges.';offer.hidden=false;offer.querySelector('#assist-no').focus();},350);});
   let resume = false, previousFocus;
   function showSettings() {
     previousFocus = document.activeElement; const game = F.current(); resume = game?.state === 'play';
@@ -3391,7 +3423,7 @@
   settings.addEventListener('click', e => { if (e.target === settings) closeSettings(); });
   settings.addEventListener('keydown', e => {
     e.stopPropagation(); if (e.key === 'Escape') closeSettings();
-    if (e.key === 'Tab') { const controls = [...settings.querySelectorAll('button,input')], first=controls[0], last=controls.at(-1);
+    if (e.key === 'Tab') { const controls = [...settings.querySelectorAll('button,input,select')], first=controls[0], last=controls.at(-1);
       if (e.shiftKey && document.activeElement===first) { e.preventDefault(); last.focus(); }
       else if (!e.shiftKey && document.activeElement===last) { e.preventDefault(); first.focus(); } }
   });

@@ -19,7 +19,7 @@
       this.removeInitial();
       // tuned so an average level takes ~15-25 moves and the squeeze tightens each level
       this.need = 1500 + (L - 1) * 300;  // points needed THIS level
-      this.got = 0; this.moves = Math.min(34, 20 + 2 * (L - 1)); this.phase = "play"; this.sel = null;
+      this.got = 0; this.moves = Math.min(34, 20 + 2 * (L - 1)); this.phase = "play"; this.sel = null; if(NE.assist(this.id))this.moves+=5;
     }
     removeInitial() {
       // re-roll any cell that forms a line, until the board is clean

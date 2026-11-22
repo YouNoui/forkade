@@ -372,6 +372,17 @@
       if(isNew){own.push(skin.id);save('forkade-skins',own);}rewards.listeners.forEach(f=>f());return st.last;
     }
   };
+  // Explicit assistance, frozen for a whole round; never used in Daily or 3D.
+  const ASSIST = Object.freeze({skyhop:'20% smaller platform gaps',match:'5 extra moves per level',demo:'1 extra charge per level',
+    swarm:'20% slower simulation',striker:'20% slower simulation',breaker:'20% slower simulation',trail:'20% slower simulation',
+    drift:'20% slower simulation',prism:'20% slower simulation',wrecker:'20% slower simulation',glass:'20% slower simulation'});
+  function assist(id){return current?.id===id?!!current.assisted:!!load('forkade-assist',{})[id];}
+  const assistMode={rules:ASSIST,
+    set(id,on){if(!ASSIST[id])return;const prefs=load('forkade-assist',{});prefs[id]=!!on;save('forkade-assist',prefs);},
+    preference(id){return !!load('forkade-assist',{})[id];},
+    record(id,lost,daily,assisted){if(daily||assisted||!ASSIST[id])return;const counts=load('forkade-losses',{});counts[id]=lost?(counts[id]||0)+1:0;save('forkade-losses',counts);
+      if(counts[id]===3)dispatchEvent(new CustomEvent('forkade-assist-offer',{detail:{id}}));}
+  };
   const rewards = {
     enabled: true, GOALS, TIERS, SKINS, toasts: [], listeners: [],
     cores() { return load("forkade-cores", 0); },
@@ -390,7 +401,7 @@
     roundEnd(id, score, newBest, meta) {
       if (!this.enabled || !id) return 0;
       const parts = this.breakdown = [];   // what this round paid, line by line (shown under the total)
-      board.last = { id, score: Math.floor(score), at: Date.now(), run: board.run, daily: board.daily };
+      board.last = { id, score: Math.floor(score), at: Date.now(), run: board.run, daily: board.daily, assisted: board.assisted };
       if (board.daily && score > 0) {
         const key = 'forkade-daily-play:' + board.daily;
         if (!load(key, false)) { save(key, true); parts.push(["daily", this.add(25)]); this.daily(); this.toast('Daily played! +25 cores'); }
@@ -398,7 +409,7 @@
       let got = this.add(Math.max(1, Math.sqrt(Math.max(0, score)) * 0.6)); parts.push(["round", got]);
       if (newBest && score > 0) { const nb = this.add(10); got += nb; parts.push(["new best", nb]); }
       const g = this.goals(id, meta), b = this.badges(), had = b[id] || 0;
-      let tier = had; while (tier < 3 && score >= g[tier]) tier++;
+      let tier = had; while (!board.assisted && tier < 3 && score >= g[tier]) tier++;
       for (let k = had; k < tier; k++) {
         const bc = this.add(TIERS[k].cores); got += bc; parts.push([TIERS[k].name.toLowerCase(), bc]);
         this.toast(`${TIERS[k].name} BADGE  +${TIERS[k].cores} cores`, TIERS[k].color);
@@ -468,8 +479,8 @@
   const board = {
     api: (typeof location !== "undefined" && location.protocol === "file:" ? "https://playforkade.com" : "") + "/api/leaderboard",
     last: null, run: null, daily: null,
-    begin(game, daily = null) {
-      this.last = null; this.daily = daily;
+    begin(game, daily = null, assisted = false) {
+      this.last = null; this.daily = daily; this.assisted = assisted; if(assisted){this.run=null;return;}
       // anonymous round token (game + start time only), so a posted score can be checked against time played
       this.run = (typeof navigator === 'undefined' || navigator.onLine !== false) ? fetch(this.api, { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'start', game, daily }) })
@@ -503,6 +514,7 @@
     },
     async post(game, score, name) {
       const round = this.last;
+      if(round?.assisted) throw Error("Assisted rounds are not ranked.");
       if (!round || !round.run) throw Error('Rankings need a connection when the round starts. Play a new round online to post.');
       const run = await Promise.race([round.run, new Promise(res => setTimeout(() => res({ error: 'That took too long. Check your connection and play a new round to post.' }), 7000))]);
       if (!run.token) throw Error(run.error || 'No run token. Start a new ranked round online.');
@@ -559,7 +571,7 @@
       if (this.state === "play") {
         const snap = this.rewind.step(this.input.rewind(), dt);
         if (snap != null) { this.restore(snap.game); rngState = snap.rng; this.t = snap.t; }
-        else { this.step(dt); const game = this.snapshot(); if (game) this.rewind.record({ game, rng: rngState, t: this.t }); }
+        else { this.step(this.assisted && ASSIST[this.id]?.includes('slower') ? dt * 0.8 : dt); const game = this.snapshot(); if (game) this.rewind.record({ game, rng: rngState, t: this.t }); }
         this.particles.update(dt);
       }
 
@@ -570,10 +582,12 @@
       // round end: sound + save high score, once
       if (this.state !== this._prevState) {
         if (this.state === "over" && this._prevState === "play") {
-          sfx.die(); this.newBest = this.id ? scores.submit(this.id, this.score) : false;
+          assistMode.record(this.id,true,board.daily,this.assisted);
+          sfx.die(); this.newBest = this.id && !this.assisted ? scores.submit(this.id, this.score) : false;
           this.earned = rewards.roundEnd(this.id, this.score, this.newBest, this.meta); this.breakdown = (rewards.breakdown || []).slice();
         } else if (this.state === "win" && this._prevState === "play") {
-          sfx.win(); this.newBest = this.id ? scores.submit(this.id, this.score) : false;
+          assistMode.record(this.id,false,board.daily,this.assisted);
+          sfx.win(); this.newBest = this.id && !this.assisted ? scores.submit(this.id, this.score) : false;
           this.earned = rewards.roundEnd(this.id, this.score, this.newBest, this.meta); this.breakdown = (rewards.breakdown || []).slice();
         } else if (this.state === "play") {
           this.newBest = false; this.earned = 0; this.breakdown = []; this._keys = new Set();   // restarted
@@ -619,6 +633,7 @@
         ty += 38;
       }
       rewards.toasts = rewards.toasts.filter(q => q.t < 2.9);
+      if(this.assisted)text(ctx,'ASSIST',16,this.H-24,{size:14,color:palette.amber,glow:false});
       // HUD corner: equipped skin + wallet
       text(ctx, `${rewards.cores()} cores`, this.W - 16, this.H - 24, { size: 13, color: palette.lime, align: "right", glow: false });
     }
@@ -649,7 +664,8 @@
     current.stars = new Stars(current.W, current.H);
     const reset = current.reset.bind(current);
     current.reset = function () { seed(options.seed || null); this.t = 0; this._prevState = 'play'; this.rewind.frames = []; this.rewind.energy = 1;
-      board.begin(id, options.daily || null); reset(); };
+      this.assisted=!options.daily && !!ASSIST[id] && assistMode.preference(id);
+      board.begin(id, options.daily || null, this.assisted); reset(); };
     current.reset(); rewards.toasts = [];
     if (!running) { running = true; last = performance.now(); frameId = requestAnimationFrame(loop); }
   }
@@ -668,7 +684,7 @@
   global.Forkade = {
     palette, ECHO_COLOR, rand, rng, seed, settings, symbol, TAU,
     glowRect, glowCircle, glowLine, drawEcho, fillBg, text, bar, banner,
-    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats, gifts, machine,
+    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats, gifts, machine, assist, assistMode,
     register, boot, play, stop, registry,
     current: () => current,          // the running game (handy for tests and the Playground)
   };

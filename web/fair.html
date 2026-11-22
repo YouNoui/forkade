@@ -79,7 +79,7 @@
 <h2>Daily challenge</h2>
 <p id="daily"></p>
 
-<h2 id="chances">Chances and timers</h2><div id="gift-rules"></div><div id="machine-rules"></div>
+<h2 id="chances">Chances and timers</h2><div id="gift-rules"></div><div id="machine-rules"></div><div id="assist-rules"></div>
 <h2>Rankings</h2>
 <p>Posting scores is optional: only Post sends your nickname and score. Online rounds start an anonymous timing token. Anonymous visit/play counts are on by default; switch them off in Settings. The server checks that each score came from a real round of the right length, holds impossible jumps for review, and hides a nickname as &ldquo;Player&rdquo; after 3 reports. Your local cores, badges and skins never depend on the rankings. <a href="guidelines.html">Community rules</a></p>
 
@@ -111,6 +111,7 @@
   $('gift-rules').innerHTML='<p>First '+G.welcomeCount+' gifts: '+G.welcome.join(', ')+' cores, each equally likely. Then '+G.regular.map(x=>x.amount+' cores ('+x.weight+'%)').join(', ')+'.</p><p>Wait after each gift: '+G.waits.map(x=>x/60+' minutes').join(', ')+', then '+G.waits.at(-1)/60+' minutes forever. Gifts do not stack; the saved deadline survives reload.</p>';
   const M=F.machine.rules;
   $('machine-rules').innerHTML='<p>Spin: '+M.cost+' cores. Duplicate refund: '+M.refund+'. Re-roll: '+M.rerollCost+'. The '+M.guarantee+'nd consecutive re-roll after duplicates guarantees a new skin. Ordinary re-roll chances stay at the initial spin chance; there are no ads or time-based changes. All collected: spinning stops.</p><table><thead><tr><th>Owned skins</th><th>New skin chance</th></tr></thead><tbody>'+M.odds.map((n,i)=>'<tr><td>'+(i===6?'12+':i*2+'–'+(i*2+1))+'</td><td>'+n+'%</td></tr>').join('')+'</tbody></table>';
+  $('assist-rules').innerHTML='<h3>Assist is your choice</h3><p>Off unless you choose it. Offered after three consecutive losses; also available per game in Settings. Assisted rounds earn cores but no badges or ranking posts. Daily and 3D never use assist. Choices apply next round.</p><ul>'+Object.entries(F.assistMode.rules).map(([id,knob])=>'<li>'+esc(NAMES[id]||id)+': '+knob+'</li>').join('')+'</ul>';
   const T = R.TIERS, row = (a, b, c) => `<tr><td>${a}</td><td>${b}</td><td class="n">${c}</td></tr>`;
   const ex = s => Math.round(Math.max(1, Math.sqrt(s) * 0.6));
   $("earn").tBodies[0].innerHTML = [
