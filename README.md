@@ -173,6 +173,12 @@ That's it — it inherits the shared look and the rewind twist.
 
 ---
 
+## Owner stats
+
+`/stats.html` is unlocked with the `STATS_KEY` environment variable in Vercel (Production and Preview, marked Sensitive, so
+Vercel won't show it again). To change it: Vercel → forkade → Settings → Environment Variables → STATS_KEY → Edit, save,
+then redeploy (any merge to `main` does it). Never commit the key or paste it into issues or chats.
+
 ## License
 
 MIT — do anything you like, including commercial use. See `LICENSE`.
