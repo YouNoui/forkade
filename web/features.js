@@ -1,6 +1,20 @@
 /* Launcher enhancements. Classic script: also inlined into the offline distribution. */
 (function () {
   const F = Forkade, S = F.settings, D = ForkadeDaily;
+  const gift=document.createElement('section');gift.id='free-gift';gift.className='gift-card';
+  gift.innerHTML='<h2>Free gift</h2><p id="gift-hint"></p><button id="gift-open" class="btn btn-pop">Open gift</button><p id="gift-time" role="status"></p><a href="fair.html#chances">Chances and timers</a>';
+  document.querySelector('.wallet').after(gift);
+  const giftButton=gift.querySelector('button');
+  function paintGift(){const st=F.gifts.state(),ready=F.gifts.ready(),n=Math.max(0,Math.ceil((st.next-Date.now())/1000));
+    document.body.classList.toggle('gift-ready',ready);giftButton.hidden=!ready;
+    gift.querySelector('#gift-hint').textContent=st.count<3?'Welcome gifts: 3 bigger ones ('+(3-st.count)+' left)':'25 cores (80%), 35 (15%), or 50 (5%).';
+    gift.querySelector('#gift-time').textContent=ready?'Ready when you are.':'Next gift in '+Math.floor(n/3600)+':'+String(Math.floor(n/60)%60).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
+  }
+  giftButton.onclick=async()=>{UI.busy(giftButton,'Opening…');try{
+    const claim=()=>F.gifts.claim();const result=navigator.locks?await navigator.locks.request('forkade-gift',claim):claim();
+    if(result){UI.burst(giftButton);toast('Gift opened! +'+result.amount+' cores');refreshRewards();}
+  }finally{UI.reset(giftButton);paintGift();}};
+  paintGift();setInterval(paintGift,1000);addEventListener('storage',paintGift);
   const settings = document.createElement('div'); settings.className = 'modal'; settings.id = 'settings'; settings.hidden = true;
   settings.innerHTML = `<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="settings-title">
     <button class="x" id="close-settings" aria-label="Close settings">×</button><h2 id="settings-title">SETTINGS</h2>

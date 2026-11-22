@@ -79,6 +79,7 @@
 <h2>Daily challenge</h2>
 <p id="daily"></p>
 
+<h2 id="chances">Chances and timers</h2><div id="gift-rules"></div>
 <h2>Rankings</h2>
 <p>Posting scores is optional: only Post sends your nickname and score. Online rounds start an anonymous timing token. Anonymous visit/play counts are on by default; switch them off in Settings. The server checks that each score came from a real round of the right length, holds impossible jumps for review, and hides a nickname as &ldquo;Player&rdquo; after 3 reports. Your local cores, badges and skins never depend on the rankings. <a href="guidelines.html">Community rules</a></p>
 
@@ -106,6 +107,8 @@
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const NAMES = Object.fromEntries(F.registry.map(g => [g.id, g.meta.title]));
   NAMES.echo3d = "ECHO 3D"; NAMES.rampage = "RAMPAGE 3D";
+  const G=F.gifts.rules;
+  $('gift-rules').innerHTML='<p>First '+G.welcomeCount+' gifts: '+G.welcome.join(', ')+' cores, each equally likely. Then '+G.regular.map(x=>x.amount+' cores ('+x.weight+'%)').join(', ')+'.</p><p>Wait after each gift: '+G.waits.map(x=>x/60+' minutes').join(', ')+', then '+G.waits.at(-1)/60+' minutes forever. Gifts do not stack; the saved deadline survives reload.</p>';
   const T = R.TIERS, row = (a, b, c) => `<tr><td>${a}</td><td>${b}</td><td class="n">${c}</td></tr>`;
   const ex = s => Math.round(Math.max(1, Math.sqrt(s) * 0.6));
   $("earn").tBodies[0].innerHTML = [

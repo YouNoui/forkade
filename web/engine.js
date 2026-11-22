@@ -334,6 +334,21 @@
   ];
   const load = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (_) { return d; } };
   const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} };
+  const GIFTS = Object.freeze({ welcome: [100,110,120,130], welcomeCount: 3,
+    regular: [{amount:25,weight:80},{amount:35,weight:15},{amount:50,weight:5}], waits: [180,360,1800,3600,7200,10800] });
+  const gifts = {
+    rules: GIFTS,
+    state() { return load('forkade-gifts', {count:0,next:0}); },
+    ready(now=Date.now()) { return now >= this.state().next; },
+    claim(now=Date.now(), random=Math.random) {
+      const st=this.state(); if (now < st.next || !rewards.enabled) return null;
+      let amount;
+      if(st.count<GIFTS.welcomeCount) amount=GIFTS.welcome[Math.floor(random()*GIFTS.welcome.length)];
+      else { let roll=random()*100; amount=GIFTS.regular.at(-1).amount; for(const row of GIFTS.regular){roll-=row.weight;if(roll<0){amount=row.amount;break;}} }
+      st.next=now+GIFTS.waits[Math.min(st.count,GIFTS.waits.length-1)]*1000;st.count++;
+      save('forkade-gifts',st);rewards.add(amount);return {amount,...st};
+    }
+  };
   const rewards = {
     enabled: true, GOALS, TIERS, SKINS, toasts: [], listeners: [],
     cores() { return load("forkade-cores", 0); },
@@ -630,7 +645,7 @@
   global.Forkade = {
     palette, ECHO_COLOR, rand, rng, seed, settings, symbol, TAU,
     glowRect, glowCircle, glowLine, drawEcho, fillBg, text, bar, banner,
-    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats,
+    Particles, Shake, Stars, Rewind, Input, GameBase, sfx, scores, rewards, board, stats, gifts,
     register, boot, play, stop, registry,
     current: () => current,          // the running game (handy for tests and the Playground)
   };
