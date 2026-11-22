@@ -435,7 +435,7 @@
       <button class="x" id="close-locker" aria-label="Close">&times;</button>
       <h2>LOCKER</h2>
       <p class="hint">Earn cores in every game: finish rounds, clear levels, beat your best and win badges. Spend them on ECHO skins that show up in every game.</p>
-      <p class="hint fairnote">&#9878; Fixed prices. No loot boxes, no ads, cores can't be bought. <a href="fair.html">Every number</a></p>
+      <p class="hint fairnote">&#9878; Original skins have fixed prices. Machine chances are shown before you spin. No ads; cores cannot be bought. <a href="fair.html">Every number</a></p>
       <div class="skins" id="skins"></div>
       <h2>BADGES <span id="badge-count"></span></h2>
       <div class="badges" id="badges"></div>
@@ -619,8 +619,9 @@
           ? "linear-gradient(135deg,#ff3ea5,#ffb23f,#9dff57,#22e4ff,#a07bff)" : sk.color;   /* skin = game colour, not UI */
         const btn = sk.id === eq ? `<button class="btn done" disabled>&#10003; Equipped</button>`
           : has ? `<button class="btn" data-skin="${sk.id}">Equip</button>`
+          : sk.machineOnly ? `<span class="why">Prize machine only</span>`
           : cores < sk.cost ? `<button class="btn" disabled aria-describedby="why-${sk.id}">&#9670; ${sk.cost}</button><small class="why" id="why-${sk.id}">Need ${sk.cost - cores} more cores</small>`
-          : `<button class="btn btn-pop" data-skin="${sk.id}">&#9670; ${sk.cost} Buy</button>`;
+          : `<button class="btn" data-skin="${sk.id}">&#9670; ${sk.cost} Buy</button>`;
         return `<div class="skin ${sk.id === eq ? "eq" : ""}"><div class="sw" style="background:${bg};color:${sk.color === "rainbow" ? "#a07bff" : sk.color}"></div>${sk.name}${btn}</div>`;
       }).join("");
       const names = GAME_NAMES(); let total = 0;
