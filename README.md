@@ -90,7 +90,7 @@ The canonical offline bundle is `web/download/forkade.html`; the old duplicate
 
 CC0 assets: `node tools/build_rumble_assets.mjs` (optional `RUMBLE_SOURCE_DIR` reuses
 downloads), then `node tools/render_rumble_portraits.cjs` and the Python generators.
-Only runtime-selected animation clips are retained. All eight npm packages are
+Only runtime-selected animation clips are retained. The image generator pins patched Pillow 13.0.0 (Python 3.11+). All eight npm packages are
 build/test dependencies; production has no npm installation. See THIRD_PARTY_NOTICES.
 
 ## How to run tests
