@@ -1,0 +1,72 @@
+[
+  {
+    "id": "skyhop",
+    "frameMs": 0.46500000009934106,
+    "frames": 1800,
+    "seed": true,
+    "rewind": true
+  },
+  {
+    "id": "swarm",
+    "frameMs": 0.24666666661699613,
+    "frames": 1800,
+    "seed": true,
+    "rewind": true
+  },
+  {
+    "id": "striker",
+    "frameMs": 0.21749999970197678,
+    "frames": 1800,
+    "seed": true,
+    "rewind": true
+  },
+  {
+    "id": "breaker",
+    "frameMs": 0.3841666666169961,
+    "frames": 1800,
+    "seed": true,
+    "rewind": true
+  },
+  {
+    "id": "trail",
+    "frameMs": 0.14083333313465118,
+    "frames": 1800,
+    "seed": true,
+    "rewind": true
+  },
+  {
+    "id": "drift",
+    "frameMs": 0.14666666661699612,
+    "frames": 1800,
+    "seed": true,
+    "rewind": true
+  },
+  {
+    "id": "wrecker",
+    "frameMs": 0.38333333308498063,
+    "frames": 1800,
+    "seed": true,
+    "rewind": true
+  },
+  {
+    "id": "glass",
+    "frameMs": 0.39416666626930236,
+    "frames": 1800,
+    "seed": true,
+    "rewind": true
+  },
+  {
+    "id": "demo",
+    "frameMs": 0.3866666669646899,
+    "frames": 1800,
+    "seed": true,
+    "rewind": true
+  },
+  {
+    "id": "match",
+    "frameMs": 0.6033333333830039,
+    "frames": 1800,
+    "seed": true,
+    "rewind": true
+  }
+]
