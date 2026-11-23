@@ -1,0 +1,10 @@
+{
+  "beforeBytes": 621866,
+  "afterBytes": 629653,
+  "beforeFrameMs": 3.6891666668156784,
+  "after": {
+    "frameMs": 4.134166666616996,
+    "seed": 20780,
+    "islands": 18
+  }
+}
