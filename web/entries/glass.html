@@ -837,7 +837,7 @@
           else history.replaceState({ fg: id }, "", "/" + id);
         } catch (_) {}
         // phones that go full screen for this game skip the morph (full screen and the animation fight)
-        const fs = document.body.classList.contains("touch") && !["skyhop", "swarm", "striker", "breaker", "rumble"].includes(id);
+        const fs = document.body.classList.contains("touch") && !["skyhop", "swarm", "striker", "breaker", "match", "trail", "rumble"].includes(id);
         if (fs || !hit) run(); else morph(run, hit, () => stage, "fwd");
       }
       function leave(close) {

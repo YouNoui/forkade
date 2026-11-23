@@ -136,7 +136,7 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
      skinN:Forkade.rewards.SKINS.length,sky:document.querySelector('#badges').innerText.includes('SKY HOP'),gold:document.querySelector('#badges tbody tr').innerText.includes(Forkade.rewards.GOALS[Object.keys(Forkade.rewards.GOALS)[0]][2].toLocaleString('en'))}));
    assert.deepEqual([f.rows,f.skins,f.sky,f.gold],[f.goals,f.skinN,true,true],'fair page matches the code');
    await pg.goto(base);await pg.waitForFunction(()=>window.Forkade);assert.equal(await pg.locator('.privacy-line a[href="fair.html"]').count(),1);
-   const r=await pg.evaluate(()=>{const R=Forkade.rewards,got=R.roundEnd('trail',350,true,null);return {got,sum:R.breakdown.reduce((a,p)=>a+p[1],0),names:R.breakdown.map(p=>p[0])};});
+   const r=await pg.evaluate(()=>{const R=Forkade.rewards,got=R.roundEnd('trail',R.GOALS.trail[1],true,null);return {got,sum:R.breakdown.reduce((a,p)=>a+p[1],0),names:R.breakdown.map(p=>p[0])};});
    assert.equal(r.sum,r.got,'breakdown adds up');assert.ok(r.names.includes('round')&&r.names.includes('new best')&&r.names.includes('silver'),'breakdown names each part');
    await pg.close(); }
   console.log('sense of place (playbook 5.2)');
