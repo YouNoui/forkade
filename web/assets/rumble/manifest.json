@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "license": "CC0-1.0",
+  "assets": {
+    "volt": {
+      "file": "volt.glb",
+      "bytes": 1459192,
+      "sha256": "af8709bb5ab18c33f724a55e54fc0a68a3b19f9cfd36f0c52d73008214ba56c8",
+      "source": "https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0/main/addons/kaykit_character_pack_adventures/Characters/gltf/Knight.glb",
+      "animations": [
+        "1H_Melee_Attack_Chop",
+        "1H_Ranged_Shoot",
+        "2H_Melee_Attack_Spin",
+        "Cheer",
+        "Death_A",
+        "Dodge_Forward",
+        "Hit_A",
+        "Idle",
+        "Running_A",
+        "Spellcast_Shoot"
+      ]
+    },
+    "lumen": {
+      "file": "lumen.glb",
+      "bytes": 1438868,
+      "sha256": "4c66558c51b7e7ae4902052e2d1645a087a722afd42981c9ca70f5832536ecb8",
+      "source": "https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0/main/addons/kaykit_character_pack_adventures/Characters/gltf/Mage.glb",
+      "animations": [
+        "1H_Melee_Attack_Chop",
+        "1H_Ranged_Shoot",
+        "2H_Melee_Attack_Spin",
+        "Cheer",
+        "Death_A",
+        "Dodge_Forward",
+        "Hit_A",
+        "Idle",
+        "Running_A",
+        "Spellcast_Shoot"
+      ]
+    },
+    "flick": {
+      "file": "flick.glb",
+      "bytes": 1441516,
+      "sha256": "4b3b3331704947b804af4b32b15722f55b9a9452e0478bad766a441c003368e8",
+      "source": "https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0/main/addons/kaykit_character_pack_adventures/Characters/gltf/Rogue.glb",
+      "animations": [
+        "1H_Melee_Attack_Chop",
+        "1H_Ranged_Shoot",
+        "2H_Melee_Attack_Spin",
+        "Cheer",
+        "Death_A",
+        "Dodge_Forward",
+        "Hit_A",
+        "Idle",
+        "Running_A",
+        "Spellcast_Shoot"
+      ]
+    },
+    "mason": {
+      "file": "mason.glb",
+      "bytes": 1444408,
+      "sha256": "8072b557b0463a70f2a5b490caf84f8147bc7bab8647857e8880b63ebb2a4c73",
+      "source": "https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0/main/addons/kaykit_character_pack_adventures/Characters/gltf/Barbarian.glb",
+      "animations": [
+        "1H_Melee_Attack_Chop",
+        "1H_Ranged_Shoot",
+        "2H_Melee_Attack_Spin",
+        "Cheer",
+        "Death_A",
+        "Dodge_Forward",
+        "Hit_A",
+        "Idle",
+        "Running_A",
+        "Spellcast_Shoot"
+      ]
+    },
+    "floor": {
+      "file": "floor.glb",
+      "bytes": 10644,
+      "sha256": "1444d9628a3344771bc162c05d3b4027bee6386217304ddab50e79dc87303f6a",
+      "source": "https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf/Floor.gltf",
+      "animations": []
+    },
+    "pillar_a": {
+      "file": "pillar_a.glb",
+      "bytes": 10828,
+      "sha256": "3c02332751711c67a746f136cd80ba91672aacbab59b651ff09e09c76975b026",
+      "source": "https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf/Pillar_A.gltf",
+      "animations": []
+    },
+    "box_a": {
+      "file": "box_a.glb",
+      "bytes": 11176,
+      "sha256": "9c1f386333d8a47469954b43f512530aaf2e83554b0a68a2fb7aee2cf904b3a7",
+      "source": "https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf/Box_A.gltf",
+      "animations": []
+    },
+    "barrel_a": {
+      "file": "barrel_a.glb",
+      "bytes": 14208,
+      "sha256": "8de6ba958893c5c40256cc1eba20f2c2a1a86bf39fb2f29c4d25e2e77b157863",
+      "source": "https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf/Barrel_A.gltf",
+      "animations": []
+    },
+    "primitive_stairs": {
+      "file": "primitive_stairs.glb",
+      "bytes": 10860,
+      "sha256": "61cb8e6554f02cd73ee6eac98c6925dbff08beff56fff2a8f5bd153e0a11bfc2",
+      "source": "https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf/Primitive_Stairs.gltf",
+      "animations": []
+    }
+  }
+}

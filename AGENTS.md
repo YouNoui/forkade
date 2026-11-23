@@ -42,3 +42,10 @@
 - Only explicit Post uploads a bounded, server-replayed input log and preset name. Never invent ghosts; show at most three genuine posted daily runs. Replays expire after three days.
 - Forge accepts only the closed preset vocabulary in rumble-rules.js. Five publishes/device/day, 90-day codes, real weekly counts after ten seconds with analytics consent; reports and creator unpublish supported.
 - Run rumble.test.cjs, rumble-online.test.cjs, rumble-browser.cjs and rumble-sharing-browser.cjs. Use isolated preview storage, never production test records. Headless CPU timings are not physical-phone frame-rate proof.
+
+## ECHO RUMBLE 2
+- Version 3 simulation/replays are separate from the retained legacy v2 verifier. Run tokens bind canonical hero/difficulty/gadget/weekly options; difficulty boards never share a key. Assist and friend races are unranked.
+- Keep all XP/mastery/unlock requirements in rumble-v2-rules.js; fair play and promo catalog consume those constants. Forge practice earns no Road XP or cores. Four starters are free; Nova and other Road rewards have fixed visible requirements.
+- CC0 source credits and complete licences live in THIRD_PARTY_NOTICES and licenses/. Rebuild GLBs with tools/build_rumble_assets.mjs; selected-hero first load including runtime/portraits must remain <=3MB. Runtime fetches are same-origin; dist embeds assets. Preserve original avatar cosmetics in the optional classic look.
+- Private live co-op is not enabled. Only genuine explicitly posted replays may produce a friend link; it expires with the replay and must stop resolving after removal/moderation. Never create production sample ghosts.
+- Run rumble-v2.test.cjs, rumble-v2-online.test.cjs and rumble-v2-browser.cjs plus all existing checks; verify Android/iPhone emulation and desktop. Do not describe headless render timings as a physical-phone 60 FPS measurement.

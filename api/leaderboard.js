@@ -23,6 +23,7 @@ const CAPS = {
   drift: 1200000, prism: 6000000, match: 6000000, wrecker: 2500000, echo3d: 400,
   glass: 3500000, demo: 2500000, rampage: 220000, rumble: 100000,
 };
+for(const game of ['rumble-normal','rumble-hard','rumble-insane','rumble-nightmare'])CAPS[game]=100000;
 const BLOCK = /(fuck|shit|cunt|nigg|fag|bitch|whore|slut|rape|nazi|hitler|porn|dick|pussy|cock)/i;
 const TOP = 50;
 
@@ -123,7 +124,7 @@ async function moderate(R, b, res, week) {
     const [raw] = await R([['GET', key]]);
     if (!raw) return send(res,404,{error:'Review expired.'});
     const item = JSON.parse(raw);
-    if (b.do === 'approve-score'){await publish(R,item.game,item.score,item.name,item.pid,item.week,item.daily);if(item.replay)await saveReplay(R,item.pid,item.daily,item.score,item.replay,item.name);}
+    if (b.do === 'approve-score'){await publish(R,item.game,item.score,item.name,item.pid,item.week,item.daily);if(item.replay)await saveReplay(R,item.pid,item.daily,item.score,item.replay,item.name,item.game);}
     await R([['DEL',key],['ZREM','lb:pending',key]]);
     await auditModeration(R,b);return send(res,200,{ok:true});
   }
@@ -135,7 +136,7 @@ async function moderate(R, b, res, week) {
     const cmds = [["HDEL", "lb:names", pid], ["HDEL", "lb:reported", pid], ["DEL", `lb:rep:${pid}`], ["SREM", "lb:hidden", pid]];
     for (const g of Object.keys(CAPS)) {
       cmds.push(['DEL', `lb:pending:${pid}:${g}`], ['ZREM','lb:pending',`lb:pending:${pid}:${g}`]);
-      for(let n=0;n<4;n++)cmds.push(['DEL',`rumble:replay:${Runs.Daily.date(Date.now()-n*86400000)}:${pid}`]);
+      for(let n=0;n<4;n++)cmds.push(['DEL',`rumble:replay:${Runs.Daily.date(Date.now()-n*86400000)}:${pid}`],['DEL',`rumble:replay:${Runs.Daily.date(Date.now()-n*86400000)}:${g}:${pid}`]);
       for (let n=0;n<4;n++) cmds.push(['ZREM',`lb:${g}:d:${Runs.Daily.date(Date.now()-n*86400000)}`,pid]);
       cmds.push(["ZREM", `lb:${g}:all`, pid]); for (const w of weeks) cmds.push(["ZREM", `lb:${g}:w:${w}`, pid]); }
     await R(cmds);
@@ -204,7 +205,7 @@ module.exports = async function handler(req, res) {
       const game = b.game, score = Math.floor(Number(b.score)), name = cleanName(b.name), pid = b.pid;
       if (!CAPS[game]) return send(res, 400, { error: "Unknown game." });
       if (!validPid(pid)) return send(res, 400, { error: "Bad player id." });
-      if (game==='rumble' && !require('../web/rumble-rules').first.some((_,a)=>require('../web/rumble-rules').last.some((_,z)=>require('../web/rumble-rules').nickname(a,z)===name)))return send(res,400,{error:'Pick a preset Rumble name.'});
+      if (game.startsWith('rumble') && !require('../web/rumble-rules').first.some((_,a)=>require('../web/rumble-rules').last.some((_,z)=>require('../web/rumble-rules').nickname(a,z)===name)))return send(res,400,{error:'Pick a preset Rumble name.'});
       if (!validName(name)) return send(res, 400, { error: "Pick a nickname: 2-14 letters or numbers, nothing rude." });
       if (!(score > 0 && score <= CAPS[game])) return send(res, 400, { error: "That score doesn't look right." });
 
@@ -216,7 +217,7 @@ module.exports = async function handler(req, res) {
       const checked = await Runs.consume(R, { ...b, score });
       if (checked.error) return send(res, 400, { error: checked.error });
       const daily = checked.run.daily;let replay=null;
-      if(game==='rumble'){try{const proof=require('../web/rumble-replay').validate(b.replay,checked.run.seed,score);if((Date.now()-checked.run.at)/1000+.5<proof.steps/60*.85)throw Error('Replay is too fast.');replay=proof.packet;}catch(e){return send(res,400,{error:e.message});}}
+      if(game.startsWith('rumble')){try{if(game!=='rumble'&&b.replay?.v!==3)throw Error('Use the current replay format.');const proof=require('../web/rumble-v2-replay').validate(b.replay,checked.run.seed,score,checked.run.options);if((Date.now()-checked.run.at)/1000+.5<proof.steps/60*.85)throw Error('Replay is too fast.');replay=proof.packet;}catch(e){return send(res,400,{error:e.message});}}
       const [previous] = await R([['ZSCORE', `lb:${game}:all`, pid]]);
       if (Number(previous) > 0 && score > Number(previous) * 10) {
         const key = `lb:pending:${pid}:${game}`;
@@ -224,7 +225,7 @@ module.exports = async function handler(req, res) {
           ['ZADD','lb:pending',String(Date.now()),key]]);
         return send(res,202,{ok:true,pending:true,message:'Pending review: this score is more than 10× your previous best.'});
       }
-      const result=await publish(R,game,score,name,pid,week,daily);if(replay)await saveReplay(R,pid,daily,score,replay,name);return send(res,200,result);
+      const result=await publish(R,game,score,name,pid,week,daily);if(replay)result.friend=await saveReplay(R,pid,daily,score,replay,name,game);return send(res,200,result);
     }
     if (req.method === "DELETE") {
       // "Remove my scores": wipes this player's nickname and every score on every board
@@ -234,7 +235,7 @@ module.exports = async function handler(req, res) {
       const cmds = [["HDEL", "lb:names", pid]];
       for (const g of Object.keys(CAPS)) {
       cmds.push(['DEL', `lb:pending:${pid}:${g}`], ['ZREM','lb:pending',`lb:pending:${pid}:${g}`]);
-      for(let n=0;n<4;n++)cmds.push(['DEL',`rumble:replay:${Runs.Daily.date(Date.now()-n*86400000)}:${pid}`]);
+      for(let n=0;n<4;n++)cmds.push(['DEL',`rumble:replay:${Runs.Daily.date(Date.now()-n*86400000)}:${pid}`],['DEL',`rumble:replay:${Runs.Daily.date(Date.now()-n*86400000)}:${g}:${pid}`]);
       for (let n=0;n<4;n++) cmds.push(['ZREM',`lb:${g}:d:${Runs.Daily.date(Date.now()-n*86400000)}`,pid]);
       cmds.push(["ZREM", `lb:${g}:all`, pid]); for (const w of weeks) cmds.push(["ZREM", `lb:${g}:w:${w}`, pid]); }
       await R(cmds);
@@ -248,5 +249,9 @@ module.exports = async function handler(req, res) {
 module.exports.isoWeek = isoWeek;
 module.exports.CAPS = CAPS;
 
-async function saveReplay(R,pid,date,score,replay,name){if(!date)return;const ttl=Math.min(259200,Math.floor((Date.parse(date+'T00:00:00+08:00')+3*86400000-Date.now())/1000));if(ttl<=0)return;const key=`rumble:replay:${date}:${pid}`;const [old]=await R([['GET',key]]);if(old&&JSON.parse(old).score>score)return;await R([['SET',key,JSON.stringify({score,...replay,name}),'EX',String(ttl)]]);}
+async function saveReplay(R,pid,date,score,replay,name,game='rumble'){
+ if(!date)return;const ttl=Math.min(259200,Math.floor((Date.parse(date+'T00:00:00+08:00')+3*86400000-Date.now())/1000));if(ttl<=0)return;
+ const key=`rumble:replay:${date}:${game==='rumble'?'':game+':'}${pid}`;const [old]=await R([['GET',key]]);if(old&&JSON.parse(old).score>score)return JSON.parse(old).friend||null;
+ const friend=crypto.randomBytes(12).toString('hex');await R([['SET',key,JSON.stringify({score,...replay,name,friend}),'EX',String(ttl)],['SET','rumble:friend:'+friend,JSON.stringify({key,pid,date,game}),'EX',String(ttl)]]);return friend;
+}
 module.exports.redis=redis;module.exports.ownerOk=ownerOk;module.exports.auditModeration=auditModeration;

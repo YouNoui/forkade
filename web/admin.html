@@ -62,9 +62,9 @@ body:has(#out:not([hidden])) #go{background:var(--panel2);color:var(--text);box-
 <p class="note">The key is the <code>STATS_KEY</code> value set in Vercel. It is remembered only in this tab session.
   Counts skip bots and browsers that send Do Not Track / Global Privacy Control, so real numbers are a little higher.</p>
 
-<script src="promo-catalog.js"></script><script>
+<script src="rumble-v2-rules.js"></script><script src="promo-catalog.js"></script><script>
   let adminEpoch=0;
-  const NAMES = { rumble:"ECHO RUMBLE", skyhop: "Sky Hop", swarm: "Neon Swarm", striker: "Sky Striker", breaker: "Pulse Breaker", trail: "Echo Trail",
+  const NAMES = { "rumble-normal":"Rumble Normal", "rumble-hard":"Rumble Hard", "rumble-insane":"Rumble Insane", "rumble-nightmare":"Rumble Nightmare", rumble:"ECHO RUMBLE", skyhop: "Sky Hop", swarm: "Neon Swarm", striker: "Sky Striker", breaker: "Pulse Breaker", trail: "Echo Trail",
     drift: "Driftstorm", prism: "Prism Stacks", match: "Core Match", wrecker: "Tower Wrecker", glass: "Glass City", demo: "Demolition Chain", echo3d: "ECHO 3D", rampage: "RAMPAGE 3D", playground: "Playground" };
   const $ = id => document.getElementById(id), api = (location.protocol === "file:" ? "https://playforkade.com" : "") + "/api/stats";
   try { $("key").value = sessionStorage.getItem("forkade-stats-key") || ""; } catch (_) {}

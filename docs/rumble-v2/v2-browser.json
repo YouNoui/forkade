@@ -1,0 +1,106 @@
+[
+  {
+    "name": "android",
+    "width": 390,
+    "bytes": 2674525,
+    "assets": [
+      {
+        "url": "/games3d/rumble.html",
+        "bytes": 911361
+      },
+      {
+        "url": "/assets/rumble/volt.png",
+        "bytes": 23948
+      },
+      {
+        "url": "/assets/rumble/lumen.png",
+        "bytes": 18450
+      },
+      {
+        "url": "/assets/rumble/flick.png",
+        "bytes": 26271
+      },
+      {
+        "url": "/assets/rumble/mason.png",
+        "bytes": 24497
+      },
+      {
+        "url": "/assets/rumble/floor.glb",
+        "bytes": 15028
+      },
+      {
+        "url": "/assets/rumble/pillar_a.glb",
+        "bytes": 15304
+      },
+      {
+        "url": "/assets/rumble/box_a.glb",
+        "bytes": 15696
+      },
+      {
+        "url": "/assets/rumble/barrel_a.glb",
+        "bytes": 19460
+      },
+      {
+        "url": "/assets/rumble/primitive_stairs.glb",
+        "bytes": 15152
+      },
+      {
+        "url": "/assets/rumble/lumen.glb",
+        "bytes": 1589358
+      }
+    ],
+    "errors": []
+  },
+  {
+    "name": "desktop",
+    "width": 1280,
+    "bytes": 2674525,
+    "assets": [
+      {
+        "url": "/games3d/rumble.html",
+        "bytes": 911361
+      },
+      {
+        "url": "/assets/rumble/volt.png",
+        "bytes": 23948
+      },
+      {
+        "url": "/assets/rumble/lumen.png",
+        "bytes": 18450
+      },
+      {
+        "url": "/assets/rumble/flick.png",
+        "bytes": 26271
+      },
+      {
+        "url": "/assets/rumble/mason.png",
+        "bytes": 24497
+      },
+      {
+        "url": "/assets/rumble/floor.glb",
+        "bytes": 15028
+      },
+      {
+        "url": "/assets/rumble/pillar_a.glb",
+        "bytes": 15304
+      },
+      {
+        "url": "/assets/rumble/box_a.glb",
+        "bytes": 15696
+      },
+      {
+        "url": "/assets/rumble/barrel_a.glb",
+        "bytes": 19460
+      },
+      {
+        "url": "/assets/rumble/primitive_stairs.glb",
+        "bytes": 15152
+      },
+      {
+        "url": "/assets/rumble/lumen.glb",
+        "bytes": 1589358
+      }
+    ],
+    "errors": []
+  }
+]
