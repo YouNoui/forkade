@@ -3,7 +3,7 @@ const {Redis}=require('./redis.cjs');
 const HEADERS=(JSON.parse(fs.readFileSync(path.resolve(__dirname,'..','vercel.json'),'utf8')).headers||[])
   .map(r=>({re:new RegExp('^'+r.source.replace(/\(\.\*\)/g,'.*').replace(/\./g,'\\.').replace(/\\\.\*/g,'.*')+'$'),headers:r.headers}));
 function server(){const db=new Redis();const restore=db.install();process.env.STATS_KEY='owner-test';
- const root=path.resolve(__dirname,'..'),types={'.html':'text/html','.js':'text/javascript','.png':'image/png','.webmanifest':'application/manifest+json'};
+ const root=path.resolve(__dirname,'..'),types={'.html':'text/html','.js':'text/javascript','.png':'image/png','.jpg':'image/jpeg','.mp4':'video/mp4','.webmanifest':'application/manifest+json'};
  const app=http.createServer(async(req,res)=>{
   const url=new URL(req.url,'http://localhost'),p=url.pathname;
   if(p.startsWith('/api/')){let data='';for await(const x of req)data+=x;try{req.body=JSON.parse(data||'{}');}catch{req.body={};}

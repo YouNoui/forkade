@@ -19,6 +19,10 @@ def inline(m):
     return "<script>\n" + (here / m.group(1)).read_text(encoding="utf-8") + "\n</script>"
 html = re.sub(r'<script src="([^"]+)"></script>', inline, html)
 
+# Keep the hero poster offline; the optional loop is not loaded in file:// copies.
+poster=base64.b64encode((here/'media/rumble-poster.jpg').read_bytes()).decode()
+html=html.replace('media/rumble-poster.jpg','data:image/jpeg;base64,'+poster)
+
 # inline the 3D page so the single file can run it via iframe srcdoc
 for game, variable in [("echo3d", "__ECHO3D_HTML__"), ("rampage", "__RAMPAGE_HTML__"), ("rumble", "__RUMBLE_HTML__")]:
     content = (here / "games3d" / (game + ".html")).read_text(encoding="utf-8")

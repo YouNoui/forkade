@@ -156,8 +156,12 @@
   function paintMore(){extra.forEach(c=>c.hidden=!expanded);more.textContent=expanded?'Fewer games':'More games ('+extra.length+')';more.setAttribute('aria-expanded',String(expanded));}
   more.onclick=()=>{expanded=!expanded;try{localStorage.setItem('forkade-more-games',expanded?'1':'0');}catch(_){}paintMore();};paintMore();
   const rumble=document.createElement('button');rumble.className='card rumble-hero';rumble.dataset.game='rumble';rumble.style.setProperty('--c','var(--brand)');
-  rumble.innerHTML='<span class="genre">NEW: ECHO RUMBLE (beta)</span><h3 class="name">The arcade that forks itself.</h3><p class="desc">90 seconds. Three worlds. One boss. Rewind your mistakes into a squad of allies.</p><span class="play">Play the beta →</span><span class="desc"> Local play · 24 free avatar choices</span>';
-  rumble.onclick=()=>open3D('rumble');document.getElementById('hero-sub').after(rumble);document.getElementById('hero-play').classList.remove('btn-pop');
+  rumble.innerHTML='<span class="genre">NEW: ECHO RUMBLE (beta)</span><h3 class="name">The arcade that forks itself.</h3><video id="rumble-loop" muted loop playsinline preload="none" poster="media/rumble-poster.jpg" aria-label="Real ECHO RUMBLE gameplay"></video><p class="desc">Rewind your mistakes into a squad of allies.</p><span class="rumble-look"><b aria-hidden="true">••</b>Your echo · 24 parts</span>';
+  rumble.onclick=()=>open3D('rumble');document.getElementById('hero-sub').after(rumble);
+  const loop=rumble.querySelector('video');let visible=true;
+  function previewMotion(){if(location.protocol==='file:'||S.reduceMotion||navigator.connection?.saveData||document.hidden||!visible){loop.pause();return;}if(!loop.src)loop.src='media/rumble-loop.mp4';loop.play().catch(()=>{});}
+  if('IntersectionObserver'in window)new IntersectionObserver(([e])=>{visible=e.isIntersecting;previewMotion();}).observe(loop);
+  addEventListener('forkade-settings',previewMotion);document.addEventListener('visibilitychange',previewMotion);previewMotion();
   // Delay until the distribution has installed its inline 3D pages.
   setTimeout(() => {
     const query = new URLSearchParams(location.search), path = location.pathname.replace(/^\/+|\/+$/g,'');
