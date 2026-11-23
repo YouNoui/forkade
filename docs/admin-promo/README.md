@@ -19,7 +19,8 @@ Checked trio B tokens, 44px controls, phone overflow, primary Save, progress wit
 ## Validation
 
 - API suite: authorization for every owner operation, wrong keys, generated alphabet, bad payloads, enabled/expired/full/deduped codes, concurrent single-use attempts, unlimited mode, rate TTL, private response fields, per-code hashed identities, deletion/recreation and multi-key preview isolation.
-- Browser: Chromium 390/1280 and WebKit 390 create → copy → disable/enable → delete → lock; Settings/query redemption, bundle cosmetics/equip, unchanged scores/badges/rank, retry after a lost response, persistence and spending. Real Redis preview verification follows before merge; no test codes on production.
+- Browser: Chromium 390/1280 and WebKit 390 create → copy → disable/enable → delete → lock; Settings/query redemption, bundle cosmetics/equip, unchanged scores/badges/rank, retry after a lost response, persistence and spending. No test codes on production.
+- Real Upstash Lua check: eight simultaneous redeems of a single-use code produced exactly one winner; empty-array serialization and disable enforced. Used a unique preview prefix; code, redemption hashes and rate key were cleaned. Deployed preview UI verification follows before merge.
 - Full Chromium and WebKit web/dist matrices, existing gift/machine/bonus/Fair/UX checks, file:// offline all 2D/3D without requests, and installed v40 → v52 upgrade/deferred v53 verified.
 
 ![Admin 390](admin-390-phone.png)
