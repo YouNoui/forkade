@@ -441,12 +441,13 @@
   @media(max-width:600px){body.hero-out:not(.playing) #gift-open:not([hidden]),body.hero-out:not(.playing):not(.gift-ready) .grid:has(.card.start) .card.start .play,body.hero-out:not(.playing):not(.gift-ready) .grid:not(:has(.card.start)) .daily .dplay{position:fixed;z-index:95;bottom:max(12px,env(safe-area-inset-bottom));left:20px;width:calc(100% - 40px);min-height:44px;justify-content:center;box-sizing:border-box;background:var(--pop);color:var(--pop-ink);border:2px solid var(--pop-ink);box-shadow:3px 3px 0 var(--brand)}body.playing #gift-open{display:none}.wrap{padding-bottom:100px}}
   #more-games{display:flex;margin:20px auto}
   @media(max-width:600px){body:not(.playing) .toasts{bottom:calc(78px + env(safe-area-inset-bottom))!important}}
-  
+
   .rumble-hero{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:12px;margin:12px 0 0;display:block;min-height:0;overflow:hidden}
   .rumble-hero .name{font:900 clamp(24px,5vw,40px)/1.1 ui-monospace,Consolas,monospace;color:var(--text);margin:10px 0}.rumble-hero .genre{color:var(--brand)}.rumble-hero .desc{color:var(--muted);font:inherit;font-size:12px;line-height:1.5;margin:8px 0}
   .rumble-hero video{display:block;width:100%;height:160px;object-fit:cover;border-radius:8px;background:var(--base)}.rumble-hero .play{display:none}.hero-cta{margin-top:10px}#hero-play{width:100%;background:var(--pop)!important;color:var(--pop-ink)!important;font-weight:900}.rumble-look{color:var(--brand);font-size:12px;margin:6px 0}.rumble-look b{display:inline-block;background:var(--brand);color:var(--ink);border-radius:5px;padding:4px 8px;margin-right:8px}
   body:not(.hero-out) #gift-open{background:var(--panel2);color:var(--text);border:1px solid var(--line);box-shadow:none;position:static;width:auto}body:not(.hero-out) .card.start .play,body:not(.hero-out) .card.daily .dplay{background:var(--panel2);color:var(--text);box-shadow:none}#update-bar{position:fixed;bottom:max(12px,env(safe-area-inset-bottom));left:16px;right:16px;z-index:250;background:var(--panel);color:var(--text);border:2px solid var(--brand);min-height:44px;border-radius:12px;font:inherit;padding:12px}.head .promise,.head #rewindtip{display:none}.head{padding-top:0}.head .title{font-size:24px;margin:12px 0}.head .sub{font-size:12px}.head .proof{margin-top:14px}
   @media(min-width:800px){.rumble-hero video{height:240px}.rumble-hero{max-width:720px;margin-left:auto;margin-right:auto}.hero-cta{max-width:720px;margin-left:auto;margin-right:auto}}
+#forge-editor label{display:flex;align-items:center;gap:10px;margin:12px 0;min-height:44px;font-size:12px}#forge-editor select{min-height:44px;max-width:100%;font:inherit;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:6px}#forge-editor input[type=range]{flex:1;min-width:60px;min-height:44px}#forge-editor summary{min-height:44px;padding:12px 0;cursor:pointer}#forge-editor .sheet{max-height:90dvh;overflow:auto}#forge-test{position:sticky;bottom:0;width:100%;z-index:1}#forge-share a{overflow-wrap:anywhere;display:block;padding:12px 0}.forge-row{display:flex;gap:8px;margin:8px 0}#forge-close{min-height:44px;min-width:44px}
 </style>
 <meta name="description" content="ECHO RUMBLE beta and thirteen classic browser games, rewind controls and a Playground game builder.">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://iamynoui.com/#organization","name":"IAMYNOUI","url":"https://iamynoui.com/","address":{"@type":"PostalAddress","addressCountry":"SG"}},{"@type":"SoftwareApplication","@id":"https://playforkade.com/#website","name":"Forkade","url":"https://playforkade.com/","description":"ECHO RUMBLE beta and thirteen classic browser games, rewind controls and a Playground game builder.","publisher":{"@id":"https://iamynoui.com/#organization"},"applicationCategory":"GameApplication","operatingSystem":"Web browser","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}</script>
@@ -768,7 +769,8 @@
       canvas.focus();
       Forkade.play(id, options);
     }
-    function open3D(id = "echo3d") { if (typeof id !== "string") id = "echo3d"; Place.enter(id, () => run3D(id)); }
+    function open3D(id = "echo3d") {
+      window.ForkadeForgeConfig=window.ForkadeForgeNext||null;window.ForkadeForgeNext=null; if (typeof id !== "string") id = "echo3d"; Place.enter(id, () => run3D(id)); }
     function run3D(id) {
       if (Forkade.current()) Forkade.stop(true);
       // A fresh frame avoids Safari racing a previous about:blank navigation.
@@ -1005,10 +1007,11 @@
 
     /* ---------- global rankings (opt-in) ---------- */
     const B = Forkade.board;
-    const rankGames = () => [...Forkade.registry.map(g => ({ id: g.id, t: g.meta.title })), { id: "echo3d", t: "ECHO 3D" }, { id: "rampage", t: "RAMPAGE 3D" }];
+    const rankGames = () => [...Forkade.registry.map(g => ({ id: g.id, t: g.meta.title })), { id: "echo3d", t: "ECHO 3D" }, { id: "rampage", t: "RAMPAGE 3D" }, {id:"rumble",t:"ECHO RUMBLE"}];
     let rGame = "skyhop", rPeriod = "week";
     const esc = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     async function loadRanks() {
+      if (rPeriod === "daily" && rGame !== "rumble") rGame = ForkadeDaily.challenge().game;
       const list = document.getElementById("rlist"), me = document.getElementById("rme");
       document.getElementById("rgames").innerHTML = rankGames().map(g =>
         `<button data-game="${g.id}" class="${g.id === rGame ? "on" : ""}">${esc(g.t)}</button>`).join("");
@@ -1017,7 +1020,6 @@
       list.innerHTML = '<li class="sk"></li>'.repeat(10); list.setAttribute("aria-busy", "true"); me.textContent = "Loading rankings\u2026";
       const seq = ++ranksSeq;
       try {
-        if (rPeriod === "daily") rGame = ForkadeDaily.challenge().game;
         const d = await B.top(rGame, rPeriod);
         if (seq !== ranksSeq) return;           // a newer tab was picked meanwhile
         list.removeAttribute("aria-busy");
@@ -1025,7 +1027,7 @@
           `<li class="${r.me ? "me" : ""}"><span class="n">#${r.rank}</span><span class="nm">${esc(r.name)}${r.me ? " (you)" : ""}</span><span class="sc">${r.score}</span>${
             r.me || r.name === "Player" ? `<span class="rep"></span>` : `<button class="rep" data-rank="${r.rank}" data-name="${esc(r.name)}" title="Report this nickname" aria-label="Report ${esc(r.name)}">&#9873;</button>`}</li>`).join("")
           : '<li class="msg">No scores yet. <button class="btn" id="empty-play">Play a round</button></li>';
-        const empty=document.getElementById('empty-play');if(empty)empty.onclick=()=>{document.getElementById('ranks').hidden=true;['echo3d','rampage'].includes(rGame)?open3D(rGame):openGame(rGame);};
+        const empty=document.getElementById('empty-play');if(empty)empty.onclick=()=>{document.getElementById('ranks').hidden=true;['echo3d','rampage','rumble'].includes(rGame)?open3D(rGame):openGame(rGame);};
         me.textContent = d.me ? `You're #${d.me.rank} of ${d.count} with ${d.me.score}.` : `${d.count} players ranked. Post a score after any round to join.`;if(d.notice)me.textContent+=" Owner notice: "+d.notice.reason;
       } catch (err) {
         if (seq !== ranksSeq) return;
@@ -1071,7 +1073,7 @@
     }));
     setInterval(() => {
       const L = B.last, on = stage.classList.contains("on");
-      const show = on && L && L.score >= 0;
+      const show = on && L && L.id!=="rumble" && L.score >= 0;
       if (show && (pb.hidden || shownRound !== L)) {
         shownRound = L;
         pb.classList.toggle('polished',!!Forkade.current()?.meta.polished);
@@ -1221,6 +1223,8 @@
   </script>
   <script src="features.js"></script>
   <script src="updates.js"></script>
+  <script src="rumble-rules.js"></script>
+  <script src="forge.js"></script>
 <script src="dialogs.js"></script>
 </body>
 </html>

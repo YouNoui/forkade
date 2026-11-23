@@ -2,7 +2,7 @@
 
 Open-source neon arcade. Play it, rewind it, fork it.
 
-**ECHO RUMBLE beta** is a local-only flagship prototype: a 90-second seeded mutation run through three toy worlds and a squad-gated boss. Fork an attempt into an input-replayed ally (up to three); hold Shift to rewind. Choose 24 free starter avatar choices, saved on this device. Phase 1.1 adds eight seeded chaos events, original toy characters, delayed echo emotes, Silly sounds and KING WOBBLETON’s telegraphed belly flops. No Rumble rankings, uploaded ghosts, purchases or Forge yet.
+**ECHO RUMBLE beta** leads the arcade: Singapore-date seeded runs across seven toy stages and three bosses, up to three replayed allies, rewind, eight chaos events and 48 free avatar choices. Explicit Post shares a server-validated anonymous input replay for today’s Ghost Rumble. Forge builds preset-only practice runs, with optional short-code publishing and real weekly play counts.
 
 The browser edition also has **thirteen classic games**, including ECHO 3D, RAMPAGE 3D and three 2D destruction games: Tower Wrecker, Glass City and Demolition Chain. RAMPAGE turns ECHO into a giant city-stomper with a timer, chunks, joystick controls and rewind.
 
@@ -18,7 +18,7 @@ Fork: https://github.com/YouNoui/forkade. MIT licensed; bundled third-party noti
 
 **Daily Challenge:** one seeded game per Singapore day, the same level/layout on every device. Finish for local cores; claim a top-ten bonus the next day after posting. Daily boards expire after three days.
 
-**Share and settings:** every game has a `/game-id` link and a generated social preview. Share scores after a round. The gear opens local mute/volume, reduced motion, colour-blind shapes, and an opt-in for ranked runs and an opt-out for anonymous counts. Rumble does not send play events or round tokens. No cookies or third-party trackers.
+**Share and settings:** every game has a `/game-id` link and a generated social preview. Share scores after a round. The gear opens local mute/volume, reduced motion, colour-blind shapes, and an opt-in for ranked runs and an opt-out for anonymous counts. Rumble starts anonymous round tokens; only Post uploads the replay. Usage counts respect Settings, DNT and GPC. No cookies or third-party trackers.
 
 **Phones:** Sky Hop, Neon Swarm, Sky Striker and Pulse Breaker have tall portrait layouts. Other 2D games recommend landscape. Safari unlocks audio on a user gesture; add the arcade using Share → Add to Home Screen. All three 3D games work offline and use thumb-stick controls.
 

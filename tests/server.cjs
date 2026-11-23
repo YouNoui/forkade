@@ -7,7 +7,7 @@ function server(){const db=new Redis();const restore=db.install();process.env.ST
  const app=http.createServer(async(req,res)=>{
   const url=new URL(req.url,'http://localhost'),p=url.pathname;
   if(p.startsWith('/api/')){let data='';for await(const x of req)data+=x;try{req.body=JSON.parse(data||'{}');}catch{req.body={};}
-    const fn=p==='/api/leaderboard'?require('../api/leaderboard'):require('../api/stats');return fn(req,res);}
+    const fn=({'/api/leaderboard':require('../api/leaderboard'),'/api/stats':require('../api/stats'),'/api/rumble':require('../api/rumble'),'/api/forge':require('../api/forge')})[p];if(!fn){res.statusCode=404;return res.end('{}');}return fn(req,res);}
   let file=p.startsWith('/dist/')?path.join(root,p):path.join(root,'web',p);
   if(!file.startsWith(root)){res.writeHead(403);return res.end();}
   if(fs.existsSync(file)&&fs.statSync(file).isDirectory())file=path.join(file,'index.html');
