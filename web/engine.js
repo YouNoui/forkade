@@ -355,7 +355,7 @@
       const skin=pool[Math.floor(random()*pool.length)],duplicate=!isNew;
       st.chance=chance;st.rerolls=duplicate?(reroll?st.rerolls+1:1):0;
       st.last={skin:skin.id,name:skin.name,duplicate,cost,refund:duplicate?MACHINE.refund:0,chance:guaranteed?100:chance,at:Date.now()};
-      save('forkade-machine',st);save('forkade-cores',rewards.cores()-cost+st.last.refund);
+      save('forkade-machine',st);rewards.setCores(rewards.cores()-cost+st.last.refund);
       if(isNew){own.push(skin.id);save('forkade-skins',own);}rewards.listeners.forEach(f=>f());return st.last;
     }
   };
@@ -379,12 +379,22 @@
   };
   const rewards = {
     enabled: true, GOALS, TIERS, SKINS, toasts: [], listeners: [],
-    cores() { return load("forkade-cores", 0); },
+    promo() { return load('forkade-promo-wallet',{total:0,receipts:[],skins:[],parts:[]}); },
+    cores() { return load("forkade-cores", 0)+this.promo().total; },
+    setCores(n) { save('forkade-cores',n-this.promo().total); },
+    grantPromo(receipt) {
+      const p=this.promo();if(p.receipts.includes(receipt.id))return false;
+      const r=global.ForkadePromoCatalog.reward(receipt.reward);
+      p.total+=r.cores;p.receipts.push(receipt.id);p.skins=[...new Set(p.skins.concat(r.skins))];p.parts=[...new Set(p.parts.concat(r.parts))];
+      // One atomic localStorage write: a receipt and its entire bundle land together.
+      // Earned lifetime/rank, scores, badges, streak and bonus tiers are untouched.
+      localStorage.setItem('forkade-promo-wallet',JSON.stringify(p));this.listeners.forEach(f=>f());return true;
+    },
     lifetime() { return load("forkade-lifetime", 0); },
     rank() { return 1 + Math.floor(Math.sqrt(this.lifetime() / 25)); },
     add(n) {
       n = Math.max(0, Math.round(n)); if (!n || !this.enabled) return 0;
-      save("forkade-cores", this.cores() + n); save("forkade-lifetime", this.lifetime() + n);
+      this.setCores(this.cores() + n); save("forkade-lifetime", this.lifetime() + n);
       this.listeners.forEach(f => f()); return n;
     },
     toast(text, color) { this.toasts.push({ text, color: color || palette.amber, t: 0 }); this.listeners.forEach(f => f(text, color)); },
@@ -423,13 +433,13 @@
       if (n) { this.toast(`STARTER GOAL DONE  +${n} cores`, palette.cyan); sfx.win(); }
       return n;
     },
-    owned() { return load("forkade-skins", ["classic"]); },
+    owned() { return [...new Set(load("forkade-skins", ["classic"]).concat(this.promo().skins))]; },
     skin() { const id = load("forkade-skin", "classic"); return SKINS.find(s => s.id === id) || SKINS[0]; },
     buy(id) {
       const sk = SKINS.find(s => s.id === id); if (!sk) return false;
       const own = this.owned(); if (own.includes(id)) { save("forkade-skin", id); this.listeners.forEach(f => f()); return true; }
       if (sk.machineOnly || this.cores() < sk.cost) return false;
-      save("forkade-cores", this.cores() - sk.cost); own.push(id); save("forkade-skins", own); save("forkade-skin", id);
+      this.setCores(this.cores() - sk.cost); own.push(id); save("forkade-skins", own); save("forkade-skin", id);
       this.listeners.forEach(f => f()); return true;
     },
     // daily streak: call once when the arcade opens

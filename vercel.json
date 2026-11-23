@@ -109,5 +109,12 @@
       "source": "/:path*",
       "destination": "/index.html"
     }
+  ],
+  "redirects": [
+    {
+      "source": "/stats.html",
+      "destination": "/admin",
+      "permanent": false
+    }
   ]
 }

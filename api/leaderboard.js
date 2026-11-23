@@ -40,7 +40,7 @@ function redis() {
   return async cmds => {
     if (process.env.VERCEL_ENV === 'preview') {
       const prefix = 'preview:' + (process.env.VERCEL_GIT_COMMIT_REF || 'forkade') + ':';
-      cmds = cmds.map(c => { c = c.slice(); const k = c[0] === 'EVAL' ? 3 : 1; c[k] = prefix + c[k]; return c; });
+      cmds = cmds.map(c => { c = c.slice(); if(c[0] === 'EVAL'){for(let i=0;i<Number(c[2]);i++)c[3+i]=prefix+c[3+i];}else c[1]=prefix+c[1]; return c; });
     }
     const r = await fetch(url.replace(/\/$/, "") + "/pipeline", {
       method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
@@ -193,7 +193,7 @@ module.exports = async function handler(req, res) {
     if (req.method === "POST") {
       const b = await readBody(req);
       if (b.action === "report") return report(R, b, req, res, week);
-      if (b.action === "moderate") return moderate(R, b, res, week);
+      if (b.action === "moderate") return moderate(R, {...b,key:req.headers['x-stats-key']||b.key}, res, week);
       // round start: anonymous on purpose (no player id), so it runs before the id check
       if (b.action === 'start') {
         if (!CAPS[b.game]) return send(res, 400, { error: "Unknown game." });
