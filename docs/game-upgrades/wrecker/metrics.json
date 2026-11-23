@@ -1,0 +1,51 @@
+[
+  {
+    "id": "skyhop",
+    "frameMs": 0.46833333323399223,
+    "frames": 1800,
+    "seed": true,
+    "rewind": true
+  },
+  {
+    "id": "swarm",
+    "frameMs": 0.24333333323399226,
+    "frames": 1800,
+    "seed": true,
+    "rewind": true
+  },
+  {
+    "id": "striker",
+    "frameMs": 0.2125,
+    "frames": 1800,
+    "seed": true,
+    "rewind": true
+  },
+  {
+    "id": "breaker",
+    "frameMs": 0.36666666666666664,
+    "frames": 1800,
+    "seed": true,
+    "rewind": true
+  },
+  {
+    "id": "wrecker",
+    "frameMs": 0.39416666676600776,
+    "frames": 1800,
+    "seed": true,
+    "rewind": true
+  },
+  {
+    "id": "demo",
+    "frameMs": 0.3350000001490116,
+    "frames": 1800,
+    "seed": true,
+    "rewind": true
+  },
+  {
+    "id": "match",
+    "frameMs": 0.3058333334823449,
+    "frames": 1800,
+    "seed": true,
+    "rewind": true
+  }
+]
