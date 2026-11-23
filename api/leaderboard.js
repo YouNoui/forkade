@@ -21,7 +21,7 @@ const Runs = require("../lib/runs");
 const CAPS = {
   skyhop: 100000, swarm: 200000, striker: 600000, breaker: 3000000, trail: 20000,
   drift: 1000000, prism: 5000000, match: 6000000, wrecker: 2500000, echo3d: 400,
-  glass: 3000000, demo: 2500000, rampage: 220000, rumble: 100000,
+  glass: 3500000, demo: 2500000, rampage: 220000, rumble: 100000,
 };
 const BLOCK = /(fuck|shit|cunt|nigg|fag|bitch|whore|slut|rape|nazi|hitler|porn|dick|pussy|cock)/i;
 const TOP = 50;
