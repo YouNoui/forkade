@@ -1,3 +1,5 @@
+> Historical release record. For current behavior and commands, see the root README. Screenshot evidence was archived outside git on 24 Nov 2026; see docs/cleanup-2026-11-24.md.
+
 # ECHO RUMBLE Phase 1.1
 
 Original chunky toy hero with reactive face, running legs, three head sizes, two eye styles, toast/cone hats, moustache, cape and duck/rainbow trails: 24 choices across nine slots. Four original dance poses, delayed echo copying and help bubbles. Jelly, suited pigeon, toaster and cactus enemies, cartoon defeats, destructible props, ramp, moving climb platforms, spectators and a nearest-goal arrow.
@@ -21,7 +23,7 @@ Controls are compact/translucent on touch, with no keyboard hint. Reduce motion 
 
 Section 22: checked 1–6, 8–12 and 15–17 (trio shell/game palette exception; >=44px controls; sticky Start; no horizontal scrolling; direct local feedback; fixed canvas; reduced motion; closable focus-contained sheet; local saved scope; truthful score/timer/24 choices). Item 7 uses optional preset customization with one-tap Start; the nine-slot avatar builder remains a game editor rather than customer onboarding. Section 3.1 alpha borders/dvh and 5.1 celebration-only bounce apply. No auth under section 6; items 13–14 do not apply to this account-free beta. Item 18 is recorded in the PR after release. No third-party submissions (section 13), paid options or marketing growth changes.
 
-![390px](android-390.png)
-![1280px](desktop-1280.png)
+Archived screenshot: 390px (`android-390.png`).
+Archived screenshot: 1280px (`desktop-1280.png`).
 
 Release status and live proof: see PR #30. Stop after delivery for the son's verdict.

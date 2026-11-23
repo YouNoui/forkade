@@ -1,3 +1,5 @@
+> Historical release record. For current behavior and commands, see the root README. Screenshot evidence was archived outside git on 24 Nov 2026; see docs/cleanup-2026-11-24.md.
+
 # Section 22 UX audit — Forkade, 22 Nov 2026
 
 Baseline: main `1ebaa22`. Scope: source review of launcher, settings, rankings/locker/install sheets, Playground, Fair play, legal pages and owner stats; read-only browser interaction on https://playforkade.com at 390×844 and 1280×844. No UI fixes are part of this audit. Screenshots are observations, not approved designs.

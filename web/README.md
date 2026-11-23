@@ -8,6 +8,8 @@ Thirteen classic games remain: eleven 2D games plus ECHO 3D and RAMPAGE 3D. Same
 
 All thirteen classic games now include refreshed procedural graphics, shared audio/feedback and rewind-safe goals or powers. Seven 2D games support portrait: Sky Hop, Neon Swarm, Sky Striker, Pulse Breaker, Core Match, ECHO Trail and Prism Stacks. Reduced motion and colour-blind symbols remain available.
 
+See the root README for current build/test commands, owner admin, promo codes and the disabled co-op status. Test screenshots and recordings are written outside the repository.
+
 ## Files
 
 ```
@@ -28,7 +30,7 @@ web/
     └── demo.js        # 11 blast puzzle (Demolition Chain)
 ```
 
-There is also `../dist/forkade.html` — the **entire thing inlined into one
+There is also `download/forkade.html` — the **entire thing inlined into one
 file**. Handy if you just want to drop a single file somewhere.
 
 ## Install to your phone (PWA)
@@ -45,7 +47,7 @@ app, and **works offline** (a service worker, `sw.js`, caches all the files).
 - After you change any game, bump `CACHE` in `sw.js` so installed users update.
 
 > PWA install needs the multi-file `web/` version served over http(s). The
-> single-file `dist/forkade.html` still plays (touch included) but isn't
+> single-file `download/forkade.html` still plays (touch included) but isn't
 > installable on its own.
 
 ## Run it locally
@@ -58,7 +60,7 @@ python -m http.server 8000
 # open http://localhost:8000
 ```
 
-(The one-file `dist/forkade.html` also opens by double-click, no server.)
+(The one-file `download/forkade.html` also opens by double-click, no server.)
 
 ## Put it on iamynoui.com
 

@@ -1,3 +1,5 @@
+> Historical release record. For current behavior and commands, see the root README. Screenshot evidence was archived outside git on 24 Nov 2026; see docs/cleanup-2026-11-24.md.
+
 # Demolition Chain: reactor demolition yard
 
 Cached shaped masonry, cross-braced steel and warning-symbol gas tiles replace flat blocks. A three-layer forge backdrop, procedural music and shared chain hit feedback make each blast readable. Destroying 12 masonry blocks at a site awards +150 once; every reward field and cosmetic debris RNG is rewind-safe. Quiet solvability checks never award bonuses. Old scores are retained; cap 2,500,000 and badge tiers 1,300 / 3,500 / 8,000.

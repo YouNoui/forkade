@@ -49,3 +49,9 @@
 - CC0 source credits and complete licences live in THIRD_PARTY_NOTICES and licenses/. Rebuild GLBs with tools/build_rumble_assets.mjs; selected-hero first load including runtime/portraits must remain <=3MB. Runtime fetches are same-origin; dist embeds assets. Preserve original avatar cosmetics in the optional classic look.
 - Private live co-op is not enabled. Only genuine explicitly posted replays may produce a friend link; it expires with the replay and must stop resolving after removal/moderation. Never create production sample ghosts.
 - Run rumble-v2.test.cjs, rumble-v2-online.test.cjs and rumble-v2-browser.cjs plus all existing checks; verify Android/iPhone emulation and desktop. Do not describe headless render timings as a physical-phone 60 FPS measurement.
+
+## Cleanup and evidence
+- Do not commit test screenshots, gameplay recordings or coverage. Use tests/artifacts.cjs and FORKADE_ARTIFACTS; keep production icons, OG images, models and homepage media.
+- Preserve the existing compact runtime JavaScript style; use the .editorconfig conventions for new helpers. Do not reformat served bundles just for style.
+- npm run test:suite covers the local browser assertions; npm run test:coverage records JS/CSS usage outside the checkout. Coverage gaps alone never justify deleting code.
+- Private co-op stays disabled; no Forkade Cloudflare runtime resources were found in the designated account on 24 Nov 2026. Billing/Free-plan status remains unverified.

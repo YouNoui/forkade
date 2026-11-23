@@ -1,3 +1,5 @@
+> Historical release record. For current behavior and commands, see the root README. Screenshot evidence was archived outside git on 24 Nov 2026; see docs/cleanup-2026-11-24.md.
+
 # Proposed Appendix A: Forkade — awaiting Younes/Claude approval
 
 Drafted from main `1ebaa22` on 22 Nov 2026. The shared playbook has NOT been edited. This records current code choices; it does not approve the audit failures or establish a second UX standard.

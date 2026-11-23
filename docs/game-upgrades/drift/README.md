@@ -1,3 +1,5 @@
+> Historical release record. For current behavior and commands, see the root README. Screenshot evidence was archived outside git on 24 Nov 2026; see docs/cleanup-2026-11-24.md.
+
 # Driftstorm: guardian storm
 
 Cached shaded rocks and a shaped ship cross a layered nebula, with shared music and impact feedback. Six rock kills grant eight seconds of Twin Shot; twelve give +200 once. A twelve-hit guardian is scheduled every 120 seconds (one alive at a time), worth +400 plus its normal 15. Real wave and rock counts appear in results. All new powers, timers, seeded rocks and the previously omitted shot cooldown rewind.

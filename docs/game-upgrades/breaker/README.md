@@ -1,3 +1,5 @@
+> Historical release record. For current behavior and commands, see the root README. Screenshot evidence was archived outside git on 24 Nov 2026; see docs/cleanup-2026-11-24.md.
+
 # Pulse Breaker — crystal forge
 
 Bevelled crystal walls, readable durability pips and blast/core symbols replace flat blocks. Three cached forge layers, light pools, a pulse trail and shared music/feedback give hits weight. First wall is shorter; one safety pulse catches the first miss. Blast crystals cascade through nearby bricks. Five destroyed bricks pay +75; timed cells offer 12s of wide paddle or 8s of piercing blaze. Every two minutes a remaining crystal becomes a five-hit reactor core worth +500 and a refreshed safety pulse.
@@ -12,8 +14,8 @@ API tests and local Android390, WebKit/iPhone390, desktop1280 checks pass. Full 
 
 UX §22: existing 44px controls, portrait readability, real goals/timers, local settings, reduced motion and one-tap replay; no new forms, dialogs or third-party submissions. §3.1 original arcade palette/depth (Appendix A), §5.1 existing UI preserved, §6 auth not applicable.
 
-![390](android-390.png)
-![1280](desktop-1280.png)
+Archived screenshot: 390 (`android-390.png`).
+Archived screenshot: 1280 (`desktop-1280.png`).
 
 Before/after clip: `C:\Users\Younes\Desktop\shared process\forkade-games-before-after\breaker.gif` (about 12s, capture timing preserved).
 

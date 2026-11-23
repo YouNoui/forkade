@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bundle web/ into a single self-contained dist/forkade.html.
+"""Bundle web/ into the production single-file web/download/forkade.html.
 Inlines engine + all game scripts, and inlines the 3D page so it runs from
 one file (three.js is inlined, so 3D works offline too)."""
 import re, json, pathlib, base64
@@ -37,13 +37,8 @@ for game, variable in [("echo3d", "__ECHO3D_HTML__"), ("rampage", "__RAMPAGE_HTM
 # the one-file build has no playground.html beside it: link the live one
 html = html.replace('"playground.html"', '"https://playforkade.com/playground.html"')
 
-out = here.parent / "dist" / "forkade.html"
+# One canonical offline bundle: the exact file served by the Download button.
+out = here / "download" / "forkade.html"
 out.parent.mkdir(exist_ok=True)
 out.write_text(html, encoding="utf-8")
-print("wrote", out, len(html), "bytes")
-
-# also publish it on the site so the Download button can hand it out
-dl = here / "download" / "forkade.html"
-dl.parent.mkdir(exist_ok=True)
-dl.write_text(html, encoding="utf-8")
-print("wrote", dl)
+print("wrote", out, out.stat().st_size, "bytes")

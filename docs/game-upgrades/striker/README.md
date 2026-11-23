@@ -1,3 +1,5 @@
+> Historical release record. For current behavior and commands, see the root README. Screenshot evidence was archived outside git on 24 Nov 2026; see docs/cleanup-2026-11-24.md.
+
 # Sky Striker — Tempest flight
 
 Three cached storm-cloud layers, a shaped/leaning fighter, exhaust trail, shaped enemy aircraft and distinct diamond hazard bullets. Drag to fly and fire with one thumb; existing portrait controls remain. Early enemy shots are slower; spread-shot foes arrive at 35s, tougher foes at 70s, and the moving Tempest Carrier at 120s.
@@ -12,8 +14,8 @@ API tests and Android390/WebKit iPhone390/desktop1280 checks pass. Full browser 
 
 UX §22: portrait readability, existing 44px controls, one-tap replay, truthful goals, reduced motion, local-only settings; no new forms, dialogs or third-party submissions. §3.1 original game palette/depth (Appendix A); §5.1 existing UI preserved; §6 auth not applicable.
 
-![390](android-390.png)
-![1280](desktop-1280.png)
+Archived screenshot: 390 (`android-390.png`).
+Archived screenshot: 1280 (`desktop-1280.png`).
 
 12-second before/after clip: `C:\Users\Younes\Desktop\shared process\forkade-games-before-after\striker.gif`.
 

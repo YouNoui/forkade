@@ -5,7 +5,9 @@
     "test": "node --test tests/*.test.cjs scripts/search-discovery.test.mjs",
     "test:browser": "node tests/browser.cjs",
     "test:offline": "node tests/offline.cjs",
-    "test:preview": "node tests/preview.cjs"
+    "test:preview": "node tests/preview.cjs",
+    "test:suite": "node tests/run-browser-suite.cjs",
+    "test:coverage": "node --require ./tests/coverage.cjs tests/run-browser-suite.cjs"
   },
   "devDependencies": {
     "@gltf-transform/core": "^4.5.1",

@@ -1,3 +1,5 @@
+> Historical release record. For current behavior and commands, see the root README. Screenshot evidence was archived outside git on 24 Nov 2026; see docs/cleanup-2026-11-24.md.
+
 # Prism Stacks: pulse garden
 
 A tall phone board, cached shaded orbs and board, colour-blind symbols, layered crystal world and shared music make the original 12x16 stacker clearer. Its six original 2–5-cell shard shapes remain. Every fifth drop pulses a 3x3 area for 15 points per removed orb; clearing 24 awards +200 once. Results show actual cleared orbs and best chain. All added state rewinds. Daily Prism uses the same tall layout on every device.

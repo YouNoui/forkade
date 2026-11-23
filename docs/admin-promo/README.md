@@ -1,3 +1,5 @@
+> Historical release record. For current behavior and commands, see the root README. Screenshot evidence was archived outside git on 24 Nov 2026; see docs/cleanup-2026-11-24.md.
+
 # Owner admin and local promo gifts — 23 Nov 2026
 
 The old owner stats page now redirects to `/admin`, with Stats, Moderation and Promo codes tabs. Existing score/nickname/Forge moderation remains available. The key travels only in `X-Stats-Key`, lives only in tab sessionStorage, and Lock clears it and hides owner data.
@@ -24,10 +26,10 @@ Checked trio B tokens, 44px controls, phone overflow, primary Save, progress wit
 - Deployed preview: real owner key/header authentication, create/disable/enable, bundle redemption into wallet/locker, duplicate handling and four concurrent redeems (one winner) passed; all test codes/redemption records deleted. Preview caught the social generator removing `/admin`; the generator now emits that route and the local server uses deployed rewrites rather than a test-only admin shortcut. Final `/admin` route verification follows on the corrected deployment.
 - Full Chromium and WebKit web/dist matrices, existing gift/machine/bonus/Fair/UX checks, file:// offline all 2D/3D without requests, and installed v40 → v52 upgrade/deferred v53 verified.
 
-![Admin 390](admin-390-phone.png)
-![Admin 1280](admin-1280-desktop.png)
-![Redeem 390](redeem-390-phone.png)
-![Redeem 1280](redeem-1280-desktop.png)
+Archived screenshot: Admin 390 (`admin-390-phone.png`).
+Archived screenshot: Admin 1280 (`admin-1280-desktop.png`).
+Archived screenshot: Redeem 390 (`redeem-390-phone.png`).
+Archived screenshot: Redeem 1280 (`redeem-1280-desktop.png`).
 
 ## Platform approvals (§13)
 

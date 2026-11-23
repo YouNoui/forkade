@@ -1,3 +1,5 @@
+> Historical release record. For current behavior and commands, see the root README. Screenshot evidence was archived outside git on 24 Nov 2026; see docs/cleanup-2026-11-24.md.
+
 # ECHO RUMBLE Phase 2 verification
 
 The 23 Nov owner brief explicitly authorizes Phase 2 and resumes classic polish. This supersedes the earlier stop-after-Phase-1 instruction.
@@ -10,7 +12,7 @@ The 23 Nov owner brief explicitly authorizes Phase 2 and resumes classic polish.
 
 UX checklist: trio shell/one yellow action; 44px controls; 390/1280 layouts; loading/error/empty states; reduced motion; preset picks; dismissible editor; creator unpublish; local settings feedback; server validation; real play counts. Gameplay palettes remain the approved exception. Forge is a multi-control game editor, not a customer onboarding form. No OAuth, external submission, paid flow or migration was added.
 
-![Forge, 390](forge-390.png)
-![Forge, 1280](forge-1280.png)
-![Rumble, 390](rumble-390.png)
-![Rumble, 1280](rumble-1280.png)
+Archived screenshot: Forge, 390 (`forge-390.png`).
+Archived screenshot: Forge, 1280 (`forge-1280.png`).
+Archived screenshot: Rumble, 390 (`rumble-390.png`).
+Archived screenshot: Rumble, 1280 (`rumble-1280.png`).
