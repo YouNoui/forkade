@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>FORKADE admin (owner)</title><meta name="theme-color" content="#0b0a10"><link rel="icon" href="icons/icon-192.png">
+<style>
+  body{margin:0; font-family:"Consolas","SF Mono",ui-monospace,monospace; color:#f1f3ff;
+    background:radial-gradient(1200px 600px at 50% -10%,#10303a 0%,#0b0a10 60%); min-height:100dvh;}
+  main{max-width:980px; margin:0 auto; padding:30px 18px 50px;}
+  h1{margin:0 0 4px; color:#22e1ff; letter-spacing:3px; text-shadow:0 0 14px rgba(34,225,255,.6);}
+  .sub{color:#9a9fc4; font-size:13px; margin-bottom:18px;}
+  .row{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:16px;}
+  input,select,button{font-family:inherit; font-size:14px; border-radius:10px; padding:8px 12px; background:#15131d; color:#f1f3ff; border:1px solid rgba(141,146,189,.5);}
+  button{cursor:pointer; color:#14121a; background:#ffd84d; border:2px solid #14121a; box-shadow:3px 3px 0 #22e1ff; font-weight:800; min-height:44px;}
+  .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-bottom:18px;}
+  .card{border:1px solid rgba(160,123,255,.45); border-radius:14px; padding:14px; background:rgba(14,10,40,.7);}
+  .card b{display:block; font-size:28px; color:#22e1ff;} .card span{color:#9a9fc4; font-size:12px;}
+  h2{font-size:15px; color:#22e1ff; letter-spacing:2px; margin:22px 0 8px;}
+  .bars div{display:flex; align-items:center; gap:10px; font-size:13px; margin:5px 0;}
+  .bars i{display:block; height:14px; border-radius:7px; background:linear-gradient(90deg,#22e1ff,#9a9fc4);}
+  .bars .n{width:130px; color:#9a9fc4;} .bars .v{color:#22e1ff; font-weight:800;}
+  .chart{display:flex; align-items:flex-end; gap:3px; height:140px; border-bottom:1px solid rgba(141,146,189,.3);}
+  .chart div{flex:1; background:linear-gradient(180deg,#22e1ff,#9a9fc4); border-radius:3px 3px 0 0; min-height:1px; position:relative;}
+  .chart div:hover::after{content:attr(data-t); position:absolute; bottom:100%; left:50%; transform:translateX(-50%);
+    background:#15131d; border:1px solid #9a9fc4; padding:3px 6px; border-radius:6px; font-size:11px; white-space:nowrap;}
+  table{width:100%; border-collapse:collapse; font-size:13px;} td,th{padding:6px 8px; border-bottom:1px solid rgba(141,146,189,.15); text-align:right;}
+  th:first-child,td:first-child{text-align:left;} th{color:#9a9fc4; font-weight:400;}
+  #msg{color:#ffd84d; font-size:13px;}
+  .mod .r{display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:8px 10px; border-bottom:1px solid rgba(141,146,189,.15); font-size:13px;}
+  .mod .r b{min-width:130px;} .mod .r .c{color:#ff5a6e;} .mod .r .h{color:#22e1ff; font-size:11px;}
+  .mod button{font-size:12px; padding:5px 10px; background:transparent; color:#22e1ff; border:1px solid #22e1ff;}
+  .mod button.x{color:#ff5a6e; border-color:#ff5a6e;} .mod button.ok{color:#4ade80; border-color:#4ade80;}
+  .dimtxt{color:#9a9fc4; font-size:13px;} .note{color:#9a9fc4; font-size:12px; margin-top:24px; line-height:1.6;}
+#pending,#mod{min-height:160px}#out[aria-busy="true"]{opacity:.55}.chart,.bars{min-height:140px}input,select{min-height:44px;max-width:100%;box-sizing:border-box}
+
+:root{--base:#0b0a10;--panel:#15131d;--panel2:#1d1a28;--text:#f1f3ff;--muted:#9a9fc4;--brand:#22e1ff;--pop:#ffd84d;--ink:#14121a;--line:rgba(150,156,190,.32);--danger:#ff5a6e;--ease-out:cubic-bezier(.23,1,.32,1);--ease-drawer:cubic-bezier(.32,.72,0,1)}
+body{background:var(--base);color:var(--text)}*{box-sizing:border-box}a{color:var(--brand)}main{padding-bottom:80px}button{background:var(--panel2);color:var(--text);border:1px solid var(--line);box-shadow:none;transition:transform 150ms var(--ease-out)}button:active{transform:scale(.97)}button.primary,#go{background:var(--pop);color:var(--ink);box-shadow:3px 3px 0 var(--brand)}button[aria-pressed=true]{border:2px solid var(--brand);color:var(--brand)}nav{display:flex;gap:8px;margin:20px 0}nav button{flex:1;padding:8px;min-width:0}label{display:block;margin:12px 0}input,select,textarea{display:block;width:100%;min-height:44px;color:var(--text);background:var(--panel2);border:1px solid var(--line);font:inherit;padding:10px;border-radius:12px}input[type=checkbox]{width:22px;min-height:22px;display:inline-block;vertical-align:middle}fieldset{border:1px solid var(--line);border-radius:16px;margin:12px 0;padding:12px}summary{min-height:44px;cursor:pointer;padding:12px 0}.promo-row{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0;overflow-wrap:anywhere}.promo-row p{line-height:1.5}.actions{display:flex;flex-wrap:wrap;gap:10px}.danger{color:var(--danger)}#promo-list{min-height:180px}#admin-msg,#promo-admin-msg{min-height:44px;color:var(--pop)}dialog{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:24px 24px 0 0;padding:24px;width:min(100%,520px);max-height:90dvh;margin:auto auto 0;animation:sheet-in 250ms var(--ease-drawer)}dialog::backdrop{background:rgba(0,0,0,.7)}@keyframes sheet-in{from{transform:translateY(15px) scale(.95);opacity:0}}:focus-visible{outline:2px solid var(--brand);outline-offset:3px}[hidden]{display:none!important}.sub{line-height:1.6}.card{background:var(--panel);border-color:var(--line)}.row{margin-top:18px}.row input{flex:1;min-width:0}.row select{width:auto}#key{width:100%}.sticky-save{position:sticky;bottom:0;background:var(--base);padding:12px 0}#promo-save{width:100%}@media(min-width:600px){.sticky-save{position:static}#promo-save{width:auto}}@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+body:has(#out:not([hidden])) #go{background:var(--panel2);color:var(--text);box-shadow:none}</style></head><body><main>
+<h1>FORKADE ADMIN</h1>
+<div class="sub">Younes Noui · hello@iamynoui.com · Owner only</div><a href="/">← Arcade</a>
+<div class="row">
+  <input id="key" type="password" placeholder="stats key" aria-label="Stats key" autocomplete="current-password">
+  <select id="days"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option></select>
+  <button id="go">Unlock</button><button id="lock" hidden>Lock</button> <span id="msg"></span>
+</div>
+<div id="out" hidden><nav aria-label="Admin sections"><button data-tab="stats" aria-pressed="true">Stats</button><button data-tab="moderation" aria-pressed="false">Moderation</button><button data-tab="promo" aria-pressed="false">Promo codes</button></nav><section id="tab-stats">
+  <div class="cards">
+    <div class="card"><b id="c-visits">0</b><span>visits</span></div>
+    <div class="card"><b id="c-visitors">0</b><span>visitors (sum of daily uniques)</span></div>
+    <div class="card"><b id="c-plays">0</b><span>games started</span></div>
+    <div class="card"><b id="c-players">0</b><span>players on the rankings</span></div>
+  </div>
+  <h2>VISITORS PER DAY</h2><div class="chart" id="chart"></div>
+  <h2>LAYOUT EXPERIMENT</h2><p class="note">Anonymous A/B groups only. Day-1 return is an approximate, device-reported share of first-counted visitors returning the next Singapore day. No persistent server identifier. Cleared storage, shared networks and missed events affect accuracy. Today’s cohort is not complete.</p><div id="ab-report"></div>
+  <h2>PLAYS PER GAME</h2><div class="bars" id="bars"></div>
+  <h2>DAY BY DAY</h2><table><thead><tr><th>Day (SGT)</th><th>Visits</th><th>Visitors</th><th>Plays</th></tr></thead><tbody id="tbody"></tbody></table></section><section id="tab-moderation" hidden><label>Reason for moderation <input id="mod-reason" maxlength="240" placeholder="Explain the decision"></label><label>Requested by <select id="mod-source"><option value="Admin decision">Admin decision</option><option value="User asked">User asked</option></select></label>
+  <h2>SCORES PENDING REVIEW</h2><div id="pending" class="mod"></div>
+  <h2>REPORTED NICKNAMES</h2>
+  <div id="mod" class="mod"><span class="dimtxt">Loading…</span></div>
+  <h2>RECENT MODERATION</h2><div id="mod-history"></div>
+<h2>Reported forges</h2><div id="forge-reports"></div></section><section id="tab-promo" hidden></section>
+</div>
+<p class="note">The key is the <code>STATS_KEY</code> value set in Vercel. It is remembered only in this tab session.
+  Counts skip bots and browsers that send Do Not Track / Global Privacy Control, so real numbers are a little higher.</p>
+
+<script src="promo-catalog.js"></script><script>
+  let adminEpoch=0;
+  const NAMES = { rumble:"ECHO RUMBLE", skyhop: "Sky Hop", swarm: "Neon Swarm", striker: "Sky Striker", breaker: "Pulse Breaker", trail: "Echo Trail",
+    drift: "Driftstorm", prism: "Prism Stacks", match: "Core Match", wrecker: "Tower Wrecker", glass: "Glass City", demo: "Demolition Chain", echo3d: "ECHO 3D", rampage: "RAMPAGE 3D", playground: "Playground" };
+  const $ = id => document.getElementById(id), api = (location.protocol === "file:" ? "https://playforkade.com" : "") + "/api/stats";
+  try { $("key").value = sessionStorage.getItem("forkade-stats-key") || ""; } catch (_) {}
+  try{localStorage.removeItem('forkade-stats-key');}catch(_){}
+  async function bounded(url,options={}){const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),7000);try{return await fetch(url,{...options,signal:ctl.signal});}catch(e){throw Error(e.name==='AbortError'?'Request timed out. Try again.':'Connection failed. Try again.');}finally{clearTimeout(timer);}}
+  async function load() {
+    const epoch=adminEpoch; const key = $("key").value.trim(); if (!key) { $("msg").textContent = "Enter your stats key."; return; }
+    $("msg").textContent = "Loading… (up to 7 seconds)";$("go").disabled=true;$("out").setAttribute("aria-busy","true");
+    try {
+      const r = await bounded(`${api}?days=${$("days").value}`,{headers:{"X-Stats-Key":key}});
+      const d = await r.json(); if(epoch!==adminEpoch)return; if (!r.ok) throw new Error(d.error || "Couldn't load stats.");
+      try { sessionStorage.setItem("forkade-stats-key", key); } catch (_) {}
+      const sum = (f) => d.days.reduce((a, x) => a + f(x), 0), plays = {};
+      d.days.forEach(x => Object.entries(x.plays).forEach(([g, n]) => plays[g] = (plays[g] || 0) + n));
+      $("c-visits").textContent = sum(x => x.visits); $("c-visitors").textContent = sum(x => x.visitors);
+      $("c-plays").textContent = Object.values(plays).reduce((a, b) => a + b, 0); $("c-players").textContent = d.rankedPlayers;
+      const max = Math.max(1, ...d.days.map(x => x.visitors));
+      $("chart").innerHTML = d.days.map(x => `<div style="height:${x.visitors / max * 100}%" data-t="${x.day}: ${x.visitors}"></div>`).join("");
+      const pmax = Math.max(1, ...Object.values(plays));
+      $("bars").innerHTML = Object.keys(NAMES).map(g => [g, plays[g] || 0]).sort((a, b) => b[1] - a[1]).map(([g, n]) =>
+        `<div><span class="n">${NAMES[g]}</span><i style="width:${Math.max(2, n / pmax * 60)}%"></i><span class="v">${n}</span></div>`).join("");
+      $("tbody").innerHTML = d.days.slice().reverse().map(x =>
+        `<tr><td>${x.day}</td><td>${x.visits}</td><td>${x.visitors}</td><td>${Object.values(x.plays).reduce((a, b) => a + b, 0)}</td></tr>`).join("");
+      $('ab-report').innerHTML=['A','B'].map(b=>{let first=0,returned=0;for(let i=0;i<d.days.length-1;i++){const cohort=d.days[i].buckets?.[b],next=d.days[i+1].buckets?.[b];if(cohort&&next&&d.days[i+1].day!==new Date(Date.now()+8*3600000).toISOString().slice(0,10)){first+=cohort.first;returned+=next.returnDay1;}}
+        const plays=d.days.reduce((n,x)=>n+Object.values(x.buckets?.[b]?.plays||{}).reduce((a,v)=>a+v,0),0);
+        const rate=first&&returned<=first?Math.floor(returned*100/first)+'%':'Not enough reliable data';
+        return '<p><b>Group '+b+'</b> · '+plays+' plays · Day-1 return: '+rate+' ('+returned+' returns / '+first+' first-counted visitors)</p>';}).join('');
+      $("out").hidden = false; $("lock").hidden=false; $("go").textContent="Refresh"; $("msg").textContent = "";
+      loadReports(key);loadForges(key);
+    } catch (err) { $("out").hidden=true; $("msg").textContent = err.message; } finally {$("go").disabled=false;$("out").removeAttribute("aria-busy");}
+  }
+  const lbApi = api.replace("/api/stats", "/api/leaderboard");
+  const escH = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  async function modCall(key, body) {
+    const r = await bounded(lbApi, { method: "POST", headers: { "Content-Type": "application/json", "X-Stats-Key":key }, body: JSON.stringify({ action: "moderate", ...body }) });
+    const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Couldn't do that."); return j;
+  }
+  async function loadReports(key) {
+    const box = $("mod");
+    try {
+      const { reports, pending = [], history = [] } = await modCall(key, { do: "list" });
+      $('mod-history').innerHTML=history.map(x=>'<p>'+escH(x.action)+' · '+escH(x.source)+' · '+escH(x.reason)+'</p>').join('')||'No moderation decisions yet.';
+      $('pending').innerHTML = pending.length ? pending.map(p => `<div class="r"><b>${escH(p.name)}</b><span>${escH(p.game)}: ${p.score} (previous ${p.previous})</span><button data-do="approve-score" data-game="${escH(p.game)}" data-t="${p.pid}">Approve</button><button data-do="reject-score" data-game="${escH(p.game)}" data-t="${p.pid}">Reject</button></div>`).join('') : 'No suspicious scores.';
+      box.innerHTML = reports.length ? reports.map(r => `<div class="r"><b>${escH(r.name)}</b><span class="c">${r.reports} report${r.reports > 1 ? "s" : ""}</span>
+        <span class="dimtxt">${escH(NAMES[r.game] || r.game)}</span>${r.hidden ? `<span class="h">auto-hidden</span>` : ""}
+        <button data-do="hide" data-t="${r.pid}">Hide name</button><button class="x" data-do="remove" data-t="${r.pid}">Remove player</button>
+        <button class="ok" data-do="dismiss" data-t="${r.pid}">Name is fine</button></div>`).join("")
+        : `<span class="dimtxt">Nothing reported. 3 reports from different players hide a nickname automatically until you check it here.</span>`;
+    } catch (err) { box.innerHTML = `<span class="dimtxt">${escH(err.message)}</span>`; }
+  }
+  document.getElementById("out").addEventListener("click", async e => {
+    const b = e.target.closest("button[data-do]"); if (!b) return;
+    if (b.dataset.do === "remove" && b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "Remove all scores for " + b.closest(".r").querySelector("b").textContent + "? Click again"; return; }
+    const reason=$("mod-reason").value.trim();if(reason.length<3){$("msg").textContent="Add a reason before moderating.";$("mod-reason").focus();return;}
+    b.disabled = true;
+    try { await modCall($("key").value.trim(), { do: b.dataset.do, target: b.dataset.t, game: b.dataset.game, reason, source:$("mod-source").value }); loadReports($("key").value.trim()); }
+    catch (err) { b.disabled = false; b.textContent = err.message; }
+  });
+  async function loadForges(key){try{const r=await bounded('/api/forge',{method:'POST',headers:{'Content-Type':'application/json','X-Stats-Key':key},body:JSON.stringify({action:'moderate',do:'list'})});const j=await r.json();if(!r.ok)throw Error(j.error);$('forge-reports').innerHTML=j.items.map(f=>'<div class="r"><b>'+escH(f.name)+'</b><span>'+f.reports+' reports'+(f.hidden?' · hidden':'')+'</span><button data-forge="'+f.code+'" data-action="hide">Hide</button><button data-forge="'+f.code+'" data-action="dismiss">Restore</button></div>').join('')||'No reported forges.';}catch(e){$('forge-reports').textContent=e.message;}}
+  $('forge-reports').onclick=async e=>{const b=e.target.closest('[data-forge]');if(!b)return;const reason=$('mod-reason').value.trim();if(reason.length<3){$('msg').textContent='Add a moderation reason first.';return;}b.disabled=true;try{const r=await bounded('/api/forge',{method:'POST',headers:{'Content-Type':'application/json','X-Stats-Key':$('key').value.trim()},body:JSON.stringify({action:'moderate',do:b.dataset.action,code:b.dataset.forge,reason,source:$('mod-source').value})});const j=await r.json();if(!r.ok)throw Error(j.error);await loadForges($('key').value.trim());}catch(err){$('msg').textContent=err.message;b.disabled=false;}};
+  $("go").addEventListener("click", load); $("key").addEventListener("keydown", e => { if (e.key === "Enter") load(); });
+  if ($("key").value) load();
+</script>
+<script src="admin.js"></script></main></body></html>

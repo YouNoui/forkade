@@ -50,6 +50,10 @@
   ],
   "rewrites": [
     {
+      "source": "/admin",
+      "destination": "/admin.html"
+    },
+    {
       "source": "/breaker",
       "destination": "/entries/breaker.html"
     },
@@ -108,6 +112,13 @@
     {
       "source": "/:path*",
       "destination": "/index.html"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/stats.html",
+      "destination": "/admin",
+      "permanent": false
     }
   ]
 }

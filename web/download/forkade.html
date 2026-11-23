@@ -635,6 +635,18 @@
 
 </script>
 <script>
+/* Closed cosmetic vocabulary shared by owner UI, player UI and server. */
+(function(root,f){if(typeof module==='object'&&module.exports)module.exports=f();else root.ForkadePromoCatalog=f();})(globalThis,()=>{
+  const skins={classic:'Classic',pink:'Hot Pink',lime:'Acid Lime',sunset:'Sunset',violet:'Ultraviolet',ghost:'Ghost',rainbow:'Rainbow',aurora:'Aurora Byte',ember:'Ember Loop',orbit:'Orbit Pearl',moss:'Moss Signal',tide:'Tidal Pulse',rose:'Rose Circuit'};
+  const groups={body:['Pebble','Block','Tall bean','Wide puff','Tiny robot','Diamond'],head:['Big toy head','Giant head','Tiny head','Wide head','Tall head','Round head'],visor:['Two eyes','Googly eyes','Sleepy eyes','Star gaze'],colour:['Ice cyan','Sun coral','Mint leaf','Gold crumb','Rose jam','Cloud blue','Orange peel','Lilac dusk'],trail:['Stardust','Squares','Rubber ducks','Rainbow sneeze','Mint bubbles','Golden confetti'],pose:['Wobble shuffle','Chicken flap','Robot glitch','Spin-and-fall','Toast salute','Jelly bounce'],hat:['No hat','Toast Hat','Traffic cone','Cloud puff','Tiny crown','Double toast'],moustache:['Clean face','Very serious','Extra curly'],cape:['No cape','Snack superhero','Long cape']};
+  const parts=Object.fromEntries(Object.entries(groups).flatMap(([k,rows])=>rows.map((name,i)=>[k+':'+i,name])));
+  function reward(x){if(!x||typeof x!=='object'||Array.isArray(x)||Object.keys(x).some(k=>!['cores','skins','parts'].includes(k)))throw Error('Choose a reward.');const cores=x.cores??0;if(!Number.isInteger(cores)||cores<0||cores>100000)throw Error('Choose 0–100,000 cores.');const pick=(a,table)=>{if(!Array.isArray(a)||a.length>Object.keys(table).length||a.some(k=>typeof k!=='string'||!Object.hasOwn(table,k)))throw Error('Choose cosmetics from the list.');return [...new Set(a)];};const r={cores,skins:pick(x.skins||[],skins),parts:pick(x.parts||[],parts)};if(!cores&&!r.skins.length&&!r.parts.length)throw Error('Choose at least one reward.');return r;}
+  function describe(r){return [r.cores?'+'+r.cores+' cores':'',...(r.skins||[]).map(k=>skins[k]),...(r.parts||[]).map(k=>parts[k])].filter(Boolean).join(' and ');}
+  return {skins,parts,groups,reward,describe};
+});
+
+</script>
+<script>
 /* ==========================================================================
    FORKADE  --  engine.js   (shared browser toolkit)
 
@@ -992,7 +1004,7 @@
       const skin=pool[Math.floor(random()*pool.length)],duplicate=!isNew;
       st.chance=chance;st.rerolls=duplicate?(reroll?st.rerolls+1:1):0;
       st.last={skin:skin.id,name:skin.name,duplicate,cost,refund:duplicate?MACHINE.refund:0,chance:guaranteed?100:chance,at:Date.now()};
-      save('forkade-machine',st);save('forkade-cores',rewards.cores()-cost+st.last.refund);
+      save('forkade-machine',st);rewards.setCores(rewards.cores()-cost+st.last.refund);
       if(isNew){own.push(skin.id);save('forkade-skins',own);}rewards.listeners.forEach(f=>f());return st.last;
     }
   };
@@ -1016,12 +1028,22 @@
   };
   const rewards = {
     enabled: true, GOALS, TIERS, SKINS, toasts: [], listeners: [],
-    cores() { return load("forkade-cores", 0); },
+    promo() { return load('forkade-promo-wallet',{total:0,receipts:[],skins:[],parts:[]}); },
+    cores() { return load("forkade-cores", 0)+this.promo().total; },
+    setCores(n) { save('forkade-cores',n-this.promo().total); },
+    grantPromo(receipt) {
+      const p=this.promo();if(p.receipts.includes(receipt.id))return false;
+      const r=global.ForkadePromoCatalog.reward(receipt.reward);
+      p.total+=r.cores;p.receipts.push(receipt.id);p.skins=[...new Set(p.skins.concat(r.skins))];p.parts=[...new Set(p.parts.concat(r.parts))];
+      // One atomic localStorage write: a receipt and its entire bundle land together.
+      // Earned lifetime/rank, scores, badges, streak and bonus tiers are untouched.
+      localStorage.setItem('forkade-promo-wallet',JSON.stringify(p));this.listeners.forEach(f=>f());return true;
+    },
     lifetime() { return load("forkade-lifetime", 0); },
     rank() { return 1 + Math.floor(Math.sqrt(this.lifetime() / 25)); },
     add(n) {
       n = Math.max(0, Math.round(n)); if (!n || !this.enabled) return 0;
-      save("forkade-cores", this.cores() + n); save("forkade-lifetime", this.lifetime() + n);
+      this.setCores(this.cores() + n); save("forkade-lifetime", this.lifetime() + n);
       this.listeners.forEach(f => f()); return n;
     },
     toast(text, color) { this.toasts.push({ text, color: color || palette.amber, t: 0 }); this.listeners.forEach(f => f(text, color)); },
@@ -1060,13 +1082,13 @@
       if (n) { this.toast(`STARTER GOAL DONE  +${n} cores`, palette.cyan); sfx.win(); }
       return n;
     },
-    owned() { return load("forkade-skins", ["classic"]); },
+    owned() { return [...new Set(load("forkade-skins", ["classic"]).concat(this.promo().skins))]; },
     skin() { const id = load("forkade-skin", "classic"); return SKINS.find(s => s.id === id) || SKINS[0]; },
     buy(id) {
       const sk = SKINS.find(s => s.id === id); if (!sk) return false;
       const own = this.owned(); if (own.includes(id)) { save("forkade-skin", id); this.listeners.forEach(f => f()); return true; }
       if (sk.machineOnly || this.cores() < sk.cost) return false;
-      save("forkade-cores", this.cores() - sk.cost); own.push(id); save("forkade-skins", own); save("forkade-skin", id);
+      this.setCores(this.cores() - sk.cost); own.push(id); save("forkade-skins", own); save("forkade-skin", id);
       this.listeners.forEach(f => f()); return true;
     },
     // daily streak: call once when the arcade opens
@@ -3773,10 +3795,38 @@
 })();
 
 </script>
+<script>
+/* Opt-in redemption. The server never receives progress, a name or a ranking ID. */
+(()=>{'use strict';const F=Forkade,C=ForkadePromoCatalog;
+  const form=document.createElement('form');form.id='promo-form';form.innerHTML='<h3>Have a code?</h3><label class="nick" for="promo-code">Code <input id="promo-code" minlength="6" maxlength="16" pattern="[A-Za-z0-9]{6,16}" autocapitalize="characters" autocomplete="off" spellcheck="false" required aria-describedby="promo-help"></label><p class="hint" id="promo-help">Redeeming sends the code and a random device key. Only a salted hash is kept to prevent repeat use. Rewards stay here; scores and rankings never change.</p><button class="btn btn-pop" id="promo-redeem">Redeem</button><p id="promo-result" role="status" aria-live="polite"></p>';
+  document.querySelector('#settings .sheet').appendChild(form);
+  const input=form.querySelector('input'),button=form.querySelector('button'),msg=form.querySelector('#promo-result');
+  input.addEventListener('input',()=>{input.value=input.value.toUpperCase();input.removeAttribute('aria-invalid');});
+  form.onsubmit=async e=>{e.preventDefault();if(!form.reportValidity())return;UI.busy(button,'Redeeming…');msg.textContent='Checking your code (up to 7 seconds)…';
+    const code=input.value.trim().toUpperCase();const work=async()=>{
+      let device=localStorage.getItem('forkade-promo-device');if(!/^[a-f0-9]{32}$/.test(device||'')){const bytes=crypto.getRandomValues(new Uint8Array(16));device=Array.from(bytes,n=>n.toString(16).padStart(2,'0')).join('');localStorage.setItem('forkade-promo-device',device);}
+      // Save before sending so a lost response can be recovered by retrying this code.
+      localStorage.setItem('forkade-promo-pending',code);
+      const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),7000);let r,j;try{r=await fetch((location.protocol==='file:'?'https://playforkade.com':'')+'/api/promo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'redeem',code,device}),signal:ctl.signal});j=await r.json();}finally{clearTimeout(timer);}
+      if(!r.ok&&!j.receipt)throw Error(j.error||'Could not redeem. Try again.');
+      if(j.receipt&&F.rewards.grantPromo(j.receipt)){localStorage.removeItem('forkade-promo-pending');msg.textContent='✓ Code redeemed: '+C.describe(j.receipt.reward);UI.burst(button);refreshRewards();paintParts();}
+      else {localStorage.removeItem('forkade-promo-pending');msg.textContent='Already redeemed on this device.';}
+    };
+    try{if(navigator.locks)await navigator.locks.request('forkade-promo',work);else await work();}
+    catch(err){msg.textContent=err.name==='AbortError'?'Timed out. Retry the same code; you will not use it twice.':err.message;input.setAttribute('aria-invalid','true');if(!F.settings.reduceMotion)input.animate([{transform:'translateX(0)'},{transform:'translateX(-4px)'},{transform:'translateX(4px)'},{transform:'translateX(-4px)'},{transform:'translateX(0)'}],{duration:300});}
+    finally{UI.reset(button);}
+  };
+  const parts=document.createElement('section');parts.id='promo-parts';document.getElementById('skins').after(parts);
+  function paintParts(){parts.replaceChildren();const owned=F.rewards.promo().parts;if(!owned.length)return;const title=document.createElement('h3');title.textContent='Gifted Rumble parts';parts.append(title);const hint=document.createElement('p');hint.className='hint';hint.textContent='All Rumble parts are already free. These gifts are saved in your collection. Equip for your next Rumble run.';parts.append(hint);for(const id of owned){const b=document.createElement('button');b.className='btn';b.textContent=C.parts[id];b.onclick=()=>{try{const a=JSON.parse(localStorage.getItem('forkade-rumble-avatar')||'{}'),[group,n]=id.split(':');a[group]=Number(n);localStorage.setItem('forkade-rumble-avatar',JSON.stringify(a));b.textContent='✓ '+C.parts[id]+' equipped';}catch{b.textContent='Storage unavailable. Try again.';}};parts.append(b);}}
+  F.rewards.listeners.push(paintParts);paintParts();
+  const code=new URLSearchParams(location.search).get('code');if(code){input.value=code.toUpperCase().slice(0,16);F.openSettings();input.focus();input.scrollIntoView({block:'center'});}
+})();
+
+</script>
   <script>
 /* Version-aware update recovery. No cookies, no telemetry. */
 (()=>{'use strict';
- const version='v51',updated='23 Nov';window.ForkadeVersion={version,updated};
+ const version='v52',updated='23 Nov';window.ForkadeVersion={version,updated};
  const label=document.createElement('p');label.id='app-version';label.className='hint';label.textContent='Version '+version+' · updated '+updated;document.querySelector('#settings .sheet')?.append(label);
  if(location.protocol==='file:'||!('serviceWorker'in navigator))return;
  let reg,pending=false,reloading=false;const hadController=!!navigator.serviceWorker.controller;

@@ -1,7 +1,7 @@
 // FORKADE stats - privacy-friendly, first-party counting (same approach as Breekit).
 //
 //   POST /api/stats  { e: "visit" | "play", game? }   -> counts one event (no cookies, no IP stored)
-//   GET  /api/stats?key=STATS_KEY&days=30           -> owner-only daily totals
+//   GET  /api/stats?days=30 + X-Stats-Key header   -> owner-only daily totals
 //
 // A visitor is de-duplicated per day with a salted hash of network address + browser,
 // stored only inside a HyperLogLog (an approximate counter that cannot be reversed),
@@ -79,7 +79,7 @@ module.exports = async function handler(req, res) {
       const q = new URL(req.url, "http://x").searchParams;
       const key = process.env.STATS_KEY;
       if (!key) return send(res, 503, { error: "Set STATS_KEY in Vercel to open the stats page." });
-      const given = Buffer.from(String(req.headers["x-stats-key"] || q.get("key") || "")), want = Buffer.from(key);
+      const given = Buffer.from(String(req.headers["x-stats-key"] || "")), want = Buffer.from(key);
       if (given.length !== want.length || !crypto.timingSafeEqual(given, want)) return send(res, 401, { error: "Wrong key." });
       const n = Math.min(90, Math.max(1, parseInt(q.get("days") || "30", 10) || 30));
       const days = []; for (let i = n - 1; i >= 0; i--) { const t = new Date(); t.setUTCDate(t.getUTCDate() - i); days.push(day(t)); }

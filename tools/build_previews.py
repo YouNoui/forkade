@@ -62,7 +62,7 @@ def build():
         doc=doc.replace('</head>',meta+'\n</head>',1)
         (WEB/'entries'/f'{ident}.html').write_text(doc,encoding='utf-8')
     config=json.loads((ROOT/'vercel.json').read_text())
-    config['rewrites']=[{'source':'/'+g,'destination':'/entries/'+g+'.html'} for g in games]+[{'source':'/:path*','destination':'/index.html'}]
+    config['rewrites']=[{'source':'/admin','destination':'/admin.html'}]+[{'source':'/'+g,'destination':'/entries/'+g+'.html'} for g in games]+[{'source':'/:path*','destination':'/index.html'}]
     (ROOT/'vercel.json').write_text(json.dumps(config,indent=2)+'\n')
     print('Generated',len(games),'game entry pages and PNGs')
 if __name__=='__main__': build()
