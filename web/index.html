@@ -438,10 +438,16 @@
   .modal .sheet{animation-timing-function:var(--ease-drawer)}
   .rlist{height:300px;overflow:auto;overscroll-behavior:contain}.rlist button.rep,body.touch .ps{min-height:44px;min-width:44px}
   .setting-help{display:block;color:var(--muted);font-size:12px;line-height:1.5;margin:0 0 12px}#settings label[data-changed="true"]::after{content:"Changed";font-size:11px;color:var(--brand)}
-  @media(max-width:600px){body:not(.playing) #gift-open:not([hidden]),body.hero-out:not(.playing):not(.gift-ready) .grid:has(.card.start) .card.start .play,body.hero-out:not(.playing):not(.gift-ready) .grid:not(:has(.card.start)) .daily .dplay{position:fixed;z-index:95;bottom:max(12px,env(safe-area-inset-bottom));left:20px;width:calc(100% - 40px);min-height:44px;justify-content:center;box-sizing:border-box;background:var(--pop);color:var(--pop-ink);border:2px solid var(--pop-ink);box-shadow:3px 3px 0 var(--brand)}body.playing #gift-open{display:none}.wrap{padding-bottom:100px}}
+  @media(max-width:600px){body.hero-out:not(.playing) #gift-open:not([hidden]),body.hero-out:not(.playing):not(.gift-ready) .grid:has(.card.start) .card.start .play,body.hero-out:not(.playing):not(.gift-ready) .grid:not(:has(.card.start)) .daily .dplay{position:fixed;z-index:95;bottom:max(12px,env(safe-area-inset-bottom));left:20px;width:calc(100% - 40px);min-height:44px;justify-content:center;box-sizing:border-box;background:var(--pop);color:var(--pop-ink);border:2px solid var(--pop-ink);box-shadow:3px 3px 0 var(--brand)}body.playing #gift-open{display:none}.wrap{padding-bottom:100px}}
   #more-games{display:flex;margin:20px auto}
   @media(max-width:600px){body:not(.playing) .toasts{bottom:calc(78px + env(safe-area-inset-bottom))!important}}
-  </style>
+  
+  .rumble-hero{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:12px;margin:12px 0 0;display:block;min-height:0;overflow:hidden}
+  .rumble-hero .name{font:900 clamp(24px,5vw,40px)/1.1 ui-monospace,Consolas,monospace;color:var(--text);margin:10px 0}.rumble-hero .genre{color:var(--brand)}.rumble-hero .desc{color:var(--muted);font:inherit;font-size:12px;line-height:1.5;margin:8px 0}
+  .rumble-hero video{display:block;width:100%;height:160px;object-fit:cover;border-radius:8px;background:var(--base)}.rumble-hero .play{display:none}.hero-cta{margin-top:10px}#hero-play{width:100%;background:var(--pop)!important;color:var(--pop-ink)!important;font-weight:900}.rumble-look{color:var(--brand);font-size:12px;margin:6px 0}.rumble-look b{display:inline-block;background:var(--brand);color:var(--ink);border-radius:5px;padding:4px 8px;margin-right:8px}
+  body:not(.hero-out) #gift-open{background:var(--panel2);color:var(--text);border:1px solid var(--line);box-shadow:none;position:static;width:auto}body:not(.hero-out) .card.start .play,body:not(.hero-out) .card.daily .dplay{background:var(--panel2);color:var(--text);box-shadow:none}#update-bar{position:fixed;bottom:max(12px,env(safe-area-inset-bottom));left:16px;right:16px;z-index:250;background:var(--panel);color:var(--text);border:2px solid var(--brand);min-height:44px;border-radius:12px;font:inherit;padding:12px}.head .promise,.head #rewindtip{display:none}.head{padding-top:0}.head .title{font-size:24px;margin:12px 0}.head .sub{font-size:12px}.head .proof{margin-top:14px}
+  @media(min-width:800px){.rumble-hero video{height:240px}.rumble-hero{max-width:720px;margin-left:auto;margin-right:auto}.hero-cta{max-width:720px;margin-left:auto;margin-right:auto}}
+</style>
 <meta name="description" content="ECHO RUMBLE beta and thirteen classic browser games, rewind controls and a Playground game builder.">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://iamynoui.com/#organization","name":"IAMYNOUI","url":"https://iamynoui.com/","address":{"@type":"PostalAddress","addressCountry":"SG"}},{"@type":"SoftwareApplication","@id":"https://playforkade.com/#website","name":"Forkade","url":"https://playforkade.com/","description":"ECHO RUMBLE beta and thirteen classic browser games, rewind controls and a Playground game builder.","publisher":{"@id":"https://iamynoui.com/#organization"},"applicationCategory":"GameApplication","operatingSystem":"Web browser","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}</script>
 <link rel="canonical" href="https://playforkade.com/">
@@ -500,7 +506,7 @@
       <div class="f-q" id="f-q"></div>
       <div class="f-done" id="f-done" hidden></div>
     </section>
-    <h2 class="gallery-title">Every game <span>&middot; tap one to play</span></h2>
+    <h2 class="gallery-title">Classic arcade <span>&middot; tap one to play</span></h2>
     <div class="grid" id="grid"></div>
     <section class="closing" aria-label="Start playing">
       <p class="closing-line">One tap, no account, and every mistake can be rewound. <span>Go on, have a go.</span></p>
@@ -768,7 +774,7 @@
       // A fresh frame avoids Safari racing a previous about:blank navigation.
       const fresh = gframe.cloneNode(false); fresh.removeAttribute('srcdoc'); fresh.removeAttribute('src');
       gframe.replaceWith(fresh); gframe = fresh;
-      Forkade.sfx.ensure(); phoneFullscreen(); if(id!=="rumble"){Forkade.board.begin(id); Forkade.stats.send("play", id);}
+      Forkade.sfx.ensure(); if(id!=="rumble")phoneFullscreen(); if(id!=="rumble"){Forkade.board.begin(id); Forkade.stats.send("play", id);}
       stage.classList.toggle("rumble-stage",id==="rumble");gframe.title=GAME_NAMES()[id]||"3D game";
       stage.classList.add("on", "d3"); document.body.classList.add("playing");
       // If the 3D page was inlined (single-file build), run it from srcdoc so it
@@ -791,7 +797,7 @@
       const still = () => !!(Forkade.settings && Forkade.settings.reduceMotion) || document.documentElement.classList.contains("reduce-motion") || matchMedia("(prefers-reduced-motion: reduce)").matches;
       const http = /^https?:$/.test(location.protocol);
       let tapped = null, from = null, y0 = 0, popping = false, pushed = false, pendingBacks = 0, backTimer = null;
-      document.addEventListener("click", e => { const c = e.target.closest(".card"); if (c) tapped = c; }, true);
+      document.addEventListener("click", e => { const c = e.target.closest(".card") || (e.target.closest("#hero-play") ? document.querySelector(".rumble-hero") : null); if (c) tapped = c; }, true);
       const onScreen = el => { if (!el || !el.isConnected || !el.offsetParent) return false; const r = el.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; };
       const name = id => (GAME_NAMES()[id] || id).toUpperCase();
       // morph `a` (named before) into whatever `b()` returns (named after); directional root slide
@@ -821,7 +827,7 @@
           else history.replaceState({ fg: id }, "", "/" + id);
         } catch (_) {}
         // phones that go full screen for this game skip the morph (full screen and the animation fight)
-        const fs = document.body.classList.contains("touch") && !["skyhop", "swarm", "striker", "breaker"].includes(id);
+        const fs = document.body.classList.contains("touch") && !["skyhop", "swarm", "striker", "breaker", "rumble"].includes(id);
         if (fs || !hit) run(); else morph(run, hit, () => stage, "fwd");
       }
       function leave(close) {
@@ -1167,19 +1173,6 @@
       show();
     })();
 
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () =>
-        navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(reg => reg.update()).catch(() => {}));
-      // a new version took over: refresh once so the newest games load (never in the middle of a game)
-      const hadController = !!navigator.serviceWorker.controller;
-      let refreshPending = false;
-      const refreshNow = () => { try { if (sessionStorage.getItem("forkade-refreshed")) return; sessionStorage.setItem("forkade-refreshed", "1"); } catch (_) {} location.reload(); };
-      navigator.serviceWorker.addEventListener("controllerchange", () => {
-        if (!hadController) return;                       // first install: nothing old to replace
-        if (stage.classList.contains("on")) refreshPending = true; else refreshNow();
-      });
-      setInterval(() => { if (refreshPending && !stage.classList.contains("on")) { refreshPending = false; refreshNow(); } }, 1000);
-    }
     // ---- Landing anatomy (playbook §18): hero, real numbers, game finder, closing band. Real data only. ----
     (function landing() {
       const N3D = 3, total = Forkade.registry.length + N3D, names = GAME_NAMES();
@@ -1190,7 +1183,7 @@
       const start = () => document.querySelector(".card.start");
       const label = () => start() ? "▶ Play " + start().querySelector(".name").textContent.trim() : "▶ Play today's challenge";
       const play = () => { const s = start(); if (s) return s.click(); const d = document.getElementById("daily-challenge"); if (d) d.click(); else openGame(Forkade.registry[0].id); };
-      for (const id of ["hero-play", "closing-play"]) { const b = document.getElementById(id); b.textContent = label(); b.addEventListener("click", play); }
+      for (const id of ["hero-play", "closing-play"]) { const b = document.getElementById(id); b.textContent = id==="hero-play"?"▶ PLAY ECHO RUMBLE":label(); b.addEventListener("click", id==="hero-play"?()=>open3D("rumble"):play); }
       // the cards' Play becomes the (sticky) main action once the hero's Play has scrolled away: one yellow button on screen
       if ("IntersectionObserver" in window) new IntersectionObserver(([e]) => document.body.classList.toggle("hero-out", !e.isIntersecting))
         .observe(document.getElementById("hero-play"));
@@ -1227,6 +1220,7 @@
     })();
   </script>
   <script src="features.js"></script>
+  <script src="updates.js"></script>
 <script src="dialogs.js"></script>
 </body>
 </html>

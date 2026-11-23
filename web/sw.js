@@ -1,6 +1,6 @@
 /* FORKADE service worker - caches everything so it runs offline once installed.
    Bump CACHE when you change files to push an update to installed users. */
-const CACHE = "forkade-v40";
+const CACHE = "forkade-v41";
 const ASSETS = [
   "./",
   "./index.html",
@@ -9,7 +9,7 @@ const ASSETS = [
   "./privacy.html",
   "./guidelines.html",
   "./delete.html",
-  "./engine.js",
+  "./engine.js", "./updates.js",
   "./policy.js", "./settings.js", "./daily.js", "./features.js",
   "./games/skyhop.js",
   "./games/swarm.js",
@@ -55,7 +55,7 @@ self.addEventListener("fetch", e => {
   if (code) {
     e.respondWith(new Promise(resolve => {
       let done = false;
-      const fallback = () => caches.match(e.request).then(hit => hit || caches.match("./index.html"));
+      const fallback = () => caches.match(e.request).then(hit => hit || (e.request.mode === "navigate" ? caches.match("./index.html") : null));
       const timer = setTimeout(() => { if (!done) fallback().then(r => { if (r && !done) { done = true; resolve(r); } }); }, 3000);
       fetch(e.request, { cache: "no-cache" }).then(res => {
         if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {}); }
@@ -72,3 +72,5 @@ self.addEventListener("fetch", e => {
     }))
   );
 });
+
+self.addEventListener("message", e => {if(e.data?.type === "VERSION")e.ports[0]?.postMessage({version:CACHE});if(e.data?.type === "SKIP_WAITING")self.skipWaiting();});

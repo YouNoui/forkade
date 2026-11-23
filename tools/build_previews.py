@@ -14,6 +14,9 @@ def font(size):
     return ImageFont.load_default(size=size)
 
 def build():
+    version=re.search(r'forkade-(v\d+)',(WEB/'sw.js').read_text())[1]
+    update=WEB/'updates.js'
+    update.write_text(re.sub(r"const version='v\d+'", "const version='"+version+"'", update.read_text(encoding='utf-8')),encoding='utf-8')
     games = {}
     for path in sorted((WEB/'games').glob('*.js')):
         title = re.search(r'title:\s*"([^"]+)"', path.read_text(encoding='utf-8'))
