@@ -2,7 +2,7 @@
 
 Open-source neon arcade. Play it, rewind it, fork it.
 
-**ECHO RUMBLE beta** leads the arcade: Singapore-date seeded runs across seven toy stages and three bosses, up to three replayed allies, rewind, eight chaos events and 48 free avatar choices. Explicit Post shares a server-validated anonymous input replay for today’s Ghost Rumble. Forge builds preset-only practice runs, with optional short-code publishing and real weekly play counts.
+**ECHO RUMBLE 2 beta** leads the arcade: Singapore-date seeded runs across seven toy stages and three bosses, up to three replayed allies, rewind, eight chaos events and 48 free avatar choices. Explicit Post shares a server-validated anonymous input replay for today’s Ghost Rumble. Forge builds preset-only practice runs, with optional short-code publishing and real weekly play counts.
 
 The browser edition also has **thirteen classic games**, including ECHO 3D, RAMPAGE 3D and three 2D destruction games: Tower Wrecker, Glass City and Demolition Chain. RAMPAGE turns ECHO into a giant city-stomper with a timer, chunks, joystick controls and rewind.
 
@@ -195,3 +195,23 @@ Fair play reads rules directly from shared constants. Everything earned stays on
 
 
 Owner tabs: Stats, Moderation and Promo codes. Codes grant local cores, skins and gifted Rumble parts; they never alter scores, badges or earned rank. All Rumble parts remain free. The code field lives in Settings; shared code links open it filled in. Stable server-only PROMO_SALT protects per-code device hashes; rate hashes expire in 60 seconds. Code usage is atomic in Redis. Test with node tests/promo-browser.cjs and npm test, using isolated preview keys only.
+
+## ECHO RUMBLE 2
+
+Four free animated CC0 heroes, hit-charged supers, two gadgets per stage, dashes,
+three seeded upgrade picks, Normal/Hard/Insane and a weekly Singapore Nightmare.
+Echo Road and hero mastery stay local; fixed unlocks (including Nova) are shown
+from shared constants on Fair play. Promo gifts can grant the same cosmetics.
+Friend ghost links share only genuine explicitly posted runs, expiring after
+three days. Live co-op rooms are **not enabled** pending verified free relay access.
+
+Art: KayKit Adventurers and Prototype Bits, CC0; see THIRD_PARTY_NOTICES and
+licenses/. `node tools/build_rumble_assets.mjs` rebuilds compressed GLBs (optional
+`RUMBLE_SOURCE_DIR` reuses original downloads); `node tools/render_rumble_portraits.cjs`
+renders the small selection portraits. Then run the existing Python generators.
+Runtime assets are same-origin and lazy; the downloadable single file embeds them.
+
+V3 input replays bind hero, difficulty, gadget and weekly mode to the run token;
+legacy v2 replays remain readable. Local unlocks are editable and are not an
+anti-cheat guarantee. New tests: rumble-v2.test.cjs, rumble-v2-online.test.cjs and
+rumble-v2-browser.cjs. Browser emulation does not prove physical Android 60 FPS.

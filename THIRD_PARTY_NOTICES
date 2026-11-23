@@ -1,0 +1,23 @@
+# Third-party notices
+
+ECHO RUMBLE 2 uses the following assets and libraries. Forkade hero identities,
+colour treatments, accessories, game rules and story are original work.
+
+- **KayKit Character Pack: Adventurers 1.0**, Kay Lousberg (KayKit), **CC0 1.0**.
+  Author and licence: https://kaylousberg.itch.io/kaykit-adventurers
+  Source: https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0
+  Knight, Mage, Rogue and Barbarian geometry, atlas and selected animations.
+  Full notice: licenses/KayKit-Adventurers-CC0.txt.
+- **KayKit Prototype Bits 1.0**, Kay Lousberg (KayKit), **CC0 1.0**.
+  Author and licence: https://kaylousberg.itch.io/prototype-bits
+  Source: https://github.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0
+  Floor, pillar, crate, barrel and stairs. Full notice: licenses/KayKit-Prototype-Bits-CC0.txt.
+- **three.js r128**, three.js authors, **MIT**. GLTFLoader, SkeletonUtils and
+  the existing rendering library. https://github.com/mrdoob/three.js/tree/r128
+  Full notice: licenses/three-MIT.txt.
+- **meshoptimizer**, Arseny Kapoulkine, **MIT**. Meshopt decoder and asset compression.
+  https://github.com/zeux/meshoptimizer — licenses/meshoptimizer-MIT.md.
+
+Assets are converted to meshopt GLB, animation clips selected, and texture atlases
+resized by tools/build_rumble_assets.mjs. Manifest records source URLs and SHA-256.
+No asset CDN or third-party runtime requests are used.

@@ -1,0 +1,10 @@
+/* Local-only progression. Ranked replay does not trust local unlocks. */
+(function(root,f){if(typeof module==='object'&&module.exports)module.exports=f(require('./rumble-v2-rules'));else root.RumbleRoad=f(root.RumbleV2Rules);})(globalThis,Rules=>{
+ const key='forkade-rumble-road-v2';
+ function empty(){return {xp:0,mastery:{},hardWon:false,receipts:[],equipped:{},hero:'volt',sensitivity:1,leftHanded:false};}
+ function read(storage){try{const p=JSON.parse(storage.getItem(key)||'null');if(!p||typeof p!=='object')return empty();const n=v=>Math.min(1000000000,Math.max(0,Math.floor(Number(v)||0)));return {xp:n(p.xp),mastery:Object.fromEntries(Object.keys(Rules.heroes).map(id=>[id,n(p.mastery?.[id])])),hardWon:p.hardWon===true,receipts:Array.isArray(p.receipts)?p.receipts.filter(x=>typeof x==='string').slice(-100):[],equipped:Object.fromEntries(Object.entries(p.equipped||{}).filter(([type,id])=>Rules.road.some(r=>r.id===id&&r.type===type))),hero:Object.hasOwn(Rules.heroes,p.hero)?p.hero:'volt',sensitivity:Math.max(.5,Math.min(2,Number(p.sensitivity)||1)),leftHanded:p.leftHanded===true};}catch{return empty();}}
+ function save(storage,p){storage.setItem(key,JSON.stringify(p));}
+ function finish(storage,id,run){const p=read(storage);if(run.config||p.receipts.includes(id))return {profile:p,xp:0,unlocked:[],cores:0};const before=Rules.level(p.xp),xp=Math.max(1,Math.floor((run.s.tick/60+run.s.kills*3+(run.s.win?60:0))*Rules.difficulties[run.options.difficulty].xp));p.xp+=xp;p.mastery[run.options.hero]=(p.mastery[run.options.hero]||0)+xp;if(run.s.win&&run.options.difficulty==='hard'&&!run.options.assist)p.hardWon=true;p.receipts.push(id);p.receipts=p.receipts.slice(-100);const after=Rules.level(p.xp),unlocked=[];let cores=0;for(let level=before+1;level<=after;level++){const reward=Rules.road.find(r=>r.level===level)||{id:'cores-'+level,type:'cores',name:'25 cores',cores:25,level,xp:level*120};unlocked.push(reward);cores+=reward.cores||0;}save(storage,p);return {profile:p,xp,unlocked,cores};}
+ function owns(profile,id,gifts=[]){return Rules.rewards(profile.xp).some(r=>r.id===id)||gifts.includes(id);}
+ return {key,empty,read,save,finish,owns};
+});

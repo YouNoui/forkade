@@ -26,6 +26,11 @@ html=html.replace('media/rumble-poster.jpg','data:image/jpeg;base64,'+poster)
 # inline the 3D page so the single file can run it via iframe srcdoc
 for game, variable in [("echo3d", "__ECHO3D_HTML__"), ("rampage", "__RAMPAGE_HTML__"), ("rumble", "__RUMBLE_HTML__")]:
     content = (here / "games3d" / (game + ".html")).read_text(encoding="utf-8")
+    if game == "rumble":
+        assets = {f.stem: base64.b64encode(f.read_bytes()).decode() for f in (here / "assets/rumble").glob("*.glb")}
+        portraits = {f.stem: "data:image/png;base64," + base64.b64encode(f.read_bytes()).decode() for f in (here / "assets/rumble").glob("*.png")}
+        content = content.replace("<!-- BUNDLED_SCRIPTS -->", "")
+        content = content.replace("<script>", "<script>window.__RUMBLE_ASSETS__=" + json.dumps(assets) + ";window.__RUMBLE_PORTRAITS__=" + json.dumps(portraits) + ";</script><script>", 1)
     inject = "<script>window." + variable + " = " + json.dumps(content).replace("</", "<\\/") + ";</script>\n</body>"
     html = html.replace("</body>", inject, 1)
 

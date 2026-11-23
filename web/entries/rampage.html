@@ -449,8 +449,8 @@
   @media(min-width:800px){.rumble-hero video{height:240px}.rumble-hero{max-width:720px;margin-left:auto;margin-right:auto}.hero-cta{max-width:720px;margin-left:auto;margin-right:auto}}
 #forge-editor label{display:flex;align-items:center;gap:10px;margin:12px 0;min-height:44px;font-size:12px}#forge-editor select{min-height:44px;max-width:100%;font:inherit;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:6px}#forge-editor input[type=range]{flex:1;min-width:60px;min-height:44px}#forge-editor summary{min-height:44px;padding:12px 0;cursor:pointer}#forge-editor .sheet{max-height:90dvh;overflow:auto}#forge-test{position:sticky;bottom:0;width:100%;z-index:1}#forge-share a{overflow-wrap:anywhere;display:block;padding:12px 0}.forge-row{display:flex;gap:8px;margin:8px 0}#forge-close{min-height:44px;min-width:44px}
 </style>
-<meta name="description" content="ECHO RUMBLE beta and thirteen classic browser games, rewind controls and a Playground game builder.">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://iamynoui.com/#organization","name":"IAMYNOUI","url":"https://iamynoui.com/","address":{"@type":"PostalAddress","addressCountry":"SG"}},{"@type":"SoftwareApplication","@id":"https://playforkade.com/#website","name":"Forkade","url":"https://playforkade.com/","description":"ECHO RUMBLE beta and thirteen classic browser games, rewind controls and a Playground game builder.","publisher":{"@id":"https://iamynoui.com/#organization"},"applicationCategory":"GameApplication","operatingSystem":"Web browser","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}</script>
+<meta name="description" content="ECHO RUMBLE 2 beta and thirteen classic browser games, rewind controls and a Playground game builder.">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://iamynoui.com/#organization","name":"IAMYNOUI","url":"https://iamynoui.com/","address":{"@type":"PostalAddress","addressCountry":"SG"}},{"@type":"SoftwareApplication","@id":"https://playforkade.com/#website","name":"Forkade","url":"https://playforkade.com/","description":"ECHO RUMBLE 2 beta and thirteen classic browser games, rewind controls and a Playground game builder.","publisher":{"@id":"https://iamynoui.com/#organization"},"applicationCategory":"GameApplication","operatingSystem":"Web browser","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}</script>
 
 
 
@@ -607,7 +607,7 @@
   <script src="daily.js"></script>
   <script src="settings.js"></script>
   <script src="policy.js"></script>
-<script src="promo-catalog.js"></script>
+<script src="rumble-v2-rules.js"></script><script src="promo-catalog.js"></script>
 <script src="engine.js"></script>
   <script src="games/skyhop.js"></script>
   <script src="games/swarm.js"></script>
@@ -664,7 +664,7 @@
     }
     /* ---------- rewards: wallet, stars, locker ---------- */
     const R = Forkade.rewards;
-    const GAME_NAMES = () => Object.fromEntries([...Forkade.registry.map(g => [g.id, g.meta.title]), ["echo3d", "ECHO 3D"], ["rampage", "RAMPAGE 3D"], ["rumble", "ECHO RUMBLE beta"]]);
+    const GAME_NAMES = () => Object.fromEntries([...Forkade.registry.map(g => [g.id, g.meta.title]), ["echo3d", "ECHO 3D"], ["rampage", "RAMPAGE 3D"], ["rumble", "ECHO RUMBLE 2 beta"]]);
     // numbers roll to their new value instead of jumping
     function roll(el, to) {
       const from = +el.dataset.v || 0; el.dataset.v = to;
@@ -779,6 +779,7 @@
       Forkade.play(id, options);
     }
     function open3D(id = "echo3d") {
+      window.ForkadeRumbleFriend=id==="rumble"?new URLSearchParams(location.search).get("friend"):null;
       window.ForkadeForgeConfig=window.ForkadeForgeNext||null;window.ForkadeForgeNext=null; if (typeof id !== "string") id = "echo3d"; Place.enter(id, () => run3D(id)); }
     function run3D(id) {
       if (Forkade.current()) Forkade.stop(true);
@@ -834,8 +835,8 @@
         if (http) try {
           // our own count, not history.state: a Back we asked for may still be on its way
           if (!pushed && !pendingBacks && (location.pathname !== "/" || location.search)) history.replaceState({ list: 1 }, "", "/");   // a deep link still has the arcade behind it
-          if (!pushed) { history.pushState({ fg: id }, "", "/" + id); pushed = true; }
-          else history.replaceState({ fg: id }, "", "/" + id);
+          if (!pushed) { history.pushState({ fg: id }, "", "/" + id + (id==="rumble"&&window.ForkadeRumbleFriend?"?friend="+encodeURIComponent(window.ForkadeRumbleFriend):"")); pushed = true; }
+          else history.replaceState({ fg: id }, "", "/" + id + (id==="rumble"&&window.ForkadeRumbleFriend?"?friend="+encodeURIComponent(window.ForkadeRumbleFriend):""));
         } catch (_) {}
         // phones that go full screen for this game skip the morph (full screen and the animation fight)
         const fs = document.body.classList.contains("touch") && !["skyhop", "swarm", "striker", "breaker", "match", "trail", "prism", "rumble"].includes(id);
@@ -1016,11 +1017,11 @@
 
     /* ---------- global rankings (opt-in) ---------- */
     const B = Forkade.board;
-    const rankGames = () => [...Forkade.registry.map(g => ({ id: g.id, t: g.meta.title })), { id: "echo3d", t: "ECHO 3D" }, { id: "rampage", t: "RAMPAGE 3D" }, {id:"rumble",t:"ECHO RUMBLE"}];
+    const rankGames = () => [...Forkade.registry.map(g => ({ id: g.id, t: g.meta.title })), { id: "echo3d", t: "ECHO 3D" }, { id: "rampage", t: "RAMPAGE 3D" }, {id:"rumble-normal",t:"Rumble · Normal"},{id:"rumble-hard",t:"Rumble · Hard"},{id:"rumble-insane",t:"Rumble · Insane"},{id:"rumble-nightmare",t:"Rumble · Nightmare"},{id:"rumble",t:"Rumble · Legacy"}];
     let rGame = "skyhop", rPeriod = "week";
     const esc = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     async function loadRanks() {
-      if (rPeriod === "daily" && rGame !== "rumble") rGame = ForkadeDaily.challenge().game;
+      if (rPeriod === "daily" && !rGame.startsWith("rumble")) rGame = ForkadeDaily.challenge().game;
       const list = document.getElementById("rlist"), me = document.getElementById("rme");
       document.getElementById("rgames").innerHTML = rankGames().map(g =>
         `<button data-game="${g.id}" class="${g.id === rGame ? "on" : ""}">${esc(g.t)}</button>`).join("");
@@ -1036,7 +1037,7 @@
           `<li class="${r.me ? "me" : ""}"><span class="n">#${r.rank}</span><span class="nm">${esc(r.name)}${r.me ? " (you)" : ""}</span><span class="sc">${r.score}</span>${
             r.me || r.name === "Player" ? `<span class="rep"></span>` : `<button class="rep" data-rank="${r.rank}" data-name="${esc(r.name)}" title="Report this nickname" aria-label="Report ${esc(r.name)}">&#9873;</button>`}</li>`).join("")
           : '<li class="msg">No scores yet. <button class="btn" id="empty-play">Play a round</button></li>';
-        const empty=document.getElementById('empty-play');if(empty)empty.onclick=()=>{document.getElementById('ranks').hidden=true;['echo3d','rampage','rumble'].includes(rGame)?open3D(rGame):openGame(rGame);};
+        const empty=document.getElementById('empty-play');if(empty)empty.onclick=()=>{document.getElementById('ranks').hidden=true;if(rGame.startsWith('rumble')){window.ForkadeRumbleChallenge=rGame;open3D('rumble');}else ['echo3d','rampage'].includes(rGame)?open3D(rGame):openGame(rGame);};
         me.textContent = d.me ? `You're #${d.me.rank} of ${d.count} with ${d.me.score}.` : `${d.count} players ranked. Post a score after any round to join.`;if(d.notice)me.textContent+=" Owner notice: "+d.notice.reason;
       } catch (err) {
         if (seq !== ranksSeq) return;

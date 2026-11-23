@@ -156,7 +156,7 @@
   function paintMore(){extra.forEach(c=>c.hidden=!expanded);more.textContent=expanded?'Fewer games':'More games ('+extra.length+')';more.setAttribute('aria-expanded',String(expanded));}
   more.onclick=()=>{expanded=!expanded;try{localStorage.setItem('forkade-more-games',expanded?'1':'0');}catch(_){}paintMore();};paintMore();
   const rumble=document.createElement('button');rumble.className='card rumble-hero';rumble.dataset.game='rumble';rumble.style.setProperty('--c','var(--brand)');
-  rumble.innerHTML='<span class="genre">NEW: ECHO RUMBLE (beta)</span><h3 class="name">The arcade that forks itself.</h3><video id="rumble-loop" muted loop playsinline preload="none" poster="media/rumble-poster.jpg" aria-label="Real ECHO RUMBLE gameplay"></video><p class="desc">Rewind your mistakes into a squad of allies.</p><span class="rumble-look"><b aria-hidden="true">••</b>Your echo · 48 parts</span>';
+  rumble.innerHTML='<span class="genre">ECHO RUMBLE 2 (beta)</span><h3 class="name">Your squad. Supercharged.</h3><video id="rumble-loop" muted loop playsinline preload="none" poster="media/rumble-poster.jpg" aria-label="Real ECHO RUMBLE gameplay"></video><p class="desc">Four heroes. Huge supers. Earn your next unlock.</p><span class="rumble-look"><b aria-hidden="true">••</b>Four free heroes · local progression</span>';
   rumble.onclick=()=>open3D('rumble');document.getElementById('hero-sub').after(rumble);
   const loop=rumble.querySelector('video');let visible=true;
   function previewMotion(){if(location.protocol==='file:'||S.reduceMotion||navigator.connection?.saveData||document.hidden||!visible){loop.pause();return;}if(!loop.src)loop.src='media/rumble-loop.mp4';loop.play().catch(()=>{});}
@@ -165,7 +165,7 @@
   // Delay until the distribution has installed its inline 3D pages.
   setTimeout(() => {
     const query = new URLSearchParams(location.search), path = location.pathname.replace(/^\/+|\/+$/g,'');
-    const id = query.get('game') || query.get('g') || (query.size===1 && !query.get('daily') ? [...query.keys()][0] : '') || path;
+    const id = query.get('game') || query.get('g') || (query.size===1 && ['echo3d','rampage','rumble',...F.registry.map(g=>g.id)].includes([...query.keys()][0]) ? [...query.keys()][0] : '') || path;
     if (query.has('daily')) { dailyCard.click(); return; }
     if (['echo3d','rampage','rumble'].includes(id)) open3D(id); else if (F.registry.some(g=>g.id===id)) openGame(id);
   }, 0);
