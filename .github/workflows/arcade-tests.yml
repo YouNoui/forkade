@@ -33,6 +33,7 @@ jobs:
       - run: node tests/update-browser.cjs
       - run: node tests/social-browser.cjs
       - run: node tests/game-upgrades.cjs
+      - run: node tests/drift-upgrade.cjs
       - run: node tests/trail-upgrade.cjs
       - run: node tests/glass-upgrade.cjs
       - run: node tests/wrecker-upgrade.cjs

@@ -303,7 +303,7 @@
   // daily streak. Everything lives in localStorage on this device - nothing is sent anywhere.
   const GOALS = {               // score needed for bronze / silver / gold
     skyhop: [200, 650, 1500], swarm: [200, 650, 1500], striker: [400, 1400, 3500],
-    breaker: [1500, 5000, 12000], trail: [150, 450, 900], drift: [500, 2000, 5000],
+    breaker: [1500, 5000, 12000], trail: [150, 450, 900], drift: [700, 2400, 5500],
     prism: [500, 2000, 6000], match: [2200, 6500, 13000], wrecker: [1800, 5500, 13000],
     rumble: [500, 1500, 3000], echo3d: [60, 150, 240], rampage: [2200, 7000, 14000], glass: [1900, 6000, 14000], demo: [1300, 3500, 8000],
   };
