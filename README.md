@@ -6,6 +6,8 @@ Open-source neon arcade. Play it, rewind it, fork it.
 
 The browser edition also has **thirteen classic games**, including ECHO 3D, RAMPAGE 3D and three 2D destruction games: Tower Wrecker, Glass City and Demolition Chain. RAMPAGE turns ECHO into a giant city-stomper with a timer, chunks, joystick controls and rewind.
 
+**Classic polish:** all thirteen games have refreshed procedural worlds, feedback, music and rewind-safe powers or goals. See `docs/game-upgrades/` for measured checks and screenshots. Before/after clips are saved in the shared process folder; headless timings are not physical-phone FPS claims.
+
 **Rewards:** every classic game pays out *cores* (finish rounds, clear levels, beat your best), plus bronze/silver/gold badges per game, a rank and a daily streak. Spend cores on ECHO skins in the Locker. All of it stays on the device.
 
 **Global rankings (opt-in):** after a round, players can post their score with a nickname, no sign-up. Daily, weekly and all-time top 50 per game. Enable ranked runs before playing to receive a temporary single-use token; suspicious jumps go to owner review. Backend: `api/leaderboard.js` (Vercel function) + Upstash Redis. Posted scores include a random player ID for ranking/deletion; temporary run tokens contain no personal details.
@@ -20,7 +22,7 @@ Fork: https://github.com/YouNoui/forkade. MIT licensed; bundled third-party noti
 
 **Share and settings:** every game has a `/game-id` link and a generated social preview. Share scores after a round. The gear opens local mute/volume, reduced motion, colour-blind shapes, and an opt-in for ranked runs and an opt-out for anonymous counts. Rumble starts anonymous round tokens; only Post uploads the replay. Usage counts respect Settings, DNT and GPC. No cookies or third-party trackers.
 
-**Phones:** Sky Hop, Neon Swarm, Sky Striker and Pulse Breaker have tall portrait layouts. Other 2D games recommend landscape. Safari unlocks audio on a user gesture; add the arcade using Share → Add to Home Screen. All three 3D games work offline and use thumb-stick controls.
+**Phones:** Sky Hop, Neon Swarm, Sky Striker, Pulse Breaker, Core Match, ECHO Trail and Prism Stacks have tall portrait layouts. Other 2D games recommend landscape. Safari unlocks audio on a user gesture; add the arcade using Share → Add to Home Screen. All three 3D games work offline and use thumb-stick controls.
 
 ## Design
 
@@ -47,7 +49,7 @@ Build an original ECHO game in the [Playground](https://playforkade.com/playgrou
 
 ## Regenerate and test
 
-Install Pillow using `pip install -r tools/requirements.txt`. Run `python tools/build_rampage.py`, `python tools/build_rumble.py`, `python tools/make_legal.py`, `python tools/build_previews.py`, then `python web/build_dist.py`. Vercel serves the committed `web/` output with no build step. For local routing/API fixtures, use `node tests/server.cjs` (in-memory data only).
+Install Pillow using `pip install -r tools/requirements.txt`. Run `python tools/build_echo3d.py`, `python tools/build_rampage.py`, `python tools/build_rumble.py`, `python tools/make_legal.py`, `python tools/build_previews.py`, then `python web/build_dist.py`. Vercel serves the committed `web/` output with no build step. For local routing/API fixtures, use `node tests/server.cjs` (in-memory data only).
 
 Run `npm ci`, `npx playwright install chromium webkit`, `npm test`, and `npm run test:browser`. Set `WEBKIT=1` to test WebKit. See [validation evidence](docs/upgrade-validation.md), including the Windows WebKit audio limitation.
 

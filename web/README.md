@@ -6,6 +6,8 @@ Thirteen classic games remain: eleven 2D games plus ECHO 3D and RAMPAGE 3D. Same
 (**rewind time** — hold **R** or **Shift**). Pure HTML5 Canvas + JavaScript.
 **No sign-ups. Casual play is local-first and works offline.** Optional rankings and anonymous usage counts use Vercel functions and Upstash; ranked runs are opt-in and anonymous counts default on with a Settings opt-out. Rumble replays upload only after explicit Post; anonymous round tokens contain no player ID.
 
+All thirteen classic games now include refreshed procedural graphics, shared audio/feedback and rewind-safe goals or powers. Seven 2D games support portrait: Sky Hop, Neon Swarm, Sky Striker, Pulse Breaker, Core Match, ECHO Trail and Prism Stacks. Reduced motion and colour-blind symbols remain available.
+
 ## Files
 
 ```
