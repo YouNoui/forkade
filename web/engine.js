@@ -304,7 +304,7 @@
   const GOALS = {               // score needed for bronze / silver / gold
     skyhop: [200, 650, 1500], swarm: [200, 650, 1500], striker: [400, 1400, 3500],
     breaker: [1500, 5000, 12000], trail: [100, 300, 600], drift: [500, 2000, 5000],
-    prism: [500, 2000, 6000], match: [2000, 6000, 12000], wrecker: [1500, 5000, 12000],
+    prism: [500, 2000, 6000], match: [2200, 6500, 13000], wrecker: [1500, 5000, 12000],
     rumble: [500, 1500, 3000], echo3d: [60, 150, 240], rampage: [1500, 6000, 12000], glass: [1500, 5000, 12000], demo: [1000, 3000, 7000],
   };
   const TIERS = [{ name: "BRONZE", color: "#e0a060", cores: 20 },
@@ -701,7 +701,7 @@
     sfx.ensure();                       // unlock audio on this user gesture
     seed(options.seed || null);
     current = new entry.cls(); current.id = id; current.meta = entry.meta;
-    const portrait = ['skyhop', 'swarm', 'striker', 'breaker'].includes(id) && (options.daily ? id === 'skyhop' : innerWidth < innerHeight && innerWidth < 700);
+    const portrait = ['skyhop', 'swarm', 'striker', 'breaker', 'match'].includes(id) && (options.daily ? ['skyhop','match'].includes(id) : innerWidth < innerHeight && innerWidth < 700);
     current.W = portrait ? 560 : 900; current.H = portrait ? 900 : 560;
     canvas.width = current.W; canvas.height = current.H;
     canvas.style.aspectRatio = current.W + '/' + current.H;

@@ -941,7 +941,7 @@
   const GOALS = {               // score needed for bronze / silver / gold
     skyhop: [200, 650, 1500], swarm: [200, 650, 1500], striker: [400, 1400, 3500],
     breaker: [1500, 5000, 12000], trail: [100, 300, 600], drift: [500, 2000, 5000],
-    prism: [500, 2000, 6000], match: [2000, 6000, 12000], wrecker: [1500, 5000, 12000],
+    prism: [500, 2000, 6000], match: [2200, 6500, 13000], wrecker: [1500, 5000, 12000],
     rumble: [500, 1500, 3000], echo3d: [60, 150, 240], rampage: [1500, 6000, 12000], glass: [1500, 5000, 12000], demo: [1000, 3000, 7000],
   };
   const TIERS = [{ name: "BRONZE", color: "#e0a060", cores: 20 },
@@ -1338,7 +1338,7 @@
     sfx.ensure();                       // unlock audio on this user gesture
     seed(options.seed || null);
     current = new entry.cls(); current.id = id; current.meta = entry.meta;
-    const portrait = ['skyhop', 'swarm', 'striker', 'breaker'].includes(id) && (options.daily ? id === 'skyhop' : innerWidth < innerHeight && innerWidth < 700);
+    const portrait = ['skyhop', 'swarm', 'striker', 'breaker', 'match'].includes(id) && (options.daily ? ['skyhop','match'].includes(id) : innerWidth < innerHeight && innerWidth < 700);
     current.W = portrait ? 560 : 900; current.H = portrait ? 900 : 560;
     canvas.width = current.W; canvas.height = current.H;
     canvas.style.aspectRatio = current.W + '/' + current.H;
@@ -2841,16 +2841,19 @@
 
   class Match extends NE.GameBase {
     reset() {
-      this.ox = (this.W - N * CELL) / 2 - 60;
-      this.oy = (this.H - N * CELL) / 2 + 10;
+      this.cell=this.H>this.W?64:52;this.elapsed=0;this.swaps=0;this.bestCascade=0;this.bonus=0;this.makeTiles();
+      this.ox = (this.W - N * this.cell) / 2 - (this.H>this.W?0:60);
+      this.oy = this.H>this.W?155:(this.H - N * this.cell) / 2 + 10;
       this.prevDown = false;
       this.score = 0; this.level = 1; this.state = "play";
       this.startLevel();
     }
+    makeTiles(){this.tiles=GC.map((_,v)=>{const canvas=document.createElement('canvas');canvas.width=canvas.height=this.cell;const ctx=canvas.getContext('2d');        const cx=this.cell/2,cy=this.cell/2,rad=this.cell*.34;ctx.save();ctx.fillStyle=GC[v];ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=2;ctx.shadowColor=GC[v];ctx.shadowBlur=NE.settings.reduceMotion?0:9;ctx.beginPath();
+        if(v===0)ctx.arc(cx,cy,rad,0,NE.TAU);else{const points=v===2?3:v===4?10:4;for(let k=0;k<points;k++){const a=k*NE.TAU/points-Math.PI/2,r=v===4&&k%2?rad*.5:rad;ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);}ctx.closePath();}ctx.fill();ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle='rgba(255,255,255,.3)';ctx.beginPath();ctx.ellipse(cx-5,cy-7,rad*.3,rad*.15,-.5,0,NE.TAU);ctx.fill();ctx.restore();return canvas;});}
     // each level: fresh board, refilled moves, a bigger goal. Score carries over.
     startLevel() {
       const L = this.level;
-      this.colors = L <= 2 ? 5 : 6;
+      this.colors = L <= 2 ? 5 : 6;this.charge=0;this.cascadeGoal=false;this.pulse=0;
       this.g = Array.from({ length: N }, () => Array.from({ length: N }, () => (NE.rng() * this.colors) | 0));
       this.removeInitial();
       // tuned so an average level takes ~15-25 moves and the squeeze tightens each level
@@ -2887,12 +2890,12 @@
         let count = 0;
         for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (m[r][c]) {
           count++;
-          if (score) this.particles.emit(this.ox + c * CELL + CELL/2, this.oy + r * CELL + CELL/2, GC[this.g[r][c]], { n: 6, speed: 3 });
+          if (score) this.particles.emit(this.ox + c * this.cell + this.cell/2, this.oy + r * this.cell + this.cell/2, GC[this.g[r][c]], { n: 6, speed: 3 });
           this.g[r][c] = -1;
         }
         if (!count) break;
-        chain++;
-        if (score) { total += count * 20 * chain; this.shake.add(2 + chain); NE.sfx.pickup(); if (chain > 1) NE.sfx.explode(); }
+        chain++;this.bestCascade=Math.max(this.bestCascade,chain);
+        if (score) { this.juice?.hit(this.ox+N*this.cell/2,this.oy+N*this.cell/2,'CASCADE ×'+chain,chain>1);total += count * 20 * chain; this.shake.add(2 + chain); NE.sfx.pickup(); if (chain > 1) NE.sfx.explode(); }
         // collapse + refill
         for (let c = 0; c < N; c++) {
           let col = [];
@@ -2900,22 +2903,23 @@
           for (let r = N - 1; r >= 0; r--) this.g[r][c] = col.length ? col.shift() : ((NE.rng() * this.colors) | 0);
         }
       }
+      if(score&&chain>=2&&!this.cascadeGoal){this.cascadeGoal=true;total+=120;this.juice?.hit(this.W/2,this.oy-30,'DOUBLE CASCADE +120',true);}
       if (score) { this.score += total; this.got += total; }
       return chain > 0;
     }
     cellAt(mx, my) {
-      const c = Math.floor((mx - this.ox) / CELL), r = Math.floor((my - this.oy) / CELL);
+      const c = Math.floor((mx - this.ox) / this.cell), r = Math.floor((my - this.oy) / this.cell);
       return (r >= 0 && r < N && c >= 0 && c < N) ? { r, c } : null;
     }
     step(dt) {
-      const I = this.input;
+      this.elapsed+=dt;this.pulse=Math.max(0,this.pulse-dt);const I = this.input;
       if (this.state !== "play") { if (I.pressed.Enter) this.reset(); return; }
       const down = I.mouse.down;
       if (this.phase === "clear") {
         if ((down && !this.prevDown) || I.pressed.Enter || I.pressed.Space) { this.level++; this.startLevel(); NE.sfx.ui(); }
         this.prevDown = down; return;
       }
-      if (down && !this.prevDown) {
+      if (I.tapped || down && !this.prevDown) {
         const hit = this.cellAt(I.mouse.x, I.mouse.y);
         if (hit) {
           if (!this.sel) { this.sel = hit; NE.sfx.ui(); }
@@ -2930,7 +2934,7 @@
     }
     trySwap(a, b) {
       const t = this.g[a.r][a.c]; this.g[a.r][a.c] = this.g[b.r][b.c]; this.g[b.r][b.c] = t;
-      if (this.resolve(true)) { this.moves--; }
+      if (this.resolve(true)) { this.moves--;this.swaps++;if(++this.charge===4){this.charge=0;this.moves+=2;this.score+=100;this.got+=100;this.pulse=1;this.juice?.hit(this.W/2,this.oy-30,'ECHO PULSE +2 MOVES · +100',true);} }
       else { // no match: swap back
         const u = this.g[a.r][a.c]; this.g[a.r][a.c] = this.g[b.r][b.c]; this.g[b.r][b.c] = u;
         NE.sfx.bounce();
@@ -2944,43 +2948,39 @@
     snapshot() {
       if (this.state !== "play") return null;
       return { g: this.g.map(r => r.slice()), sel: this.sel, score: this.score, moves: this.moves,
-               level: this.level, need: this.need, got: this.got, phase: this.phase, colors: this.colors, bonus: this.bonus };
+               level: this.level, need: this.need, got: this.got, phase: this.phase, colors: this.colors, bonus: this.bonus,elapsed:this.elapsed,swaps:this.swaps,bestCascade:this.bestCascade,charge:this.charge,cascadeGoal:this.cascadeGoal,pulse:this.pulse };
     }
     restore(s) {
       this.g = s.g.map(r => r.slice()); this.sel = s.sel; this.score = s.score; this.moves = s.moves;
-      Object.assign(this, { level: s.level, need: s.need, got: s.got, phase: s.phase, colors: s.colors, bonus: s.bonus });
+      Object.assign(this, { level: s.level, need: s.need, got: s.got, phase: s.phase, colors: s.colors, bonus: s.bonus,elapsed:s.elapsed,swaps:s.swaps,bestCascade:s.bestCascade,charge:s.charge,cascadeGoal:s.cascadeGoal,pulse:s.pulse });
     }
     render(ctx) {
       for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
         const v = this.g[r][c]; if (v < 0) continue;
-        const x = this.ox + c * CELL, y = this.oy + r * CELL;
-        NE.glowRect(ctx, GC[v], x + 5, y + 5, CELL - 10, CELL - 10, 9);
-        NE.symbol(ctx, v, x + CELL/2, y + CELL/2, 24);
+        const x = this.ox + c * this.cell, y = this.oy + r * this.cell;
+        ctx.drawImage(this.tiles[v],x,y);
+        NE.symbol(ctx, v, x + this.cell/2, y + this.cell/2, 24);
       }
       if (this.sel) {
-        const x = this.ox + this.sel.c * CELL, y = this.oy + this.sel.r * CELL;
+        const x = this.ox + this.sel.c * this.cell, y = this.oy + this.sel.r * this.cell;
         ctx.save(); ctx.strokeStyle = P.white; ctx.lineWidth = 3;
-        ctx.strokeRect(x + 2, y + 2, CELL - 4, CELL - 4); ctx.restore();
+        ctx.strokeRect(x + 2, y + 2, this.cell - 4, this.cell - 4); ctx.restore();
       }
-      // HUD right
-      const hx = this.ox + N * CELL + 28;
-      NE.text(ctx, "SCORE", hx, 70, { size: 14, color: P.dim });
-      NE.text(ctx, String(this.score), hx, 88, { size: 30 });
-      NE.text(ctx, `LEVEL ${this.level}  GOAL`, hx, 140, { size: 14, color: P.dim });
-      NE.text(ctx, `${Math.min(this.got, this.need)} / ${this.need}`, hx, 158, { size: 20, color: P.lime });
-      NE.text(ctx, "MOVES", hx, 205, { size: 14, color: P.dim });
-      NE.text(ctx, String(this.moves), hx, 223, { size: 30, color: this.moves <= 5 ? P.red : P.ink });
-      NE.bar(ctx, hx, 270, 130, 12, this.got / this.need, this.got >= this.need ? P.lime : P.amber);
-      NE.drawEcho(ctx, hx + 50, 330, 16, P.cyan, 1, this.t);
-      NE.text(ctx, "click a core, then a neighbour to swap", this.W / 2, this.H - 20, { size: 13, color: P.dim, align: "center" });
+      const portrait=this.H>this.W,hx=portrait?24:this.ox+N*this.cell+28;
+      NE.text(ctx,'CRYSTAL GARDEN · LEVEL '+this.level,portrait?this.W/2:hx,portrait?26:45,{size:portrait?22:14,color:P.cyan,align:portrait?'center':'left'});
+      NE.text(ctx,String(this.score)+' pts',hx,portrait?70:85,{size:26});NE.text(ctx,this.moves+' moves',portrait?this.W-24:hx,portrait?70:140,{size:24,color:this.moves<=5?P.red:P.lime,align:portrait?'right':'left'});
+      NE.bar(ctx,hx,portrait?115:190,portrait?this.W-48:130,12,this.got/this.need,P.cyan);
+      NE.text(ctx,'PULSE '+this.charge+'/4',hx,portrait?710:240,{size:20,color:P.amber});NE.text(ctx,this.cascadeGoal?'DOUBLE CASCADE ✓':'GOAL: DOUBLE CASCADE',hx,portrait?745:280,{size:portrait?18:12,color:P.lime});
+      NE.drawEcho(ctx,portrait?this.W-70:hx+50,portrait?750:350,18,P.cyan,1,this.t);
+      NE.text(ctx,'Tap a core, then a neighbour',this.W/2,this.H-45,{size:16,color:P.dim,align:'center'});
       if (this.state === "over")
-        NE.banner(ctx, this.W, this.H, "OUT OF MOVES", `score ${this.score}   -   ENTER / tap to retry   ESC menu`);
+        NE.banner(ctx, this.W, this.H, "OUT OF MOVES", `score ${this.score} · ${this.swaps} swaps · best cascade ${this.bestCascade} · tap to retry`);
       if (this.phase === "clear" && this.state === "play")
         NE.banner(ctx, this.W, this.H, `LEVEL ${this.level} CLEARED!`, `+${this.bonus} for spare moves   -   click / SPACE for level ${this.level + 1}`);
     }
   }
   NE.register("match",
-    { touch: "tap", title: "CORE MATCH", genre: "Match-3 puzzle", color: P.magenta,
+    { polished:true,world:["#101a29","#18394a","#62f5cf"],scene:"reactor",music:{root:196,tempo:110,wave:"sine"},hint:"TAP TWO NEIGHBOURING CORES",touch: "tap", title: "CORE MATCH", genre: "Match-3 puzzle", color: P.magenta,
       desc: "Swap neon cores to line up 3+, chain cascades, climb endless levels. Misfire? Rewind the move." },
     Match);
 })();
@@ -3774,7 +3774,7 @@
   <script>
 /* Version-aware update recovery. No cookies, no telemetry. */
 (()=>{'use strict';
- const version='v43',updated='23 Nov';window.ForkadeVersion={version,updated};
+ const version='v44',updated='23 Nov';window.ForkadeVersion={version,updated};
  const label=document.createElement('p');label.id='app-version';label.className='hint';label.textContent='Version '+version+' · updated '+updated;document.querySelector('#settings .sheet')?.append(label);
  if(location.protocol==='file:'||!('serviceWorker'in navigator))return;
  let reg,pending=false,reloading=false;const hadController=!!navigator.serviceWorker.controller;

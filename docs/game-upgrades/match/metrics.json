@@ -1,0 +1,15 @@
+{
+  "before": {
+    "id": "match",
+    "frameMs": 0.9466666666169962
+  },
+  "after": {
+    "id": "match",
+    "frameMs": 0.34416666676600777,
+    "frames": 1800,
+    "seed": true,
+    "rewind": true
+  },
+  "beforeBytes": 7525,
+  "afterBytes": 9793
+}
