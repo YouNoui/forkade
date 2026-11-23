@@ -10,7 +10,7 @@
 
   class Wrecker extends NE.GameBase {
     reset() {
-      this.G = this.H - 46;                       // ground line
+      this.elapsed=0;this.fxSeed=8731;this.fired=0;this.bestShot=0;this.makeTiles();this.G = this.H - 46;                       // ground line
       this.gx = this.W - COLS * CELL - 40;        // tower area left edge
       this.gy = this.G - ROWS * CELL;             // tower area top edge
       this.lx = 120; this.ly = this.G - 62;       // launch point
@@ -41,7 +41,7 @@
         x += w + 1 + ((NE.rng() * 2) | 0);
       }
       this.initial = g.reduce((n, v) => n + (v ? 1 : 0), 0);
-      this.destroyed = 0;
+      this.destroyed = 0;this.blockGoal=false;this.shotBlocks=0;
       this.target = Math.min(0.75, 0.5 + (L - 1) * 0.04);
       this.shots = 4 + Math.min(3, (L / 2) | 0);
       this.debris = [];
@@ -51,24 +51,32 @@
       this.collapseT = 0; this.idleT = 0; this.waitRelease = true;
     }
 
+    fx(a,b){this.fxSeed=(Math.imul(this.fxSeed,1664525)+1013904223)>>>0;return a+(b-a)*this.fxSeed/4294967296;}
+    makeTiles(){this.tiles=Array.from({length:5},(_,type)=>Array.from({length:3},(_,tint)=>{
+      const c=document.createElement('canvas');c.width=c.height=CELL;const ctx=c.getContext('2d'),color=this.cellColor(type,tint);
+      const g=ctx.createLinearGradient(0,0,20,20);g.addColorStop(0,color);g.addColorStop(1,'#172c3e');ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(1,1,18,18,3);ctx.fill();ctx.strokeStyle=color;ctx.stroke();
+      ctx.lineWidth=1.5;ctx.strokeStyle=type===GLASS?'#e6ffff':'#131c2b';ctx.beginPath();
+      if(type===GLASS){ctx.moveTo(5,3);ctx.lineTo(3,10);ctx.moveTo(14,3);ctx.lineTo(6,16);}else if(type===STEEL){ctx.moveTo(4,4);ctx.lineTo(16,16);ctx.moveTo(16,4);ctx.lineTo(4,16);}else if(type===TNT){ctx.moveTo(10,3);ctx.lineTo(17,16);ctx.lineTo(3,16);ctx.closePath();}else{ctx.moveTo(1,10);ctx.lineTo(19,10);ctx.moveTo(10,1);ctx.lineTo(10,10);ctx.moveTo(6,10);ctx.lineTo(6,19);}ctx.stroke();return c;
+    }));}
+    drawBall(ctx,x,y,powered){ctx.save();const g=ctx.createRadialGradient(x-5,y-6,1,x,y,BALL_R);g.addColorStop(0,'#fff');g.addColorStop(.4,powered?P.amber:P.cyan);g.addColorStop(1,'#1b385c');ctx.fillStyle=g;ctx.shadowColor=powered?P.amber:P.cyan;ctx.shadowBlur=NE.settings.reduceMotion?0:14;ctx.beginPath();ctx.arc(x,y,BALL_R,0,TAU);ctx.fill();ctx.shadowBlur=0;ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-6,y);ctx.lineTo(x+6,y);ctx.moveTo(x,y-6);ctx.lineTo(x,y+6);ctx.stroke();ctx.restore();}
     /* ---------------------------------------------------------- physics --- */
     at(cx, cy) { return (cx < 0 || cx >= COLS || cy < 0 || cy >= ROWS) ? EMPTY : this.grid[cy * COLS + cx]; }
     smash(cx, cy, vx, vy, viaBlast = false) {
       const i = cy * COLS + cx, type = this.grid[i];
       if (!type) return 0;
-      if (type === STEEL && !viaBlast) { this.grid[i] = BRICK; NE.sfx.hit(); this.shake.add(3); return 0.55; }
-      this.grid[i] = EMPTY; this.destroyed++; this.score += type === GLASS ? 5 : 10;
+      if (type === STEEL && !viaBlast && !this.ball?.powered) { this.grid[i] = BRICK; NE.sfx.hit(); this.shake.add(3); return 0.55; }
+      this.grid[i] = EMPTY; this.destroyed++;this.shotBlocks++;this.bestShot=Math.max(this.bestShot,this.shotBlocks);if(this.destroyed>=20&&!this.blockGoal){this.blockGoal=true;this.score+=200;this.juice?.hit(this.W/2,100,"20 BLOCKS +200",true);} this.score += type === GLASS ? 5 : 10;
       const px = this.gx + cx * CELL + CELL / 2, py = this.gy + cy * CELL + CELL / 2;
       const color = this.cellColor(type, this.tint[i]);
       const pieces = type === GLASS ? 3 : 2;
       for (let k = 0; k < pieces; k++) this.addDebris(px, py,
-        vx * NE.rand(0.25, 0.6) + NE.rand(-90, 90), vy * NE.rand(0.25, 0.6) + NE.rand(-220, 40),
+        vx * this.fx(0.25, 0.6) + this.fx(-90, 90), vy * this.fx(0.25, 0.6) + this.fx(-220, 40),
         color, type === GLASS ? 5 : 8);
       if (type === TNT) this.blast(cx, cy);
       return type === GLASS ? 0.97 : 0.9;           // how much speed the ball keeps
     }
     blast(cx, cy) {
-      NE.sfx.explode(); this.shake.add(12);
+      NE.sfx.explode();this.juice?.hit(this.gx+cx*CELL,this.gy+cy*CELL,"CHAIN BLAST",true); this.shake.add(12);
       this.particles.emit(this.gx + cx * CELL + CELL / 2, this.gy + cy * CELL + CELL / 2, P.amber, { n: 30, speed: 7, life: 0.7, size: 4 });
       for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
         if (dx * dx + dy * dy > 6) continue;
@@ -77,7 +85,7 @@
       }
     }
     addDebris(x, y, vx, vy, c, s) {
-      this.debris.push({ x, y, vx, vy, rot: NE.rand(0, TAU), vr: NE.rand(-9, 9), c, s, life: NE.rand(1.6, 2.6) });
+      this.debris.push({ x, y, vx, vy, rot: this.fx(0, TAU), vr: this.fx(-9, 9), c, s, life: this.fx(1.6, 2.6) });
       if (this.debris.length > MAX_DEBRIS) this.debris.shift();
     }
     stepBall(dt) {
@@ -124,14 +132,14 @@
 
     /* ------------------------------------------------------------- loop --- */
     step(dt) {
-      const I = this.input;
+      this.elapsed+=dt;const I = this.input;
       if (this.state !== "play") { if (I.pressed.Enter) this.reset(); return; }
 
       for (const d of this.debris) {
         d.vy += 900 * dt; d.x += d.vx * dt; d.y += d.vy * dt; d.rot += d.vr * dt; d.life -= dt;
         if (d.y > this.G - d.s / 2) { d.y = this.G - d.s / 2; d.vy *= -0.3; d.vx *= 0.6; d.vr *= 0.5; }
       }
-      this.debris = this.debris.filter(d => d.life > 0);
+      let alive=0;for(const d of this.debris)if(d.life>0)this.debris[alive++]=d;this.debris.length=alive;
 
       this.collapseT += dt;
       let moving = false;
@@ -164,22 +172,22 @@
       }
     }
     fire() {
-      const sp = 380 + this.power * 820;
-      this.ball = { x: this.lx, y: this.ly, vx: Math.cos(this.aimA) * sp, vy: Math.sin(this.aimA) * sp, trail: [] };
+      this.fired++;this.shotBlocks=0;const powered=this.fired%3===0;const sp = 380 + this.power * 820;
+      this.ball = { x: this.lx, y: this.ly, vx: Math.cos(this.aimA) * sp, vy: Math.sin(this.aimA) * sp, powered,trail: [] };
       this.shots--; this.charging = false; this.chargeT = 0; this.power = 0;
-      this.phase = "fly"; NE.sfx.jump(); this.shake.add(2);
+      this.phase = "fly";this.juice?.hit(this.lx,this.ly,powered?"CORE BALL · PIERCES STEEL":"LAUNCH",powered); NE.sfx.jump(); this.shake.add(2);
     }
 
     snapshot() {
       if (this.state !== "play") return null;
       const b = this.ball;
       return { grid: this.grid.slice(), tint: this.tint.slice(),
-               ball: b && { x: b.x, y: b.y, vx: b.vx, vy: b.vy, trail: b.trail.map(p => p.slice()) },
+               ball: b && { x: b.x, y: b.y, vx: b.vx, vy: b.vy,powered:b.powered,trail: b.trail.map(p => p.slice()) },
                debris: this.debris.map(d => ({ ...d })),
                phase: this.phase, shots: this.shots, level: this.level, score: this.score,
                destroyed: this.destroyed, initial: this.initial, target: this.target,
                aimA: this.aimA, power: this.power, charging: this.charging, chargeT: this.chargeT,
-               collapseT: this.collapseT, idleT: this.idleT, waitRelease: this.waitRelease };
+               collapseT: this.collapseT, idleT: this.idleT, waitRelease: this.waitRelease,elapsed:this.elapsed,fxSeed:this.fxSeed,fired:this.fired,bestShot:this.bestShot,shotBlocks:this.shotBlocks,blockGoal:this.blockGoal };
     }
     restore(s) {
       this.grid = s.grid.slice(); this.tint = s.tint.slice();
@@ -187,7 +195,7 @@
       this.debris = s.debris.map(d => ({ ...d }));
       Object.assign(this, { phase: s.phase, shots: s.shots, level: s.level, score: s.score,
         destroyed: s.destroyed, initial: s.initial, target: s.target, aimA: s.aimA,
-        power: s.power, charging: s.charging, chargeT: s.chargeT, collapseT: s.collapseT, idleT: s.idleT, waitRelease: s.waitRelease });
+        power: s.power, charging: s.charging, chargeT: s.chargeT, collapseT: s.collapseT, idleT: s.idleT, waitRelease: s.waitRelease,elapsed:s.elapsed,fxSeed:s.fxSeed,fired:s.fired,bestShot:s.bestShot,shotBlocks:s.shotBlocks,blockGoal:s.blockGoal });
     }
 
     /* ----------------------------------------------------------- render --- */
@@ -209,14 +217,7 @@
         const i = cy * COLS + cx, type = this.grid[i];
         if (!type) continue;
         const x = this.gx + cx * CELL, y = this.gy + cy * CELL, c = this.cellColor(type, this.tint[i]);
-        if (type === GLASS) {
-          ctx.save(); ctx.globalAlpha = 0.35; ctx.fillStyle = c; ctx.fillRect(x + 1, y + 1, CELL - 2, CELL - 2); ctx.restore();
-          NE.glowRect(ctx, c, x + 1, y + 1, CELL - 2, CELL - 2, 2, 1.5);
-        } else {
-          NE.glowRect(ctx, c, x + 1, y + 1, CELL - 2, CELL - 2, 3);
-          if (type === TNT) NE.text(ctx, "!", x + CELL / 2, y + 2, { size: 14, color: P.bg, align: "center", glow: false });
-          if (type === STEEL) { ctx.save(); ctx.strokeStyle = P.bg; ctx.lineWidth = 2; ctx.strokeRect(x + 5, y + 5, CELL - 10, CELL - 10); ctx.restore(); }
-        }
+        ctx.drawImage(this.tiles[type][this.tint[i]],x,y);
       }
 
       // debris
@@ -239,35 +240,35 @@
         for (let k = 0; k < 16; k++) { for (let j = 0; j < 3; j++) { vy += GRAV / 60; x += vx / 60; y += vy / 60; }
           ctx.beginPath(); ctx.arc(x, y, 2, 0, TAU); ctx.fill(); }
         ctx.restore();
-        NE.glowCircle(ctx, P.white, this.lx, this.ly, BALL_R);
+        this.drawBall(ctx,this.lx,this.ly,(this.fired+1)%3===0);
         if (this.charging) NE.bar(ctx, this.lx - 40, this.ly - 54, 80, 8, this.power, P.amber);
       }
       if (this.ball) {
         const b = this.ball;
         b.trail.forEach(([x, y], k) => { ctx.save(); ctx.globalAlpha = k / b.trail.length * 0.4;
           NE.glowCircle(ctx, P.cyan, x, y, BALL_R * (0.4 + k / b.trail.length * 0.5)); ctx.restore(); });
-        NE.glowCircle(ctx, P.white, b.x, b.y, BALL_R);
+        this.drawBall(ctx,b.x,b.y,b.powered);
       }
 
       // HUD
       NE.text(ctx, String(this.score), 20, 16, { size: 40 });
-      NE.text(ctx, `LEVEL ${this.level}`, 22, 64, { size: 15, color: P.dim });
+      NE.text(ctx, `LEVEL ${this.level}`,22,64,{size:15,color:P.dim});NE.text(ctx,(this.fired+1)%3===0?"NEXT: CORE BALL":"CORE BALL IN "+(3-this.fired%3)+" SHOTS",22,92,{size:15,color:P.amber});NE.text(ctx,this.blockGoal?"20 BLOCKS ✓":`BLOCK GOAL ${this.destroyed}/20`,22,118,{size:15,color:P.lime});
       for (let k = 0; k < this.shots; k++) NE.glowCircle(ctx, P.white, this.W - 28 - k * 26, 30, 8);
       const frac = this.destroyed / this.initial, bx = this.W / 2 - 130, by = 26;
       NE.bar(ctx, bx, by, 260, 12, frac, frac >= this.target ? P.lime : P.magenta, "DEMOLISHED");
       NE.glowLine(ctx, P.amber, bx + 260 * this.target, by - 4, bx + 260 * this.target, by + 16, 2);
-      NE.text(ctx, `${Math.round(frac * 100)}% / ${Math.round(this.target * 100)}%`, bx + 270, by - 3, { size: 14, color: P.ink });
+      NE.text(ctx, `${Math.round(frac * 100)}% / ${Math.round(this.target * 100)}%`, bx + 270, by - 3, { size: 14, color: P.white });
       if (this.phase === "aim" && this.shots && !this.charging)
         NE.text(ctx, "aim with mouse / ↑↓  ·  hold click or SPACE, release to fire",
                 this.W / 2, this.H - 30, { size: 13, color: P.dim, align: "center" });
       if (this.phase === "clear")
         NE.banner(ctx, this.W, this.H, "LEVEL FLATTENED!", `+${this.shots * 150} for spare balls   -   click / SPACE next tower`);
       if (this.state === "over")
-        NE.banner(ctx, this.W, this.H, "STILL STANDING", `score ${this.score}   -   ENTER / tap to retry   ESC menu`);
+        NE.banner(ctx, this.W, this.H, "STILL STANDING", `score ${this.score} · best shot ${this.bestShot} blocks · tap to retry`);
     }
   }
   NE.register("wrecker",
-    { touch: "tap", title: "TOWER WRECKER", genre: "Destruction physics", color: P.magenta,
+    { polished:true,world:["#0d2030","#213e52","#99d4df"],scene:"clouds",music:{root:174.61,tempo:88,wave:"triangle"},hint:"AIM · HOLD · RELEASE TO WRECK",touch: "tap", title: "TOWER WRECKER", genre: "Destruction physics", color: P.magenta,
       desc: "Fling a wrecking ball at neon towers. Glass shatters, TNT chains. Then rewind and watch it rebuild." },
     Wrecker);
 })();
