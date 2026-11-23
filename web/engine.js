@@ -305,7 +305,7 @@
     skyhop: [200, 650, 1500], swarm: [200, 650, 1500], striker: [400, 1400, 3500],
     breaker: [1500, 5000, 12000], trail: [100, 300, 600], drift: [500, 2000, 5000],
     prism: [500, 2000, 6000], match: [2000, 6000, 12000], wrecker: [1500, 5000, 12000],
-    echo3d: [50, 120, 200], rampage: [1500, 6000, 12000], glass: [1500, 5000, 12000], demo: [1000, 3000, 7000],
+    rumble: [500, 1500, 3000], echo3d: [50, 120, 200], rampage: [1500, 6000, 12000], glass: [1500, 5000, 12000], demo: [1000, 3000, 7000],
   };
   const TIERS = [{ name: "BRONZE", color: "#e0a060", cores: 20 },
                  { name: "SILVER", color: "#d8dcf0", cores: 50 },
@@ -416,7 +416,7 @@
     },
     // starter goal: try 3 different games -> +30 cores, once. The visit itself counts as step 1 of 4.
     STARTER: 30,
-    tried() { return [...new Set(registry.map(g => g.id).concat(["echo3d", "rampage"]))].filter(id => scores.get(id) > 0).length; },
+    tried() { return [...new Set(registry.map(g => g.id).concat(["echo3d", "rampage", "rumble"]))].filter(id => scores.get(id) > 0).length; },
     starter() {
       if (load("forkade-starter", false) || this.tried() < 3) return 0;
       save("forkade-starter", true); const n = this.add(this.STARTER);

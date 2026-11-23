@@ -58,6 +58,7 @@
 </div>
 <p class="note">The key is the <code>STATS_KEY</code> value set in Vercel. It is remembered only in this tab session.
   Counts skip bots and browsers that send Do Not Track / Global Privacy Control, so real numbers are a little higher.</p>
+<section><h2>Reported forges</h2><div id="forge-reports"></div></section>
 <script>
   const NAMES = { skyhop: "Sky Hop", swarm: "Neon Swarm", striker: "Sky Striker", breaker: "Pulse Breaker", trail: "Echo Trail",
     drift: "Driftstorm", prism: "Prism Stacks", match: "Core Match", wrecker: "Tower Wrecker", glass: "Glass City", demo: "Demolition Chain", echo3d: "ECHO 3D", rampage: "RAMPAGE 3D", playground: "Playground" };
@@ -88,7 +89,7 @@
         const rate=first&&returned<=first?Math.floor(returned*100/first)+'%':'Not enough reliable data';
         return '<p><b>Group '+b+'</b> · '+plays+' plays · Day-1 return: '+rate+' ('+returned+' returns / '+first+' first-counted visitors)</p>';}).join('');
       $("out").hidden = false; $("msg").textContent = "";
-      loadReports(key);
+      loadReports(key);loadForges(key);
     } catch (err) { $("msg").textContent = err.message; } finally {$("go").disabled=false;$("out").removeAttribute("aria-busy");}
   }
   const lbApi = api.replace("/api/stats", "/api/leaderboard");
@@ -118,6 +119,8 @@
     try { await modCall($("key").value.trim(), { do: b.dataset.do, target: b.dataset.t, game: b.dataset.game, reason, source:$("mod-source").value }); loadReports($("key").value.trim()); }
     catch (err) { b.disabled = false; b.textContent = err.message; }
   });
+  async function loadForges(key){try{const r=await bounded('/api/forge',{method:'POST',headers:{'Content-Type':'application/json','X-Stats-Key':key},body:JSON.stringify({action:'moderate',do:'list'})});const j=await r.json();if(!r.ok)throw Error(j.error);$('forge-reports').innerHTML=j.items.map(f=>'<div class="r"><b>'+escH(f.name)+'</b><span>'+f.reports+' reports'+(f.hidden?' · hidden':'')+'</span><button data-forge="'+f.code+'" data-action="hide">Hide</button><button data-forge="'+f.code+'" data-action="dismiss">Restore</button></div>').join('')||'No reported forges.';}catch(e){$('forge-reports').textContent=e.message;}}
+  $('forge-reports').onclick=async e=>{const b=e.target.closest('[data-forge]');if(!b)return;const reason=$('mod-reason').value.trim();if(reason.length<3){$('msg').textContent='Add a moderation reason first.';return;}b.disabled=true;try{const r=await bounded('/api/forge',{method:'POST',headers:{'Content-Type':'application/json','X-Stats-Key':$('key').value.trim()},body:JSON.stringify({action:'moderate',do:b.dataset.action,code:b.dataset.forge,reason,source:$('mod-source').value})});const j=await r.json();if(!r.ok)throw Error(j.error);await loadForges($('key').value.trim());}catch(err){$('msg').textContent=err.message;b.disabled=false;}};
   $("go").addEventListener("click", load); $("key").addEventListener("keydown", e => { if (e.key === "Enter") load(); });
   if ($("key").value) load();
 </script>

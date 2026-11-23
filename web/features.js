@@ -39,7 +39,7 @@
   const settings = document.createElement('div'); settings.className = 'modal'; settings.id = 'settings'; settings.hidden = true;
   settings.innerHTML = `<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="settings-title">
     <button class="x" id="close-settings" aria-label="Close settings">×</button><h2 id="settings-title">SETTINGS</h2>
-    <p class="hint">Your progress and settings stay on this device. No cookies, ads or third-party trackers. Your nickname and score only leave this device when you tap Post.</p>
+    <p class="hint">Your progress and settings stay on this device. No cookies, ads or third-party trackers. Only Post shares a nickname and score, plus a Rumble replay; only Publish shares Forge presets.</p>
     <label class="nick">Nickname <input id="playername" maxlength="14" placeholder="ECHO" autocomplete="nickname" spellcheck="false"></label>
     <label><input type="checkbox" data-setting="vibration"> Vibration</label>
     <label><input type="checkbox" data-setting="mute"> Mute sound</label>
@@ -156,7 +156,7 @@
   function paintMore(){extra.forEach(c=>c.hidden=!expanded);more.textContent=expanded?'Fewer games':'More games ('+extra.length+')';more.setAttribute('aria-expanded',String(expanded));}
   more.onclick=()=>{expanded=!expanded;try{localStorage.setItem('forkade-more-games',expanded?'1':'0');}catch(_){}paintMore();};paintMore();
   const rumble=document.createElement('button');rumble.className='card rumble-hero';rumble.dataset.game='rumble';rumble.style.setProperty('--c','var(--brand)');
-  rumble.innerHTML='<span class="genre">NEW: ECHO RUMBLE (beta)</span><h3 class="name">The arcade that forks itself.</h3><video id="rumble-loop" muted loop playsinline preload="none" poster="media/rumble-poster.jpg" aria-label="Real ECHO RUMBLE gameplay"></video><p class="desc">Rewind your mistakes into a squad of allies.</p><span class="rumble-look"><b aria-hidden="true">••</b>Your echo · 24 parts</span>';
+  rumble.innerHTML='<span class="genre">NEW: ECHO RUMBLE (beta)</span><h3 class="name">The arcade that forks itself.</h3><video id="rumble-loop" muted loop playsinline preload="none" poster="media/rumble-poster.jpg" aria-label="Real ECHO RUMBLE gameplay"></video><p class="desc">Rewind your mistakes into a squad of allies.</p><span class="rumble-look"><b aria-hidden="true">••</b>Your echo · 48 parts</span>';
   rumble.onclick=()=>open3D('rumble');document.getElementById('hero-sub').after(rumble);
   const loop=rumble.querySelector('video');let visible=true;
   function previewMotion(){if(location.protocol==='file:'||S.reduceMotion||navigator.connection?.saveData||document.hidden||!visible){loop.pause();return;}if(!loop.src)loop.src='media/rumble-loop.mp4';loop.play().catch(()=>{});}

@@ -21,7 +21,7 @@ const Runs = require("../lib/runs");
 const CAPS = {
   skyhop: 100000, swarm: 200000, striker: 600000, breaker: 3000000, trail: 20000,
   drift: 1000000, prism: 5000000, match: 5000000, wrecker: 2000000, echo3d: 1000,
-  glass: 3000000, demo: 2000000, rampage: 200000,
+  glass: 3000000, demo: 2000000, rampage: 200000, rumble: 100000,
 };
 const BLOCK = /(fuck|shit|cunt|nigg|fag|bitch|whore|slut|rape|nazi|hitler|porn|dick|pussy|cock)/i;
 const TOP = 50;
@@ -71,7 +71,7 @@ function send(res, code, body) {
 async function readBody(req) {
   if (req.body && typeof req.body === "object") return req.body;
   if (typeof req.body === "string") { try { return JSON.parse(req.body); } catch (_) { return {}; } }
-  let raw = ""; for await (const c of req) { raw += c; if (raw.length > 2000) break; }
+  let raw = ""; for await (const c of req) { raw += c; if (raw.length > 270000) break; }
   try { return JSON.parse(raw || "{}"); } catch (_) { return {}; }
 }
 
@@ -123,7 +123,7 @@ async function moderate(R, b, res, week) {
     const [raw] = await R([['GET', key]]);
     if (!raw) return send(res,404,{error:'Review expired.'});
     const item = JSON.parse(raw);
-    if (b.do === 'approve-score') await publish(R, item.game, item.score, item.name, item.pid, item.week, item.daily);
+    if (b.do === 'approve-score'){await publish(R,item.game,item.score,item.name,item.pid,item.week,item.daily);if(item.replay)await saveReplay(R,item.pid,item.daily,item.score,item.replay,item.name);}
     await R([['DEL',key],['ZREM','lb:pending',key]]);
     await auditModeration(R,b);return send(res,200,{ok:true});
   }
@@ -135,6 +135,7 @@ async function moderate(R, b, res, week) {
     const cmds = [["HDEL", "lb:names", pid], ["HDEL", "lb:reported", pid], ["DEL", `lb:rep:${pid}`], ["SREM", "lb:hidden", pid]];
     for (const g of Object.keys(CAPS)) {
       cmds.push(['DEL', `lb:pending:${pid}:${g}`], ['ZREM','lb:pending',`lb:pending:${pid}:${g}`]);
+      for(let n=0;n<4;n++)cmds.push(['DEL',`rumble:replay:${Runs.Daily.date(Date.now()-n*86400000)}:${pid}`]);
       for (let n=0;n<4;n++) cmds.push(['ZREM',`lb:${g}:d:${Runs.Daily.date(Date.now()-n*86400000)}`,pid]);
       cmds.push(["ZREM", `lb:${g}:all`, pid]); for (const w of weeks) cmds.push(["ZREM", `lb:${g}:w:${w}`, pid]); }
     await R(cmds);
@@ -203,6 +204,7 @@ module.exports = async function handler(req, res) {
       const game = b.game, score = Math.floor(Number(b.score)), name = cleanName(b.name), pid = b.pid;
       if (!CAPS[game]) return send(res, 400, { error: "Unknown game." });
       if (!validPid(pid)) return send(res, 400, { error: "Bad player id." });
+      if (game==='rumble' && !require('../web/rumble-rules').first.some((_,a)=>require('../web/rumble-rules').last.some((_,z)=>require('../web/rumble-rules').nickname(a,z)===name)))return send(res,400,{error:'Pick a preset Rumble name.'});
       if (!validName(name)) return send(res, 400, { error: "Pick a nickname: 2-14 letters or numbers, nothing rude." });
       if (!(score > 0 && score <= CAPS[game])) return send(res, 400, { error: "That score doesn't look right." });
 
@@ -213,15 +215,16 @@ module.exports = async function handler(req, res) {
 
       const checked = await Runs.consume(R, { ...b, score });
       if (checked.error) return send(res, 400, { error: checked.error });
-      const daily = checked.run.daily;
+      const daily = checked.run.daily;let replay=null;
+      if(game==='rumble'){try{const proof=require('../web/rumble-replay').validate(b.replay,checked.run.seed,score);if((Date.now()-checked.run.at)/1000+.5<proof.steps/60*.85)throw Error('Replay is too fast.');replay=proof.packet;}catch(e){return send(res,400,{error:e.message});}}
       const [previous] = await R([['ZSCORE', `lb:${game}:all`, pid]]);
       if (Number(previous) > 0 && score > Number(previous) * 10) {
         const key = `lb:pending:${pid}:${game}`;
-        await R([['SET',key,JSON.stringify({pid,game,score,name,week,daily,at:Date.now(),previous:Number(previous)}),'EX','259200'],
+        await R([['SET',key,JSON.stringify({pid,game,score,name,week,daily,replay,at:Date.now(),previous:Number(previous)}),'EX','259200'],
           ['ZADD','lb:pending',String(Date.now()),key]]);
         return send(res,202,{ok:true,pending:true,message:'Pending review: this score is more than 10× your previous best.'});
       }
-      return send(res, 200, await publish(R,game,score,name,pid,week,daily));
+      const result=await publish(R,game,score,name,pid,week,daily);if(replay)await saveReplay(R,pid,daily,score,replay,name);return send(res,200,result);
     }
     if (req.method === "DELETE") {
       // "Remove my scores": wipes this player's nickname and every score on every board
@@ -231,6 +234,7 @@ module.exports = async function handler(req, res) {
       const cmds = [["HDEL", "lb:names", pid]];
       for (const g of Object.keys(CAPS)) {
       cmds.push(['DEL', `lb:pending:${pid}:${g}`], ['ZREM','lb:pending',`lb:pending:${pid}:${g}`]);
+      for(let n=0;n<4;n++)cmds.push(['DEL',`rumble:replay:${Runs.Daily.date(Date.now()-n*86400000)}:${pid}`]);
       for (let n=0;n<4;n++) cmds.push(['ZREM',`lb:${g}:d:${Runs.Daily.date(Date.now()-n*86400000)}`,pid]);
       cmds.push(["ZREM", `lb:${g}:all`, pid]); for (const w of weeks) cmds.push(["ZREM", `lb:${g}:w:${w}`, pid]); }
       await R(cmds);
@@ -243,3 +247,6 @@ module.exports = async function handler(req, res) {
 };
 module.exports.isoWeek = isoWeek;
 module.exports.CAPS = CAPS;
+
+async function saveReplay(R,pid,date,score,replay,name){if(!date)return;const ttl=Math.min(259200,Math.floor((Date.parse(date+'T00:00:00+08:00')+3*86400000-Date.now())/1000));if(ttl<=0)return;const key=`rumble:replay:${date}:${pid}`;const [old]=await R([['GET',key]]);if(old&&JSON.parse(old).score>score)return;await R([['SET',key,JSON.stringify({score,...replay,name}),'EX',String(ttl)]]);}
+module.exports.redis=redis;module.exports.ownerOk=ownerOk;module.exports.auditModeration=auditModeration;
