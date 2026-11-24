@@ -34,14 +34,14 @@ async function api(){const db=new Redis(),restore=db.install(),clock=Date.now;le
   assert.match(fs.readFileSync('web/engine.js','utf8'),/new Uint8Array\(16\); crypto.getRandomValues\(b\)/);
   console.log('2: rankings, Forge, replay/friend output contains no pid/owner; other device cannot unpublish');
   // 5/11/14: strict numeric types, closed key vocabulary and nickname allow-list.
-  for(const value of fuzz){now+=9000;assert.ok([400,413].includes((await call(LB,'POST',{game:'skyhop',pid,name:'Tester',score:value})).status));assert.ok([400,413].includes((await call(LB,'POST',{action:'report',game:'skyhop',pid,rank:value})).status));
+  for(const value of fuzz){now+=9000;const validRun=await start('skyhop');age(validRun.token,20);assert.ok([400,413].includes((await call(LB,'POST',{game:'skyhop',pid,name:'Tester',score:value,...validRun})).status));assert.ok([400,413].includes((await call(LB,'POST',{action:'report',game:'skyhop',pid,rank:value})).status));
    for(const field of ['maxUses','expires']){const b={action:'create',code:'FUZZED',reward:{cores:1},maxUses:1,expires:0,note:'', [field]:value};if(field==='expires'&&value===0)continue;if(field==='maxUses'&&value===0)continue;assert.ok([400,413].includes((await call(promo,'POST',b,'/api/promo',auth)).status),field);}
    assert.ok([400,413].includes((await call(promo,'POST',{action:'create',code:'FUZZED',reward:{cores:value},maxUses:1,note:''},'/api/promo',auth)).status));
-   for(const field of ['gravity','speed','size','enemies','timer'])assert.ok([400,413].includes((await call(forge,'POST',{action:'publish',pid,config:{...Rules.defaults,[field]:value}},'/api/forge')).status));
+   for(const field of ['gravity','speed','size','enemies','palette','timer','nameA','nameB']){if(value===0&&['palette','nameA','nameB'].includes(field))continue;assert.ok([400,413].includes((await call(forge,'POST',{action:'publish',pid,config:{...Rules.defaults,[field]:value}},'/api/forge')).status));}
   }
   for(const days of ['-1','0','1e309','NaN','1e3','[]','{}','91','1.2'])assert.equal((await call(stats,'GET',{},'/api/stats?days='+encodeURIComponent(days),auth)).status,400);
   for(const game of ['__proto__','constructor','toString','skyhop:all',[],{},'x'.repeat(1000)]){assert.equal((await call(LB,'POST',{action:'start',game})).status,400);}
-  for(const name of ['<img src=x onerror=alert(1)>','"><script>','javascript:','😀','ab\u202Ecd','ab\u200Bcd','A.B']){now+=9000;assert.equal((await call(LB,'POST',{game:'skyhop',pid,name,score:1})).status,400);}
+  for(const name of ['<img src=x onerror=alert(1)>','"><script>','javascript:','😀','ab\u202Ecd','ab\u200Bcd','A.B']){now+=9000;const validRun=await start('skyhop');age(validRun.token,20);const rejected=await call(LB,'POST',{game:'skyhop',pid,name,score:1,...validRun});assert.equal(rejected.status,400);assert.match(rejected.body.error,/Pick a nickname/);}
   for(const fn of [LB,stats,forge,promo])assert.equal((await call(fn,'POST',{pad:'x'.repeat(300001)})).status,413);
   assert.throws(()=>Rules.config({...Rules.defaults,url:'https://attacker.invalid/x.js'}));
   console.log('5/11/12/14: numeric fuzz, body limits, key injection, unsafe names and remote Forge input rejected');
