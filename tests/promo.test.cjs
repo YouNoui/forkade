@@ -2,12 +2,12 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),crypto=re
 const {Redis,request}=require('./redis.cjs'),handler=require('../api/promo');
 test('promo authorization, limits, dedupe, privacy, rate expiry and preview isolation',async()=>{
   const db=new Redis(),restore=db.install();process.env.STATS_KEY='promo-owner-test';process.env.PROMO_SALT='promo-test-salt';
-  const call=(body,key,ip='192.0.2.40')=>request(handler,'POST',body,'/api/promo',{'x-stats-key':key,'x-forwarded-for':ip});
+  const call=(body,key,ip='192.0.2.40')=>request(handler,'POST',body,'/api/promo',{'x-stats-key':key,'x-real-ip':ip});
   const create=(code,extra={})=>call({action:'create',code,reward:{cores:100,skins:['pink'],parts:['hat:1']},maxUses:1,note:'private note',...extra},process.env.STATS_KEY);
   const device=()=>crypto.randomBytes(16).toString('hex');let n=0;
   const redeem=(code,id=device())=>call({action:'redeem',code,device:id},undefined,'192.0.2.'+(++n));
   try{
-    for(const action of ['create','list','generate','enable','delete'])for(const key of [undefined,'wrong'])assert.equal((await call({action,code:'ABCDEF'},key)).status,401);
+    for(const action of ['create','list','generate','enable','delete'])for(const key of [undefined,'wrong'])assert.equal((await call({action,code:'ABCDEF'},key,'192.0.3.'+(++n))).status,401);
     for(let i=0;i<100;i++)assert.match(handler.generate(),/^[A-HJ-NP-Z2-9]{8}$/);
     assert.equal((await create('GIFT123')).status,200);assert.equal((await create('GIFT123')).status,409);
     assert.equal((await create('BAD123',{reward:{cores:100001}})).status,400);assert.equal((await create('BAD123',{reward:{parts:['hat:999']}})).status,400);

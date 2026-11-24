@@ -18,3 +18,8 @@ docs/**/*.mp4
 
 # Legacy duplicate output; production download is web/download/forkade.html.
 dist/
+
+*.pem
+.dev.vars*
+.wrangler/
+wrangler.secret*

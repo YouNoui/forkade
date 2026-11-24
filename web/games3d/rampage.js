@@ -54,7 +54,7 @@
   let music=0,note=0,hitStop=0;
   function fx(){state.fxSeed=(Math.imul(state.fxSeed,1664525)+1013904223)>>>0;return state.fxSeed/4294967296;}
   function reset(){
-    state={x:0,z:0,yaw:0,score:0,time:90,cool:0,pulse:0,hp:buildings.map(b=>b.floors),chunks:[],done:false,elapsed:0,destroyed:0,goal:false,power:0,reactorHp:0,reactorStarted:false,reactorWon:false,fxSeed:7919,combo:0,bestCombo:0,comboTime:0};
+    state={x:0,z:0,yaw:0,score:0,time:90,cool:0,pulse:0,hp:buildings.map(b=>b.floors),chunks:[],done:false,elapsed:0,destroyed:0,goal:false,power:0,reactorHp:0,reactorStarted:false,reactorWon:false,fxSeed:F?.board.seed||7919,combo:0,bestCombo:0,comboTime:0};
     frames=[];energy=1;hitStop=0;music=0;note=0;paused=false;banner.hidden=true;notice.textContent='Move close to a building. Tap STOMP. Clear the city before time runs out!';
     if(started)parent.postMessage({t:'forkade-run-start',id:'rampage'},'*');started=true;sync();
   }

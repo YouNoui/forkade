@@ -6,8 +6,8 @@ test('Singapore daily rollover is deterministic',()=>{
 });
 test('real handlers: consent, run binding, replay, speed, expiry, daily, moderation and deletion',async()=>{
  const redis=new Redis(),restore=redis.install(),realNow=Date.now;let now=Date.parse('2026-11-18T03:00:00Z');Date.now=()=>now;process.env.STATS_KEY='owner-test';
- const pid='a'.repeat(32),other='b'.repeat(32),call=(body)=>request(handler,'POST',{pid,...body});
- const start=async(game='skyhop',extra={})=>{now+=9000;const r=await call({action:'start',game,...extra});assert.equal(r.status,200);return r.body.token;};
+ let seed;const pid='a'.repeat(32),other='b'.repeat(32),call=({key,...body})=>request(handler,'POST',{pid,seed,...body},'/api/leaderboard',{'x-stats-key':key});
+ const start=async(game='skyhop',extra={})=>{now+=9000;const r=await call({action:'start',game,...extra});assert.equal(r.status,200);seed=r.body.seed;return r.body.token;};
  try{
   assert.equal((await request(stats,'POST',{e:'play',game:'skyhop'},'/api/stats')).status,204);assert.equal(redis.data.size,0);
   await request(stats,'POST',{e:'play',game:'skyhop',consent:true},'/api/stats');assert.ok(redis.data.size>0);
