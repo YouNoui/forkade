@@ -115,14 +115,14 @@
       NE.glowCircle(ctx, P.white, this.bx, this.by, 7);
       NE.text(ctx, String(this.score), 20, 16, { size: 40 });
       for (let i = 0; i < this.lives; i++) NE.glowCircle(ctx, P.cyan, this.W - 30 - i * 26, 28, 7);
-      NE.text(ctx,`FORGE ${this.level} · ${this.breaks%5}/5 BRICKS · +75`,22,60,{size:17,color:"#ffe0b1",glow:false});
+      NE.text(ctx,`Forge ${this.level} · ${this.breaks%5}/5 bricks · +75`,22,60,{size:17,color:"#ffe0b1",glow:false});
       if(this.wide>0||this.fire>0)NE.text(ctx,this.wide>0?"Wide "+Math.ceil(this.wide)+"s":"Blaze "+Math.ceil(this.fire)+"s",this.W-20,90,{size:18,align:"right",color:P.lime,glow:false});
       if (this.stuck && this.state === "play")
         NE.text(ctx, "SPACE or click to launch", this.W / 2, this.H - 110, { size: 16, color: P.dim, align: "center" });
       if (this.state === "over")
         {NE.banner(ctx,this.W,this.H,"Forge run",`${this.breaks} bricks · ${this.level-1} walls · combo ${this.juice?.best||0}`);const gap=NE.scores.get(this.id)-this.score;NE.text(ctx,gap>0?gap+' points to your best':this.assisted?'Assist run':'Your best forge',this.W/2,this.H/2+130,{size:18,align:'center',glow:false});}
       if (this.phase === "clear" && this.state === "play")
-        NE.banner(ctx, this.W, this.H, `WALL ${this.level} CLEARED!`, `+${this.bonus} and +1 life   -   SPACE / click for wall ${this.level + 1}`);
+        NE.banner(ctx, this.W, this.H, `Wall ${this.level} cleared!`, `+${this.bonus} and +1 life   -   SPACE / click for wall ${this.level + 1}`);
     }
   }
   NE.register("breaker",

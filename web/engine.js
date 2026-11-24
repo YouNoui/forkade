@@ -433,7 +433,7 @@
     starter() {
       if (load("forkade-starter", false) || this.tried() < 3) return 0;
       save("forkade-starter", true); const n = this.add(this.STARTER);
-      if (n) { this.toast(`STARTER GOAL DONE  +${n} cores`, palette.cyan); sfx.win(); }
+      if (n) { this.toast(`Starter goal done  +${n} cores`, palette.cyan); sfx.win(); }
       return n;
     },
     owned() { return [...new Set(load("forkade-skins", ["classic"]).concat(this.promo().skins))]; },
@@ -572,7 +572,7 @@
       this.beat-=dt;if(meta.music&&this.beat<=0){this.beat=60/meta.music.tempo/2;const scale=[0,7,12,7,3,10,15,10],n=scale[this.note++%8];sfx._tone(meta.music.root*Math.pow(2,n/12),.16,meta.music.wave,this.duck?.008:.025);}
     }
     render(ctx,w,h){for(const p of this.pops)if(p.life>0)text(ctx,p.label,p.x,p.y,{size:20,color:palette.amber,align:'center',glow:false});
-      if(this.combo>1)text(ctx,'COMBO ×'+this.combo,w-20,60,{size:18,color:palette.amber,align:'right',glow:false});
+      if(this.combo>1)text(ctx,'Combo ×'+this.combo,w-20,60,{size:18,color:palette.amber,align:'right',glow:false});
       if(this.flash&&!settings.reduceMotion){ctx.fillStyle='rgba(255,79,110,.15)';ctx.fillRect(0,0,w,h);}}
     snapshot(){return {combo:this.combo,best:this.best,window:this.window,freeze:this.freeze,slow:this.slow,flash:this.flash,direction:this.direction};}
     restore(s){Object.assign(this,s);for(const p of this.pops)p.life=0;}
@@ -659,7 +659,7 @@
       ctx.restore();
       if(this.juice){this.juice.render(ctx,this.W,this.H);
         if(this.hint){if(this.input.tapped||Object.keys(this.input.pressed).length){this.hint=false;try{localStorage.setItem('forkade-hint-'+this.id,'1');}catch(_){}}
-          else {const x=this.W/2+(settings.reduceMotion?0:Math.sin(this.t*3)*14);text(ctx,this.meta.hint||'TAP / ARROWS TO PLAY',x,this.H-88,{size:20,align:'center',color:palette.white});}}
+          else {const x=this.W/2+(settings.reduceMotion?0:Math.sin(this.t*3)*14);text(ctx,this.meta.hint||'Tap / arrows to play',x,this.H-88,{size:20,align:'center',color:palette.white});}}
       }
       this.rewind.overlay(ctx, this.W, this.H);
       if (this.state === "pause") banner(ctx, this.W, this.H, "Paused", "P resume   ESC menu");
@@ -668,7 +668,7 @@
         const b = scores.get(this.id), still = !!settings.reduceMotion, t = this._overT || 0;
         // new best pops in (overshoot, then settles); cores roll up instead of appearing
         const pop = still || !this.newBest ? 1 : easeOutBack(Math.min(1, t / 0.45));
-        text(ctx, (this.newBest ? "★ NEW BEST  " : "BEST  ") + b,
+        text(ctx, (this.newBest ? "New best  " : "Best  ") + b,
              this.W / 2, this.H / 2 + 52 - (pop - 1) * 6, { size: Math.max(1, Math.round(16 * (this.newBest ? 0.6 + 0.4 * pop : 1))),
              color: this.newBest ? palette.amber : palette.dim, align: "center" });
         if (this.earned) {
@@ -691,7 +691,7 @@
         ty += 38;
       }
       rewards.toasts = rewards.toasts.filter(q => q.t < 2.9);
-      if(this.assisted)text(ctx,'ASSIST',16,this.H-24,{size:14,color:palette.amber,glow:false});
+      if(this.assisted)text(ctx,'Assist',16,this.H-24,{size:14,color:palette.amber,glow:false});
       // HUD corner: equipped skin + wallet
       text(ctx, `${rewards.cores()} cores`, this.W - 16, this.H - 24, { size: 13, color: palette.lime, align: "right", glow: false });
     }

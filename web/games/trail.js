@@ -35,7 +35,7 @@
       let nx = (this.snake[0][0] + this.dir[0] + this.cols) % this.cols;
       let ny = (this.snake[0][1] + this.dir[1] + this.rows) % this.rows;
       if (this.snake.some((s,i) => i<this.snake.length-1&&s[0]===nx&&s[1]===ny)) {
-        this.state = "over";this.juice?.hit(nx*CELL,ny*CELL+this.oy,"TANGLED",true,true);NE.sfx.hit(); this.shake.add(14); return;
+        this.state = "over";this.juice?.hit(nx*CELL,ny*CELL+this.oy,"Tangled",true,true);NE.sfx.hit(); this.shake.add(14); return;
       }
       this.snake.unshift([nx, ny]);
       if (nx === this.food[0] && ny === this.food[1]) {
@@ -68,9 +68,9 @@
       if(this.glide>0)NE.glowCircle(ctx,P.cyan,hx,hy,19,2);NE.drawEcho(ctx, hx, hy, 14, P.cyan, this.dir[0] >= 0 ? 1 : -1, this.t);
       NE.text(ctx, String(this.score), 20, 14, { size: 40 });
       NE.text(ctx,'Length '+this.snake.length,this.W-20,20,{size:16,color:P.dim,align:'right'});
-      NE.text(ctx,this.glide>0?'Glide '+this.glide.toFixed(1)+'s':`COMET ${this.eaten%5}/5`,20,64,{size:17,color:P.cyan});NE.text(ctx,this.collectGoal?'10 ORBS ✓':`GOAL ${this.eaten}/10`,this.W-20,64,{size:17,color:P.amber,align:'right'});
+      NE.text(ctx,this.glide>0?'Glide '+this.glide.toFixed(1)+'s':`Comet ${this.eaten%5}/5`,20,64,{size:17,color:P.cyan});NE.text(ctx,this.collectGoal?'10 orbs ✓':`Goal ${this.eaten}/10`,this.W-20,64,{size:17,color:P.amber,align:'right'});
       if (this.state === "over")
-        NE.banner(ctx, this.W, this.H, this.won?"Garden filled!":"TANGLED", `score ${this.score} · ${this.eaten} orbs · length ${this.snake.length} · tap to retry`);
+        NE.banner(ctx, this.W, this.H, this.won?"Garden filled!":"Tangled", `score ${this.score} · ${this.eaten} orbs · length ${this.snake.length} · tap to retry`);
     }
   }
   NE.register("trail",

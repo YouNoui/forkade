@@ -51,7 +51,7 @@
           if (b.life>0 && (b.x - r.x) ** 2 + (b.y - r.y) ** 2 < rad * rad) { hit = true; b.life = 0; break; }
         if(hit&&(r.hp=(r.hp||1)-1)>0){this.rocks.push(r);this.juice?.hit(r.x,r.y,r.hp+" HITS LEFT",false);continue;}
         if (hit) {
-          this.kills++;if(this.kills%6===0){this.twin=8;this.juice?.hit(this.px,this.py,"TWIN SHOT 8s",true);}if(this.kills>=12&&!this.killGoal){this.killGoal=true;this.score+=200;this.juice?.hit(this.W/2,100,"12 ROCKS +200",true);}if(r.guardian)this.score+=400;this.juice?.hit(r.x,r.y,r.guardian?"Guardian +400":"+15",true);
+          this.kills++;if(this.kills%6===0){this.twin=8;this.juice?.hit(this.px,this.py,"Twin shot 8s",true);}if(this.kills>=12&&!this.killGoal){this.killGoal=true;this.score+=200;this.juice?.hit(this.W/2,100,"12 ROCKS +200",true);}if(r.guardian)this.score+=400;this.juice?.hit(r.x,r.y,r.guardian?"Guardian +400":"+15",true);
           this.score += 15; this.shake.add(3); NE.sfx.explode(); this.particles.emit(r.x, r.y, P.cyan, { n: 12, speed: 4 });
           if (r.size > 1 && !r.guardian) for (let i = 0; i < 2; i++) this.spawnRock(r.x, r.y, r.size - 1);
         } else this.rocks.push(r);
@@ -99,7 +99,7 @@
         if(this.twin>0)NE.glowCircle(ctx,P.amber,x,y,25,2);NE.drawEcho(ctx, x, y, 11, P.cyan, 1, this.t);
       }
       NE.text(ctx, String(this.score), 20, 16, { size: 40 });
-      NE.text(ctx,`WAVE ${this.wave}`,22,60,{size:15,color:P.dim});NE.text(ctx,this.twin>0?`TWIN SHOT ${this.twin.toFixed(1)}s`:`POWER ${this.kills%6}/6`,22,86,{size:15,color:P.amber});NE.text(ctx,this.killGoal?"12 ROCKS ✓":`GOAL ${this.kills}/12`,22,110,{size:15,color:P.lime});
+      NE.text(ctx,`Wave ${this.wave}`,22,60,{size:15,color:P.dim});NE.text(ctx,this.twin>0?`Twin shot ${this.twin.toFixed(1)}s`:`Power ${this.kills%6}/6`,22,86,{size:15,color:P.amber});NE.text(ctx,this.killGoal?"12 rocks ✓":`Goal ${this.kills}/12`,22,110,{size:15,color:P.lime});
       for (let i = 0; i < this.hp; i++) NE.glowCircle(ctx, P.cyan, this.W - 30 - i * 26, 28, 7);
       if (this.state === "over")
         NE.banner(ctx, this.W, this.H, "Lost in the storm", `score ${this.score} · wave ${this.wave} · ${this.kills} rocks · tap to retry`);

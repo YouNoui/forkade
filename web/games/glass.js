@@ -161,8 +161,8 @@
       }
       NE.text(ctx, String(this.score), 20, 16, { size: 40 });
       NE.text(ctx, `${Math.floor(this.dist/10)} m · ${this.smashed} walls`, 22, 64, { size: 14, color: P.dim });
-      NE.text(ctx,this.shield?"Shield ready":`SHIELD ${this.smashed%5}/5`,22,88,{size:15,color:P.lime});NE.text(ctx,this.smashGoal?"8 WALLS ✓":`GOAL ${this.smashed}/8 WALLS`,22,112,{size:15,color:P.amber});
-      if (this.combo > 1) NE.text(ctx, `COMBO x${this.combo}`, this.W / 2, 22, { size: 26, color: P.amber, align: "center" });
+      NE.text(ctx,this.shield?"Shield ready":`Shield ${this.smashed%5}/5`,22,88,{size:15,color:P.lime});NE.text(ctx,this.smashGoal?"8 walls ✓":`Goal ${this.smashed}/8 walls`,22,112,{size:15,color:P.amber});
+      if (this.combo > 1) NE.text(ctx, `Combo x${this.combo}`, this.W / 2, 22, { size: 26, color: P.amber, align: "center" });
       for (let i = 0; i < this.lives; i++) NE.glowCircle(ctx, P.cyan, this.W - 30 - i * 26, 28, 7);
       if (this.dist < 2200)
         NE.text(ctx, "glass = SMASH (→ / ▶ / tap right)   ·   pink wall = JUMP (SPACE / ACT)", this.W / 2, this.H - 30,

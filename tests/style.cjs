@@ -42,9 +42,8 @@ function inspect(){
  if(scene==='settings')await p.evaluate(()=>Forkade.openSettings());
  if(scene==='rankings')await p.locator('#open-ranks').click();
  if(['rumble','rumble-play','echo3d','rampage'].includes(scene)){await p.evaluate(id=>open3D(id),scene==='rumble-play'?'rumble':scene);if(scene.startsWith('rumble')){await p.frameLocator('#gframe').locator('#hero-menu').waitFor();if(scene==='rumble-play'){await p.frameLocator('#gframe').locator('#start').click();await p.frameLocator('#gframe').locator('#sheet').waitFor({state:'hidden'});}}else await p.frameLocator('#gframe').locator('#back').waitFor();}
- await p.waitForTimeout(scene==='home'?3200:500);await p.screenshot({path:path.join(out,phase+'-'+width+'-'+scene+'.png'),fullPage:!['game-over','rumble','rumble-play','echo3d','rampage','locker','settings','rankings'].includes(scene)});
+ await p.waitForTimeout(scene==='home'?4000:500);await p.screenshot({path:path.join(out,phase+'-'+width+'-'+scene+'.png'),fullPage:!['game-over','rumble','rumble-play','echo3d','rampage','locker','settings','rankings'].includes(scene)});
  const surface=['rumble','rumble-play','echo3d','rampage'].includes(scene)?await(await p.locator('#gframe').elementHandle()).contentFrame():p;const metrics=await surface.evaluate(inspect);results.push({width,scene,...metrics,errors});console.log(width,scene,metrics.fail.length+' style violations',errors.length+' errors');await p.close();
  }}finally{await c.close();}}}finally{await browser.close();f.app.close();f.restore();}
  fs.writeFileSync(path.join(out,phase+'-metrics.json'),JSON.stringify(results,null,2));if(!baseline){const bad=results.filter(r=>r.fail.length||r.errors.length);assert.deepEqual(bad.map(r=>({width:r.width,scene:r.scene,fail:r.fail,errors:r.errors})),[]);}
 })().catch(e=>{console.error(e);process.exitCode=1;});
-

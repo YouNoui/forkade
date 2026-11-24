@@ -134,13 +134,13 @@
       NE.text(ctx,'Crystal garden · level '+this.level,portrait?this.W/2:hx,portrait?26:45,{size:portrait?22:14,color:P.cyan,align:portrait?'center':'left'});
       NE.text(ctx,String(this.score)+' pts',hx,portrait?70:85,{size:26});NE.text(ctx,this.moves+' moves',portrait?this.W-24:hx,portrait?70:140,{size:24,color:this.moves<=5?P.red:P.lime,align:portrait?'right':'left'});
       NE.bar(ctx,hx,portrait?115:190,portrait?this.W-48:130,12,this.got/this.need,P.cyan);
-      NE.text(ctx,'Pulse '+this.charge+'/4',hx,portrait?710:240,{size:20,color:P.amber});NE.text(ctx,this.cascadeGoal?'DOUBLE CASCADE ✓':'Goal: double cascade',hx,portrait?745:280,{size:portrait?18:12,color:P.lime});
+      NE.text(ctx,'Pulse '+this.charge+'/4',hx,portrait?710:240,{size:20,color:P.amber});NE.text(ctx,this.cascadeGoal?'Double cascade ✓':'Goal: double cascade',hx,portrait?745:280,{size:portrait?18:12,color:P.lime});
       NE.drawEcho(ctx,portrait?this.W-70:hx+50,portrait?750:350,18,P.cyan,1,this.t);
       NE.text(ctx,'Tap a core, then a neighbour',this.W/2,this.H-45,{size:16,color:P.dim,align:'center'});
       if (this.state === "over")
         NE.banner(ctx, this.W, this.H, "Out of moves", `score ${this.score} · ${this.swaps} swaps · best cascade ${this.bestCascade} · tap to retry`);
       if (this.phase === "clear" && this.state === "play")
-        NE.banner(ctx, this.W, this.H, `LEVEL ${this.level} CLEARED!`, `+${this.bonus} for spare moves   -   click / SPACE for level ${this.level + 1}`);
+        NE.banner(ctx, this.W, this.H, `Level ${this.level} cleared!`, `+${this.bonus} for spare moves   -   click / SPACE for level ${this.level + 1}`);
     }
   }
   NE.register("match",

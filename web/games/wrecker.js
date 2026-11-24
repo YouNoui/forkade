@@ -252,7 +252,7 @@
 
       // HUD
       NE.text(ctx, String(this.score), 20, 16, { size: 40 });
-      NE.text(ctx, `LEVEL ${this.level}`,22,64,{size:15,color:P.dim});NE.text(ctx,(this.fired+1)%3===0?"Next: core ball":"Core ball in "+(3-this.fired%3)+" SHOTS",22,92,{size:15,color:P.amber});NE.text(ctx,this.blockGoal?"20 BLOCKS ✓":`BLOCK GOAL ${this.destroyed}/20`,22,118,{size:15,color:P.lime});
+      NE.text(ctx, `Level ${this.level}`,22,64,{size:15,color:P.dim});NE.text(ctx,(this.fired+1)%3===0?"Next: core ball":"Core ball in "+(3-this.fired%3)+" shots",22,92,{size:15,color:P.amber});NE.text(ctx,this.blockGoal?"20 blocks ✓":`Block goal ${this.destroyed}/20`,22,118,{size:15,color:P.lime});
       for (let k = 0; k < this.shots; k++) NE.glowCircle(ctx, P.white, this.W - 28 - k * 26, 30, 8);
       const frac = this.destroyed / this.initial, bx = this.W / 2 - 130, by = 26;
       NE.bar(ctx, bx, by, 260, 12, frac, frac >= this.target ? P.lime : P.magenta, "DEMOLISHED");

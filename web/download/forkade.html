@@ -1171,7 +1171,7 @@ return {heroes,difficulties,upgrades,road,masteryXP,level,rewards,next,options,w
     starter() {
       if (load("forkade-starter", false) || this.tried() < 3) return 0;
       save("forkade-starter", true); const n = this.add(this.STARTER);
-      if (n) { this.toast(`STARTER GOAL DONE  +${n} cores`, palette.cyan); sfx.win(); }
+      if (n) { this.toast(`Starter goal done  +${n} cores`, palette.cyan); sfx.win(); }
       return n;
     },
     owned() { return [...new Set(load("forkade-skins", ["classic"]).concat(this.promo().skins))]; },
@@ -1310,7 +1310,7 @@ return {heroes,difficulties,upgrades,road,masteryXP,level,rewards,next,options,w
       this.beat-=dt;if(meta.music&&this.beat<=0){this.beat=60/meta.music.tempo/2;const scale=[0,7,12,7,3,10,15,10],n=scale[this.note++%8];sfx._tone(meta.music.root*Math.pow(2,n/12),.16,meta.music.wave,this.duck?.008:.025);}
     }
     render(ctx,w,h){for(const p of this.pops)if(p.life>0)text(ctx,p.label,p.x,p.y,{size:20,color:palette.amber,align:'center',glow:false});
-      if(this.combo>1)text(ctx,'COMBO ×'+this.combo,w-20,60,{size:18,color:palette.amber,align:'right',glow:false});
+      if(this.combo>1)text(ctx,'Combo ×'+this.combo,w-20,60,{size:18,color:palette.amber,align:'right',glow:false});
       if(this.flash&&!settings.reduceMotion){ctx.fillStyle='rgba(255,79,110,.15)';ctx.fillRect(0,0,w,h);}}
     snapshot(){return {combo:this.combo,best:this.best,window:this.window,freeze:this.freeze,slow:this.slow,flash:this.flash,direction:this.direction};}
     restore(s){Object.assign(this,s);for(const p of this.pops)p.life=0;}
@@ -1397,7 +1397,7 @@ return {heroes,difficulties,upgrades,road,masteryXP,level,rewards,next,options,w
       ctx.restore();
       if(this.juice){this.juice.render(ctx,this.W,this.H);
         if(this.hint){if(this.input.tapped||Object.keys(this.input.pressed).length){this.hint=false;try{localStorage.setItem('forkade-hint-'+this.id,'1');}catch(_){}}
-          else {const x=this.W/2+(settings.reduceMotion?0:Math.sin(this.t*3)*14);text(ctx,this.meta.hint||'TAP / ARROWS TO PLAY',x,this.H-88,{size:20,align:'center',color:palette.white});}}
+          else {const x=this.W/2+(settings.reduceMotion?0:Math.sin(this.t*3)*14);text(ctx,this.meta.hint||'Tap / arrows to play',x,this.H-88,{size:20,align:'center',color:palette.white});}}
       }
       this.rewind.overlay(ctx, this.W, this.H);
       if (this.state === "pause") banner(ctx, this.W, this.H, "Paused", "P resume   ESC menu");
@@ -1406,7 +1406,7 @@ return {heroes,difficulties,upgrades,road,masteryXP,level,rewards,next,options,w
         const b = scores.get(this.id), still = !!settings.reduceMotion, t = this._overT || 0;
         // new best pops in (overshoot, then settles); cores roll up instead of appearing
         const pop = still || !this.newBest ? 1 : easeOutBack(Math.min(1, t / 0.45));
-        text(ctx, (this.newBest ? "★ NEW BEST  " : "BEST  ") + b,
+        text(ctx, (this.newBest ? "New best  " : "Best  ") + b,
              this.W / 2, this.H / 2 + 52 - (pop - 1) * 6, { size: Math.max(1, Math.round(16 * (this.newBest ? 0.6 + 0.4 * pop : 1))),
              color: this.newBest ? palette.amber : palette.dim, align: "center" });
         if (this.earned) {
@@ -1429,7 +1429,7 @@ return {heroes,difficulties,upgrades,road,masteryXP,level,rewards,next,options,w
         ty += 38;
       }
       rewards.toasts = rewards.toasts.filter(q => q.t < 2.9);
-      if(this.assisted)text(ctx,'ASSIST',16,this.H-24,{size:14,color:palette.amber,glow:false});
+      if(this.assisted)text(ctx,'Assist',16,this.H-24,{size:14,color:palette.amber,glow:false});
       // HUD corner: equipped skin + wallet
       text(ctx, `${rewards.cores()} cores`, this.W - 16, this.H - 24, { size: 13, color: palette.lime, align: "right", glow: false });
     }
@@ -1877,14 +1877,14 @@ return {heroes,difficulties,upgrades,road,masteryXP,level,rewards,next,options,w
       NE.glowCircle(ctx, P.white, this.bx, this.by, 7);
       NE.text(ctx, String(this.score), 20, 16, { size: 40 });
       for (let i = 0; i < this.lives; i++) NE.glowCircle(ctx, P.cyan, this.W - 30 - i * 26, 28, 7);
-      NE.text(ctx,`FORGE ${this.level} · ${this.breaks%5}/5 BRICKS · +75`,22,60,{size:17,color:"#ffe0b1",glow:false});
+      NE.text(ctx,`Forge ${this.level} · ${this.breaks%5}/5 bricks · +75`,22,60,{size:17,color:"#ffe0b1",glow:false});
       if(this.wide>0||this.fire>0)NE.text(ctx,this.wide>0?"Wide "+Math.ceil(this.wide)+"s":"Blaze "+Math.ceil(this.fire)+"s",this.W-20,90,{size:18,align:"right",color:P.lime,glow:false});
       if (this.stuck && this.state === "play")
         NE.text(ctx, "SPACE or click to launch", this.W / 2, this.H - 110, { size: 16, color: P.dim, align: "center" });
       if (this.state === "over")
         {NE.banner(ctx,this.W,this.H,"Forge run",`${this.breaks} bricks · ${this.level-1} walls · combo ${this.juice?.best||0}`);const gap=NE.scores.get(this.id)-this.score;NE.text(ctx,gap>0?gap+' points to your best':this.assisted?'Assist run':'Your best forge',this.W/2,this.H/2+130,{size:18,align:'center',glow:false});}
       if (this.phase === "clear" && this.state === "play")
-        NE.banner(ctx, this.W, this.H, `WALL ${this.level} CLEARED!`, `+${this.bonus} and +1 life   -   SPACE / click for wall ${this.level + 1}`);
+        NE.banner(ctx, this.W, this.H, `Wall ${this.level} cleared!`, `+${this.bonus} and +1 life   -   SPACE / click for wall ${this.level + 1}`);
     }
   }
   NE.register("breaker",
@@ -1932,7 +1932,7 @@ return {heroes,difficulties,upgrades,road,masteryXP,level,rewards,next,options,w
       let nx = (this.snake[0][0] + this.dir[0] + this.cols) % this.cols;
       let ny = (this.snake[0][1] + this.dir[1] + this.rows) % this.rows;
       if (this.snake.some((s,i) => i<this.snake.length-1&&s[0]===nx&&s[1]===ny)) {
-        this.state = "over";this.juice?.hit(nx*CELL,ny*CELL+this.oy,"TANGLED",true,true);NE.sfx.hit(); this.shake.add(14); return;
+        this.state = "over";this.juice?.hit(nx*CELL,ny*CELL+this.oy,"Tangled",true,true);NE.sfx.hit(); this.shake.add(14); return;
       }
       this.snake.unshift([nx, ny]);
       if (nx === this.food[0] && ny === this.food[1]) {
@@ -1965,9 +1965,9 @@ return {heroes,difficulties,upgrades,road,masteryXP,level,rewards,next,options,w
       if(this.glide>0)NE.glowCircle(ctx,P.cyan,hx,hy,19,2);NE.drawEcho(ctx, hx, hy, 14, P.cyan, this.dir[0] >= 0 ? 1 : -1, this.t);
       NE.text(ctx, String(this.score), 20, 14, { size: 40 });
       NE.text(ctx,'Length '+this.snake.length,this.W-20,20,{size:16,color:P.dim,align:'right'});
-      NE.text(ctx,this.glide>0?'Glide '+this.glide.toFixed(1)+'s':`COMET ${this.eaten%5}/5`,20,64,{size:17,color:P.cyan});NE.text(ctx,this.collectGoal?'10 ORBS ✓':`GOAL ${this.eaten}/10`,this.W-20,64,{size:17,color:P.amber,align:'right'});
+      NE.text(ctx,this.glide>0?'Glide '+this.glide.toFixed(1)+'s':`Comet ${this.eaten%5}/5`,20,64,{size:17,color:P.cyan});NE.text(ctx,this.collectGoal?'10 orbs ✓':`Goal ${this.eaten}/10`,this.W-20,64,{size:17,color:P.amber,align:'right'});
       if (this.state === "over")
-        NE.banner(ctx, this.W, this.H, this.won?"Garden filled!":"TANGLED", `score ${this.score} · ${this.eaten} orbs · length ${this.snake.length} · tap to retry`);
+        NE.banner(ctx, this.W, this.H, this.won?"Garden filled!":"Tangled", `score ${this.score} · ${this.eaten} orbs · length ${this.snake.length} · tap to retry`);
     }
   }
   NE.register("trail",
@@ -2031,7 +2031,7 @@ return {heroes,difficulties,upgrades,road,masteryXP,level,rewards,next,options,w
           if (b.life>0 && (b.x - r.x) ** 2 + (b.y - r.y) ** 2 < rad * rad) { hit = true; b.life = 0; break; }
         if(hit&&(r.hp=(r.hp||1)-1)>0){this.rocks.push(r);this.juice?.hit(r.x,r.y,r.hp+" HITS LEFT",false);continue;}
         if (hit) {
-          this.kills++;if(this.kills%6===0){this.twin=8;this.juice?.hit(this.px,this.py,"TWIN SHOT 8s",true);}if(this.kills>=12&&!this.killGoal){this.killGoal=true;this.score+=200;this.juice?.hit(this.W/2,100,"12 ROCKS +200",true);}if(r.guardian)this.score+=400;this.juice?.hit(r.x,r.y,r.guardian?"Guardian +400":"+15",true);
+          this.kills++;if(this.kills%6===0){this.twin=8;this.juice?.hit(this.px,this.py,"Twin shot 8s",true);}if(this.kills>=12&&!this.killGoal){this.killGoal=true;this.score+=200;this.juice?.hit(this.W/2,100,"12 ROCKS +200",true);}if(r.guardian)this.score+=400;this.juice?.hit(r.x,r.y,r.guardian?"Guardian +400":"+15",true);
           this.score += 15; this.shake.add(3); NE.sfx.explode(); this.particles.emit(r.x, r.y, P.cyan, { n: 12, speed: 4 });
           if (r.size > 1 && !r.guardian) for (let i = 0; i < 2; i++) this.spawnRock(r.x, r.y, r.size - 1);
         } else this.rocks.push(r);
@@ -2079,7 +2079,7 @@ return {heroes,difficulties,upgrades,road,masteryXP,level,rewards,next,options,w
         if(this.twin>0)NE.glowCircle(ctx,P.amber,x,y,25,2);NE.drawEcho(ctx, x, y, 11, P.cyan, 1, this.t);
       }
       NE.text(ctx, String(this.score), 20, 16, { size: 40 });
-      NE.text(ctx,`WAVE ${this.wave}`,22,60,{size:15,color:P.dim});NE.text(ctx,this.twin>0?`TWIN SHOT ${this.twin.toFixed(1)}s`:`POWER ${this.kills%6}/6`,22,86,{size:15,color:P.amber});NE.text(ctx,this.killGoal?"12 ROCKS ✓":`GOAL ${this.kills}/12`,22,110,{size:15,color:P.lime});
+      NE.text(ctx,`Wave ${this.wave}`,22,60,{size:15,color:P.dim});NE.text(ctx,this.twin>0?`Twin shot ${this.twin.toFixed(1)}s`:`Power ${this.kills%6}/6`,22,86,{size:15,color:P.amber});NE.text(ctx,this.killGoal?"12 rocks ✓":`Goal ${this.kills}/12`,22,110,{size:15,color:P.lime});
       for (let i = 0; i < this.hp; i++) NE.glowCircle(ctx, P.cyan, this.W - 30 - i * 26, 28, 7);
       if (this.state === "over")
         NE.banner(ctx, this.W, this.H, "Lost in the storm", `score ${this.score} · wave ${this.wave} · ${this.kills} rocks · tap to retry`);
@@ -2255,8 +2255,8 @@ return {heroes,difficulties,upgrades,road,masteryXP,level,rewards,next,options,w
           this.orb(ctx, gx + (this.pxi + cx) * this.cell + this.cell / 2, gy + (this.pyi + cy) * this.cell + this.cell / 2, COLORS[c - 1]);
       }
       const portrait=this.H>this.W,hx=gx+COLS*this.cell+36;
-      if(portrait){NE.text(ctx,String(this.score)+' PTS',20,18,{size:30});NE.text(ctx,'Level '+this.level,this.W-20,22,{size:20,align:'right',color:P.dim});NE.text(ctx,'Burst '+this.cleared,20,64,{size:18,color:P.cyan});NE.text(ctx,(this.pieces+1)%5===0?'Pulse ready':'Pulse '+this.pieces%5+'/5',this.W-20,64,{size:18,align:'right',color:P.amber});NE.text(ctx,'NEXT',40,770,{size:16,color:P.dim});for(const[cx,cy,c]of this.next)this.orb(ctx,150+cx*24,785+cy*24,COLORS[c-1],10);NE.text(ctx,this.clearGoal?'24 ORBS ✓':`GOAL ${this.cleared}/24`,this.W-30,775,{size:17,color:P.lime,align:'right'});NE.text(ctx,'Move · turn · drop',this.W/2,850,{size:16,color:P.dim,align:'center'});}
-      else{NE.text(ctx,'SCORE',hx,gy+4,{size:14,color:P.dim});NE.text(ctx,String(this.score),hx,gy+22,{size:30});NE.text(ctx,'Burst '+this.cleared,hx,gy+85,{size:20,color:P.cyan});NE.text(ctx,'Level '+this.level,hx,gy+130,{size:20,color:P.dim});NE.text(ctx,'Best chain '+this.bestChain,hx,gy+175,{size:17,color:P.amber});NE.text(ctx,'NEXT',hx,gy+220,{size:14,color:P.dim});for(const[cx,cy,c]of this.next)this.orb(ctx,hx+20+cx*24,gy+260+cy*24,COLORS[c-1],10);NE.text(ctx,(this.pieces+1)%5===0?'Pulse ready':'Pulse '+this.pieces%5+'/5',hx,gy+320,{size:17,color:P.amber});NE.text(ctx,this.clearGoal?'24 ORBS ✓':`GOAL ${this.cleared}/24`,hx,gy+350,{size:17,color:P.lime});NE.drawEcho(ctx,hx+50,gy+405,16,P.cyan,1,this.t);NE.text(ctx,'←→ move · ↑ turn · ↓ soft · SPACE drop',this.W/2,this.H-22,{size:13,color:P.dim,align:'center'});}
+      if(portrait){NE.text(ctx,String(this.score)+' score',20,18,{size:30});NE.text(ctx,'Level '+this.level,this.W-20,22,{size:20,align:'right',color:P.dim});NE.text(ctx,'Burst '+this.cleared,20,64,{size:18,color:P.cyan});NE.text(ctx,(this.pieces+1)%5===0?'Pulse ready':'Pulse '+this.pieces%5+'/5',this.W-20,64,{size:18,align:'right',color:P.amber});NE.text(ctx,'Next',40,770,{size:16,color:P.dim});for(const[cx,cy,c]of this.next)this.orb(ctx,150+cx*24,785+cy*24,COLORS[c-1],10);NE.text(ctx,this.clearGoal?'24 orbs ✓':`Goal ${this.cleared}/24`,this.W-30,775,{size:17,color:P.lime,align:'right'});NE.text(ctx,'Move · turn · drop',this.W/2,850,{size:16,color:P.dim,align:'center'});}
+      else{NE.text(ctx,'Score',hx,gy+4,{size:14,color:P.dim});NE.text(ctx,String(this.score),hx,gy+22,{size:30});NE.text(ctx,'Burst '+this.cleared,hx,gy+85,{size:20,color:P.cyan});NE.text(ctx,'Level '+this.level,hx,gy+130,{size:20,color:P.dim});NE.text(ctx,'Best chain '+this.bestChain,hx,gy+175,{size:17,color:P.amber});NE.text(ctx,'Next',hx,gy+220,{size:14,color:P.dim});for(const[cx,cy,c]of this.next)this.orb(ctx,hx+20+cx*24,gy+260+cy*24,COLORS[c-1],10);NE.text(ctx,(this.pieces+1)%5===0?'Pulse ready':'Pulse '+this.pieces%5+'/5',hx,gy+320,{size:17,color:P.amber});NE.text(ctx,this.clearGoal?'24 orbs ✓':`Goal ${this.cleared}/24`,hx,gy+350,{size:17,color:P.lime});NE.drawEcho(ctx,hx+50,gy+405,16,P.cyan,1,this.t);NE.text(ctx,'←→ move · ↑ turn · ↓ soft · SPACE drop',this.W/2,this.H-22,{size:13,color:P.dim,align:'center'});}
       if (this.state === "over")
         NE.banner(ctx, this.W, this.H, "Well overflowed", `score ${this.score} · ${this.cleared} orbs · best chain ${this.bestChain} · tap to retry`);
     }
@@ -2523,7 +2523,7 @@ return {heroes,difficulties,upgrades,road,masteryXP,level,rewards,next,options,w
 
       // HUD
       NE.text(ctx, String(this.score), 20, 16, { size: 40 });
-      NE.text(ctx, `LEVEL ${this.level}`,22,64,{size:15,color:P.dim});NE.text(ctx,(this.fired+1)%3===0?"Next: core ball":"Core ball in "+(3-this.fired%3)+" SHOTS",22,92,{size:15,color:P.amber});NE.text(ctx,this.blockGoal?"20 BLOCKS ✓":`BLOCK GOAL ${this.destroyed}/20`,22,118,{size:15,color:P.lime});
+      NE.text(ctx, `Level ${this.level}`,22,64,{size:15,color:P.dim});NE.text(ctx,(this.fired+1)%3===0?"Next: core ball":"Core ball in "+(3-this.fired%3)+" shots",22,92,{size:15,color:P.amber});NE.text(ctx,this.blockGoal?"20 blocks ✓":`Block goal ${this.destroyed}/20`,22,118,{size:15,color:P.lime});
       for (let k = 0; k < this.shots; k++) NE.glowCircle(ctx, P.white, this.W - 28 - k * 26, 30, 8);
       const frac = this.destroyed / this.initial, bx = this.W / 2 - 130, by = 26;
       NE.bar(ctx, bx, by, 260, 12, frac, frac >= this.target ? P.lime : P.magenta, "DEMOLISHED");
@@ -2709,8 +2709,8 @@ return {heroes,difficulties,upgrades,road,masteryXP,level,rewards,next,options,w
       }
       NE.text(ctx, String(this.score), 20, 16, { size: 40 });
       NE.text(ctx, `${Math.floor(this.dist/10)} m · ${this.smashed} walls`, 22, 64, { size: 14, color: P.dim });
-      NE.text(ctx,this.shield?"Shield ready":`SHIELD ${this.smashed%5}/5`,22,88,{size:15,color:P.lime});NE.text(ctx,this.smashGoal?"8 WALLS ✓":`GOAL ${this.smashed}/8 WALLS`,22,112,{size:15,color:P.amber});
-      if (this.combo > 1) NE.text(ctx, `COMBO x${this.combo}`, this.W / 2, 22, { size: 26, color: P.amber, align: "center" });
+      NE.text(ctx,this.shield?"Shield ready":`Shield ${this.smashed%5}/5`,22,88,{size:15,color:P.lime});NE.text(ctx,this.smashGoal?"8 walls ✓":`Goal ${this.smashed}/8 walls`,22,112,{size:15,color:P.amber});
+      if (this.combo > 1) NE.text(ctx, `Combo x${this.combo}`, this.W / 2, 22, { size: 26, color: P.amber, align: "center" });
       for (let i = 0; i < this.lives; i++) NE.glowCircle(ctx, P.cyan, this.W - 30 - i * 26, 28, 7);
       if (this.dist < 2200)
         NE.text(ctx, "glass = SMASH (→ / ▶ / tap right)   ·   pink wall = JUMP (SPACE / ACT)", this.W / 2, this.H - 30,
@@ -2923,18 +2923,18 @@ return {heroes,difficulties,upgrades,road,masteryXP,level,rewards,next,options,w
       // side panel
       const hx = this.W - 230;
       NE.text(ctx, String(this.score), hx, 20, { size: 36 });
-      NE.text(ctx, `SITE ${this.level}`, hx, 64, { size: 15, color: P.dim });
-      NE.text(ctx, "CHARGES", hx, 104, { size: 14, color: P.dim });
+      NE.text(ctx, `Site ${this.level}`, hx, 64, { size: 15, color: P.dim });
+      NE.text(ctx, "Charges", hx, 104, { size: 14, color: P.dim });
       for (let k = 0; k < this.left; k++) NE.glowCircle(ctx, P.red, hx + 12 + k * 26, 140, 8);
       NE.text(ctx, "tap blocks to place / remove", hx, 176, { size: 12, color: P.dim, glow: false });
       NE.text(ctx, "△ = gas: big chain blast", hx, 196, { size: 12, color: P.amber, glow: false });
       NE.text(ctx, "grey = steel: needs 2 hits", hx, 216, { size: 12, color: "#b8bcd8", glow: false });
-      NE.text(ctx,this.chainGoal?'12 BLOCKS ✓':`BLOCK GOAL ${this.destroyed}/12`,hx,246,{size:14,color:P.lime});NE.drawEcho(ctx, hx + 60, 290, 18, NE.palette.cyan, -1, this.t);
+      NE.text(ctx,this.chainGoal?'12 blocks ✓':`Block goal ${this.destroyed}/12`,hx,246,{size:14,color:P.lime});NE.drawEcho(ctx, hx + 60, 290, 18, NE.palette.cyan, -1, this.t);
       const b = this.btn, ready = this.phase === "plan" && this.charges.length > 0;
       NE.glowRect(ctx, ready ? P.red : P.dim, b.x, b.y, b.w, b.h, 12, ready ? 0 : 2);
-      NE.text(ctx, "DETONATE", b.x + b.w / 2, b.y + 15, { size: 20, color: ready ? P.bg : P.dim, align: "center", glow: false });
+      NE.text(ctx, "Detonate", b.x + b.w / 2, b.y + 15, { size: 20, color: ready ? P.bg : P.dim, align: "center", glow: false });
       if (this.phase === "clear")
-        NE.banner(ctx, this.W, this.H, `SITE ${this.level} CLEARED!`, `+${this.bonus} bonus   -   click / SPACE for the next site`);
+        NE.banner(ctx, this.W, this.H, `Site ${this.level} cleared!`, `+${this.bonus} bonus   -   click / SPACE for the next site`);
       if (this.phase === "fail")
         NE.banner(ctx, this.W, this.H, "Still standing", "hold R to rewind and try another plan   ·   tap to give up");
       if (this.state === "over")
@@ -3086,13 +3086,13 @@ return {heroes,difficulties,upgrades,road,masteryXP,level,rewards,next,options,w
       NE.text(ctx,'Crystal garden · level '+this.level,portrait?this.W/2:hx,portrait?26:45,{size:portrait?22:14,color:P.cyan,align:portrait?'center':'left'});
       NE.text(ctx,String(this.score)+' pts',hx,portrait?70:85,{size:26});NE.text(ctx,this.moves+' moves',portrait?this.W-24:hx,portrait?70:140,{size:24,color:this.moves<=5?P.red:P.lime,align:portrait?'right':'left'});
       NE.bar(ctx,hx,portrait?115:190,portrait?this.W-48:130,12,this.got/this.need,P.cyan);
-      NE.text(ctx,'Pulse '+this.charge+'/4',hx,portrait?710:240,{size:20,color:P.amber});NE.text(ctx,this.cascadeGoal?'DOUBLE CASCADE ✓':'Goal: double cascade',hx,portrait?745:280,{size:portrait?18:12,color:P.lime});
+      NE.text(ctx,'Pulse '+this.charge+'/4',hx,portrait?710:240,{size:20,color:P.amber});NE.text(ctx,this.cascadeGoal?'Double cascade ✓':'Goal: double cascade',hx,portrait?745:280,{size:portrait?18:12,color:P.lime});
       NE.drawEcho(ctx,portrait?this.W-70:hx+50,portrait?750:350,18,P.cyan,1,this.t);
       NE.text(ctx,'Tap a core, then a neighbour',this.W/2,this.H-45,{size:16,color:P.dim,align:'center'});
       if (this.state === "over")
         NE.banner(ctx, this.W, this.H, "Out of moves", `score ${this.score} · ${this.swaps} swaps · best cascade ${this.bestCascade} · tap to retry`);
       if (this.phase === "clear" && this.state === "play")
-        NE.banner(ctx, this.W, this.H, `LEVEL ${this.level} CLEARED!`, `+${this.bonus} for spare moves   -   click / SPACE for level ${this.level + 1}`);
+        NE.banner(ctx, this.W, this.H, `Level ${this.level} cleared!`, `+${this.bonus} for spare moves   -   click / SPACE for level ${this.level + 1}`);
     }
   }
   NE.register("match",
