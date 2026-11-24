@@ -2,6 +2,9 @@ name: Arcade checks
 on: [pull_request]
 permissions:
   contents: read
+concurrency:
+  group: arcade-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 jobs:
   api:
     runs-on: ubuntu-latest
@@ -10,11 +13,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: npm
       - run: npm ci --ignore-scripts
       - run: npm test
+      - run: npm audit --audit-level=high
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: tools/requirements.txt
+      - run: python -m pip install --disable-pip-version-check -r tools/requirements.txt
+      - run: python tools/build_previews.py
   rewards-and-ux:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,33 +34,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: npm
       - run: npm ci --ignore-scripts
-      - run: npx playwright install --with-deps chromium
-      - run: node tests/growth.cjs
-      - run: node tests/promo-browser.cjs
-      - run: node tests/assist.cjs
-      - run: node tests/bonus.cjs
-      - run: node tests/experiment.cjs
-      - run: node tests/fair.cjs
-      - run: node tests/ux.cjs
-      - run: node tests/update-browser.cjs
-      - run: node tests/social-browser.cjs
-      - run: node tests/game-upgrades.cjs
-      - run: node tests/prism-upgrade.cjs
-      - run: node tests/drift-upgrade.cjs
-      - run: node tests/trail-upgrade.cjs
-      - run: node tests/glass-upgrade.cjs
-      - run: node tests/wrecker-upgrade.cjs
-      - run: node tests/demo-upgrade.cjs
-      - run: node tests/match-upgrade.cjs
-      - run: node tests/rampage-upgrade.cjs
-      - run: node tests/rampage-browser.cjs
-      - run: node tests/echo3d-upgrade.cjs
-      - run: node tests/echo3d-browser.cjs
-      - run: node tests/rumble-sharing-browser.cjs
-      - run: node tests/rumble-browser.cjs
-        env:
-          RUMBLE_CI: "1"
-      - run: node tests/rumble-v2-browser.cjs
-        env:
-          RUMBLE_CI: "1"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Set external artifact folder
+        run: echo "FORKADE_ARTIFACTS=$RUNNER_TEMP/forkade-artifacts" >> "$GITHUB_ENV"
+      - run: npm run test:suite
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: forkade-browser-proof
+          path: ${{ runner.temp }}/forkade-artifacts
+          retention-days: 7

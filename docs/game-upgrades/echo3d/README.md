@@ -1,3 +1,5 @@
+> Historical release record. For current behavior and commands, see the root README. Screenshot evidence was archived outside git on 24 Nov 2026; see docs/cleanup-2026-11-24.md.
+
 # ECHO 3D — sky islands
 
 Original floating rock islands, layered crystal scenery, a brighter walking ECHO, pooled pickup sparks and a procedural chiptune. Later islands move; every fifth island grants four seconds of boosted jumping. Island eight provides one rescue. Five cores add 30 points once, and the result shows actual progress and best-score distance with one-tap retry.

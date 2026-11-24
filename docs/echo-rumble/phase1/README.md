@@ -1,3 +1,5 @@
+> Historical release record. For current behavior and commands, see the root README. Screenshot evidence was archived outside git on 24 Nov 2026; see docs/cleanup-2026-11-24.md.
+
 # ECHO RUMBLE — Phase 1 candidate
 
 An original local-only 3D mutation run: seeded order of Sky Garden (climb), Candy Reactor (arena), Toy Town (smash), then the Fork Warden. The run clock is 90 active simulation seconds; hit-stop, pause and rewind can extend wall time. Defeating the boss ends it early.
@@ -41,9 +43,9 @@ Checked 1–12 and 15–17: trio-B shell; separate game palettes; 44px controls;
 |---|---|---|---|---|
 | None | None | None | No third-party submission | Nobody |
 
-![Android 390](android-390.png)
-![iPhone WebKit 390](iphone-390.png)
-![Desktop 1280](desktop-1280.png)
+Archived screenshot: Android 390 (`android-390.png`).
+Archived screenshot: iPhone WebKit 390 (`iphone-390.png`).
+Archived screenshot: Desktop 1280 (`desktop-1280.png`).
 
 ## Needs Younes
 

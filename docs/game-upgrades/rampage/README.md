@@ -1,3 +1,5 @@
+> Historical release record. For current behavior and commands, see the root README. Screenshot evidence was archived outside git on 24 Nov 2026; see docs/cleanup-2026-11-24.md.
+
 # RAMPAGE 3D: reactor rush
 
 Instanced city floors, window strips and skyline add depth with fewer draw calls. ECHO has brighter materials and animated arms; shared-master procedural music, optional haptics and a brief stomp stop respect accessibility settings.

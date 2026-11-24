@@ -1,3 +1,5 @@
+> Historical release record. For current behavior and commands, see the root README. Screenshot evidence was archived outside git on 24 Nov 2026; see docs/cleanup-2026-11-24.md.
+
 # Neon Swarm — reactor garden
 
 Replaces flat enemies with animated, shaped drones and a three-layer cached circuit world. Portrait play and drag-to-move/auto-aim make the phone version one-thumb friendly. Dash drones arrive at 35s, armoured drones at 70s, the reactor guardian at 120s. Every fifth kill drops a ten-second triple-shot/heal cell; ten drones and twenty no-hit seconds pay real score bonuses. Boss defeat gives an eight-second shield. Shared music, bounded particles, light pools, hit feedback and reduced-motion/vibration settings apply.
@@ -10,7 +12,7 @@ API tests and Android390/WebKit iPhone390/desktop1280 game checks pass; full bro
 
 UX §22: checked portrait readability, controls, instant feedback, reduced motion, real score/goal timers and local settings; no new forms, dialogs or third-party submissions. §3.1 depth and existing arcade palette/font exception; §5.1 existing UI motion preserved; §6 auth not applicable.
 
-![390](android-390.png)
-![1280](desktop-1280.png)
+Archived screenshot: 390 (`android-390.png`).
+Archived screenshot: 1280 (`desktop-1280.png`).
 
 Before/after: `C:\Users\Younes\Desktop\shared process\forkade-games-before-after\swarm.gif` (12 seconds).

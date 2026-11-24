@@ -1,3 +1,5 @@
+> Historical release record. For current behavior and commands, see the root README. Screenshot evidence was archived outside git on 24 Nov 2026; see docs/cleanup-2026-11-24.md.
+
 # Core Match crystal garden
 
 Adds a cached three-layer crystal world, six shaded core tiles, distinct colour-blind symbols, procedural music and shared combo/hit feedback. Portrait uses a tall canvas and 64px logical cells (about 44px on a 390px screen), with a slim scoreboard and one-thumb swaps. Fast taps are handled as input events instead of relying on a held pointer.

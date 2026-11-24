@@ -6,3 +6,15 @@ __pycache__/
 
 tests/artifacts/
 .cache/
+
+# Generated verification evidence is never source.
+playwright-report/
+test-results/
+coverage/
+docs/**/*.png
+docs/**/*.jpg
+docs/**/*.webm
+docs/**/*.mp4
+
+# Legacy duplicate output; production download is web/download/forkade.html.
+dist/

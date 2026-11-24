@@ -1,3 +1,5 @@
+> Historical release record. For current behavior and commands, see the root README. Screenshot evidence was archived outside git on 24 Nov 2026; see docs/cleanup-2026-11-24.md.
+
 # ECHO Trail: comet garden
 
 A tall phone board gives the trail room to move. Shaded cached segments, star pickups, layered garden circuits and shared music replace the flat snake presentation. Every fifth orb is a comet worth30 and grants four seconds of slower glide; ten orbs award+100 once. The board wraps and a completely filled board finishes safely instead of looping forever in food placement.

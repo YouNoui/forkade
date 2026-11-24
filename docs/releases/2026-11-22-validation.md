@@ -1,3 +1,5 @@
+> Historical release record. For current behavior and commands, see the root README. Screenshot evidence was archived outside git on 24 Nov 2026; see docs/cleanup-2026-11-24.md.
+
 # Forkade release — 22 Nov 2026
 
 The owner replaced the initial multi-PR plan with one consolidated release. Tasks 1–3 had already shipped in #19, #20 and #21. #22 completes Tasks 4–9 in separate commits; nothing was reverted or duplicated.

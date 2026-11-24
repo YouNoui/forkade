@@ -1,3 +1,5 @@
+> Historical release record. For current behavior and commands, see the root README. Screenshot evidence was archived outside git on 24 Nov 2026; see docs/cleanup-2026-11-24.md.
+
 # Tower Wrecker: Core Ball
 
 Cached bevelled masonry, cross-braced steel, reflective glass and warning-symbol explosives sit in a layered dusk construction world. The shaped ball has a bright core, with chain feedback and shared procedural audio. Every third shot pierces steel; destroying 20 blocks at a level awards +200 once. Real best-shot block counts appear in results. All new power/goal fields and separate cosmetic debris RNG restore on rewind.

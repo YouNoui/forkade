@@ -1,3 +1,5 @@
+> Historical release record. For current behavior and commands, see the root README. Screenshot evidence was archived outside git on 24 Nov 2026; see docs/cleanup-2026-11-24.md.
+
 # Sky Hop — sky islands
 
 Original procedural art: three cached depth layers, light pools, floating platforms, animated ECHO, shaped sparks and landing debris. Hold Jump and steer; moving islands arrive at 35 seconds, crumbling islands at 70. One shield rescues a fall; five sparks pay +50 and an eight-second magnet. Later spark milestones restore the shield. Real height/sparks/combo/best are shown after the run.
@@ -10,8 +12,8 @@ API tests, Chromium web/dist at 1280/390/844, Assist/bonus/Fair tests and offlin
 
 UX §22: checked readable phone layout, existing 44px controls, truthful scores, reduced motion, instant input, local settings scope, no new dialogs/auth, original game palette (approved Appendix A exception). §3.1 procedural canvas uses existing arcade glyphs and depth; §5.1 non-game UI preserved; §6 account forms not applicable.
 
-![390](android-390.png)
-![1280](desktop-1280.png)
+Archived screenshot: 390 (`android-390.png`).
+Archived screenshot: 1280 (`desktop-1280.png`).
 
 12-second before/after GIF: `C:\Users\Younes\Desktop\shared process\forkade-games-before-after\skyhop.gif`. Haptics/audio on physical iPhone and real-phone frame time remain unverified.
 

@@ -1,3 +1,5 @@
+> Historical release record. For current behavior and commands, see the root README. Screenshot evidence was archived outside git on 24 Nov 2026; see docs/cleanup-2026-11-24.md.
+
 # Rumble home and update recovery
 
 The old session-wide refreshed flag is replaced by per-controller version handling. The page checks registration on load and foreground, the worker skips waiting/claims clients, and menu reloads are deferred during play behind an explicit update bar. Settings shows the running version/date. HTML/code are network-first with a three-second offline fallback; missing JS no longer falls back to HTML.

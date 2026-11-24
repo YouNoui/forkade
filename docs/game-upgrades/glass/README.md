@@ -1,3 +1,5 @@
+> Historical release record. For current behavior and commands, see the root README. Screenshot evidence was archived outside git on 24 Nov 2026; see docs/cleanup-2026-11-24.md.
+
 # Glass City: prism shield
 
 Reflective cached panes, shaped hazard barriers and hexagonal pickups sit against layered circuit lights and a windowed skyline. ECHO gets clear shield feedback and shared hit effects/music. Five smashed walls grant one non-stacking shield; eight walls award +300 once. Every120seconds schedules a tall vault wall (+500 on smash). All timers, goals and separate cosmetic debris RNG rewind; existing normal seeded layouts and Assist parity remain intact.

@@ -2,14 +2,14 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
 (async()=>{
  const fixture=serve();await new Promise(r=>fixture.app.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+fixture.app.address().port;
- const out=path.join(__dirname,'artifacts');fs.mkdirSync(out,{recursive:true});const report=[];
+ const out=require('./artifacts.cjs')('browser');fs.mkdirSync(out,{recursive:true});const report=[];
  const browser=await (process.env.WEBKIT?webkit:chromium).launch({headless:true,...(process.env.WEBKIT?{}:{channel:'chromium',args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']})});
  try{
   if(!process.env.EXTRAS_ONLY)for(const bundle of ['web','dist'])for(const size of [{width:1280,height:900},{width:390,height:844},{width:844,height:390}]){
    console.log('Matrix',bundle,size.width);
    const context=await browser.newContext({viewport:size,hasTouch:size.width!==1280,isMobile:size.width!==1280,serviceWorkers:'block'}),page=await context.newPage(),errors=[],sent=[];
    page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});page.on('request',r=>{if(r.url().includes('/api/'))sent.push({url:r.url(),body:r.postData()||''});});
-   const url=base+(bundle==='web'?'/':'/dist/forkade.html');await page.goto(url);await page.waitForFunction(()=>window.Forkade&&document.querySelector('#daily-challenge'));
+   const url=base+(bundle==='web'?'/':'/download/forkade.html');await page.goto(url);await page.waitForFunction(()=>window.Forkade&&document.querySelector('#daily-challenge'));
    assert.equal(sent.length,0,'default play must not send telemetry or tokens');
    await page.locator('.title').click();if(await page.evaluate(()=>!!(window.AudioContext||window.webkitAudioContext)))assert.equal(await page.evaluate(()=>Forkade.sfx._ac?.state),'running','audio unlocked on first tap');
    const ids=await page.evaluate(()=>Forkade.registry.map(g=>g.id));
