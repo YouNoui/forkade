@@ -380,23 +380,24 @@
     left(){return Math.max(0,BONUS.full-this.state().count);},
     note(rate){return rate===1?'':rate===BONUS.halfRate?'½ after '+BONUS.full+' rounds today':'¼ after '+BONUS.half+' rounds today';}
   };
+  const WALLET_CAP=1000000000,credit=n=>Number.isSafeInteger(n)&&n>=0?Math.min(WALLET_CAP,n):0;
   const rewards = {
     enabled: true, GOALS, TIERS, SKINS, toasts: [], listeners: [],
     promo() { return load('forkade-promo-wallet',{total:0,receipts:[],skins:[],parts:[]}); },
-    cores() { return load("forkade-cores", 0)+this.promo().total; },
-    setCores(n) { save('forkade-cores',n-this.promo().total); },
+    cores() { const base=load("forkade-cores",0);return Math.min(WALLET_CAP,Math.max(0,(Number.isSafeInteger(base)?base:0)+credit(this.promo().total))); },
+    setCores(n) { if(!Number.isSafeInteger(n)||n<0||n>WALLET_CAP)return false;save('forkade-cores',n-credit(this.promo().total));return true; },
     grantPromo(receipt) {
       const p=this.promo();if(p.receipts.includes(receipt.id))return false;
       const r=global.ForkadePromoCatalog.reward(receipt.reward);
-      p.total+=r.cores;p.receipts.push(receipt.id);p.skins=[...new Set(p.skins.concat(r.skins))];p.parts=[...new Set(p.parts.concat(r.parts))];
+      if(credit(p.total)+r.cores>WALLET_CAP)throw Error("Local reward limit reached.");p.total=credit(p.total)+r.cores;p.receipts.push(receipt.id);p.skins=[...new Set(p.skins.concat(r.skins))];p.parts=[...new Set(p.parts.concat(r.parts))];
       // One atomic localStorage write: a receipt and its entire bundle land together.
       // Earned lifetime/rank, scores, badges, streak and bonus tiers are untouched.
       localStorage.setItem('forkade-promo-wallet',JSON.stringify(p));this.listeners.forEach(f=>f());return true;
     },
-    lifetime() { return load("forkade-lifetime", 0); },
+    lifetime() { return credit(load("forkade-lifetime", 0)); },
     rank() { return 1 + Math.floor(Math.sqrt(this.lifetime() / 25)); },
     add(n) {
-      n = Math.max(0, Math.round(n)); if (!n || !this.enabled) return 0;
+      if(!Number.isFinite(n)||n<0)return 0;n=Math.min(Math.round(n),WALLET_CAP-this.cores(),WALLET_CAP-this.lifetime());if(!n||!this.enabled)return 0;
       this.setCores(this.cores() + n); save("forkade-lifetime", this.lifetime() + n);
       this.listeners.forEach(f => f()); return n;
     },
@@ -496,16 +497,17 @@
     last: null, run: null, daily: null,
     begin(game, daily = null, assisted = false) {
       this.last = null; this.daily = daily; this.assisted = assisted; if(assisted){this.run=null;return;}
-      // anonymous round token (game + start time only), so a posted score can be checked against time played
+      // anonymous round token (game, seed and start time; no identity), so a posted score can be checked against time played
       this.run = (typeof navigator === 'undefined' || navigator.onLine !== false) ? timedFetch(this.api, { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'start', game, daily }) })
         .then(async r => { const j = await r.json(); if (!r.ok) throw Error(j.error); return j; })
         .catch(e => ({ error: e.message })) : null;
+      return this.run;
     },                                    // { id, score } of the round that just ended
     pid() {
       let id = load("forkade-pid", null);
       if (!id) {
-        const b = new Uint8Array(16); (global.crypto || {}).getRandomValues ? crypto.getRandomValues(b) : b.forEach((_, i) => b[i] = Math.random() * 256);
+        const b = new Uint8Array(16); crypto.getRandomValues(b);
         id = [...b].map(x => x.toString(16).padStart(2, "0")).join("");
         save("forkade-pid", id);
       }
@@ -534,7 +536,7 @@
       const run = await Promise.race([round.run, new Promise(res => setTimeout(() => res({ error: 'That took too long. Check your connection and play a new round to post.' }), 7000))]);
       if (!run.token) throw Error(run.error || 'No run token. Start a new ranked round online.');
       const r = await timedFetch(this.api, { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ game, score, name, pid: this.pid(), token: run.token }) });
+        body: JSON.stringify({ game, score, name, pid: this.pid(), token: run.token, seed: run.seed }) });
       const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Couldn't post right now.");
       return j;
     },
@@ -618,7 +620,7 @@
         const I = this.input;
         if (this._overT > 0.6 && (I.pressed.Enter || I.pressed.NumpadEnter || I.pressed.Space || I.tapped)) {
           this._overT = 0; this.particles.clear(); this.rewind.frames = []; this.rewind.energy = 1;
-          this.reset(); this.state = "play";
+          this.reset();
         }
       } else this._overT = 0;
 
@@ -662,6 +664,7 @@
           else {const x=this.W/2+(settings.reduceMotion?0:Math.sin(this.t*3)*14);text(ctx,this.meta.hint||'Tap / arrows to play',x,this.H-88,{size:20,align:'center',color:palette.white});}}
       }
       this.rewind.overlay(ctx, this.W, this.H);
+      if (this.state === "loading") banner(ctx, this.W, this.H, "Starting run", "Online check · up to 7 seconds");
       if (this.state === "pause") banner(ctx, this.W, this.H, "Paused", "P resume   ESC menu");
       // best-score line under any game-over / win banner
       if ((this.state === "over" || this.state === "win") && this.id) {
@@ -724,7 +727,9 @@
     current.reset = function () { seed(options.seed || null); this.t = 0; this._prevState = 'play'; this.rewind.frames = []; this.rewind.energy = 1;
       this.assisted=!options.daily && !!ASSIST[id] && assistMode.preference(id);
       if(this.juice){this.juice.reset();this.particles.clear();this.world=new World(this.W,this.H,entry.meta.world,entry.meta.scene);try{this.hint=!localStorage.getItem('forkade-hint-'+id);}catch(_){this.hint=true;}}
-      board.begin(id, options.daily || null, this.assisted); reset(); };
+      board.begin(id, options.daily || null, this.assisted); reset();
+      if(options.seed&&!options.daily){board.run=null;return;} // explicitly seeded local practice
+      const pending=board.run;if(pending){this.state='loading';pending.then(run=>{if(current!==this||board.run!==pending||this.state!=='loading')return;seed(run.seed??options.seed??null);this.t=0;this._prevState="play";reset();});} };
     if(entry.meta.polished){current.juice=new Juice();const snap=current.snapshot.bind(current),restore=current.restore.bind(current);current.snapshot=function(){const s=snap();if(s)s.juice=this.juice.snapshot();return s;};current.restore=function(s){restore(s);if(s.juice)this.juice.restore(s.juice);};}
     current.reset(); rewards.toasts = [];
     if (!running) { running = true; last = performance.now(); frameId = requestAnimationFrame(loop); }

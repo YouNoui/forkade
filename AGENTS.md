@@ -59,3 +59,10 @@
 ## Shared UI kit
 - Follow docs/STYLE.md. Author spacing/type/radius and button rules in web/index.html only; build_ui.py publishes ui.css and the 3D builders inline it. Rebuild the shared kit before every other generator.
 - Run tests/style.cjs at 390/1280 for UI changes; preserve the six type sizes, 4px spacing, 44px targets and one visible primary action. Keep before/after proof outside git.
+
+## Security regression gate
+- Run node tests/security.cjs and SECURITY_BROWSER=1 for isolated browser attacks; CI also runs the real Redis Lua concurrency check on loopback only. Never attack production or create test data there. Live verification is limited to GETs, headers and one wrong-key 401.
+- Owner authentication is X-Stats-Key only; use lib/security.js for body limits, trusted edge IPs and the shared five-failures/ten-minute lockout. Never use X-Forwarded-For for limits.
+- Ranked posts require the server-issued seed and single-use token. Player IDs are private bearer secrets: never include pid/owner in public rankings, Forge or ghost output.
+- After every generator (including build_dist), run node tools/build_csp.cjs. No unsafe-inline in script-src or HTML event attributes. Keep the local Playground evaluation exception scoped to its page. Run tools/scan_client.cjs; never print matches.
+- Private co-op remains absent/disabled; SECURITY.md lists the mandatory gates before adding any Worker.

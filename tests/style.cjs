@@ -37,7 +37,7 @@ function inspect(){
  const p=await c.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error')errors.push(m.text());});await p.route('**/api/**',r=>r.fulfill({contentType:'application/json',body:'{"rows":[],"entries":[]}'}));
  const routes={fair:'/fair.html',admin:'/admin',playground:'/playground.html',delete:'/delete.html',privacy:'/privacy.html',terms:'/terms.html',guidelines:'/guidelines.html'};
  await p.goto(base+(routes[scene]||'/'));if(!routes[scene])await p.waitForFunction(()=>window.Forkade);
- if(scene==='game-over'){await p.evaluate(()=>openGame('glass'));await p.waitForFunction(()=>Forkade.current()?.id==='glass');await p.evaluate(()=>{const g=Forkade.current();g.score=100;g.state='over';});await p.locator('#postbar').waitFor({state:'visible'});}
+ if(scene==='game-over'){await p.evaluate(()=>openGame('glass'));await p.waitForFunction(()=>Forkade.current()?.id==='glass' && Forkade.current().state==='play');await p.evaluate(()=>{const g=Forkade.current();g.score=100;g.state='over';});await p.locator('#postbar').waitFor({state:'visible'});}
  if(scene==='locker')await p.locator('#open-locker').click();
  if(scene==='settings')await p.evaluate(()=>Forkade.openSettings());
  if(scene==='rankings')await p.locator('#open-ranks').click();

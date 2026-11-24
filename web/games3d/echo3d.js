@@ -2,7 +2,7 @@
 (function () {
   const F=(()=>{try{return parent.Forkade;}catch{return null;}})();
   const reduce=()=>!!F?.settings.reduceMotion||matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const seed=Number(new URLSearchParams(location.search).get('seed'))||Math.floor(Date.now()/86400000);let rng=seed>>>0;
+  const seed=F?.board.seed||Number(new URLSearchParams(location.search).get('seed'))||Math.floor(Date.now()/86400000);let rng=seed>>>0;
   const rand=()=>{rng=(Math.imul(rng,1664525)+1013904223)>>>0;return rng/4294967296;};
   let decorRng=(seed^0x9e3779b9)>>>0;const cosmetic=()=>{decorRng=(Math.imul(decorRng,1664525)+1013904223)>>>0;return decorRng/4294967296;};
   const tone=(n=440)=>{try{F?.sfx._tone(n,.12,'triangle',.055);}catch{}};

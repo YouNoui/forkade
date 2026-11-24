@@ -120,7 +120,7 @@ Free gifts use stored deadlines, three welcome rewards and disclosed 80/15/5 reg
 
 Fair play reads rules directly from shared constants. Everything earned stays on this device. No ads, payments, accounts or third-party trackers. Additional tests: `node tests/growth.cjs`, `node tests/assist.cjs`, `node tests/bonus.cjs`, `node tests/experiment.cjs`, `node tests/fair.cjs`.
 
-Owner admin: /admin (old /stats.html redirects), STATS_KEY header and tab-session storage only. Promo codes: Settings or ?code= links; local receipt ledger, no ranking/badge/rank effects. Server-only stable PROMO_SALT; maximum 1000 codes, 100,000 cores each, max uses 1/10/100/unlimited, Singapore expiry. Existing 48 Rumble choices remain free; gifted parts appear in Locker. No cookies or trackers.
+Owner admin: /admin (old /stats.html redirects), owner-key header and tab-session storage only. Promo codes: Settings or ?code= links; local receipt ledger, no ranking/badge/rank effects. Server-only stable promo HMAC salt; maximum 1000 codes, 100,000 cores each, max uses 1/10/100/unlimited, Singapore expiry. Existing 48 Rumble choices remain free; gifted parts appear in Locker. No cookies or trackers.
 
 ECHO RUMBLE 2 adds animated CC0 hero kits, supers/gadgets, earned upgrades,
 difficulty boards, weekly Nightmare and local Echo Road/mastery. Rules live in
@@ -130,3 +130,5 @@ Friend ghosts are opt-in shared replays, not live co-op. Assets load lazily from
 assets/rumble and are embedded in the offline download. See THIRD_PARTY_NOTICES.
 
 Shared UI: edit the tokens and ui-kit block in index.html, then run python tools/build_ui.py from the repository root before the other generators. ui.css is generated, shared by standalone pages and inlined into 3D games. See docs/STYLE.md; node tests/style.cjs checks 390px and1280px.
+
+Security builds: after all HTML and offline generators, run `node tools/build_csp.cjs`, then `node tests/security.cjs`. Keep generated CSP hashes in sync. See the root SECURITY.md for isolated browser/Lua tests and the private-device-key boundary.

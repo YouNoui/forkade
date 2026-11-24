@@ -1,0 +1,6 @@
+// Real Lua integration, only the dedicated loopback Redis in CI; never hosted Redis.
+const {promisify}=require('node:util'),exec=promisify(require('node:child_process').execFile),crypto=require('node:crypto'),assert=require('node:assert/strict'),{SCRIPT}=require('../api/promo');
+module.exports=async()=>{const prefix='forkade-security:'+crypto.randomUUID()+':',keys=[prefix+'codes',prefix+'redeemed'];const run=async(...args)=>JSON.parse((await exec('redis-cli',['-h','127.0.0.1','-p','6380','--json',...args.map(String)],{maxBuffer:100000})).stdout);
+ try{assert.equal(await run('PING'),'PONG');const item={id:'local-receipt',code:'CONCURRENT',reward:{cores:10,skins:[],parts:[]},maxUses:10,used:0,expires:0,enabled:true};await run('HSET',keys[0],item.code,JSON.stringify(item));const results=await Promise.all(Array.from({length:100},async(_,i)=>JSON.parse(await run('EVAL',SCRIPT,3,...keys,prefix+'network:'+i,'redeem',item.code,'device-'+i,Date.now()))));assert.equal(results.filter(x=>x.ok).length,10);assert.equal(JSON.parse(await run('HGET',keys[0],item.code)).used,10);console.log('Real Redis Lua: 100 concurrent fresh-device redeems produced exactly 10 claims.');}
+ finally{await run('DEL',...keys,...Array.from({length:100},(_,i)=>prefix+'network:'+i));}
+};

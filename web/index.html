@@ -831,7 +831,7 @@
     function open3D(id = "echo3d") {
       window.ForkadeRumbleFriend=id==="rumble"?new URLSearchParams(location.search).get("friend"):null;
       window.ForkadeForgeConfig=window.ForkadeForgeNext||null;window.ForkadeForgeNext=null; if (typeof id !== "string") id = "echo3d"; Place.enter(id, () => run3D(id)); }
-    function run3D(id) {
+    async function run3D(id) {
       if (Forkade.current()) Forkade.stop(true);
       // A fresh frame avoids Safari racing a previous about:blank navigation.
       const fresh = gframe.cloneNode(false); fresh.removeAttribute('srcdoc'); fresh.removeAttribute('src');
@@ -841,6 +841,7 @@
       stage.classList.add("on", "d3"); document.body.classList.add("playing");
       // If the 3D page was inlined (single-file build), run it from srcdoc so it
       // works with no separate file. Otherwise load the file (folder version).
+      if(id!=='rumble'){const frameAtStart=gframe,run=await Forkade.board.run;if(gframe!==frameAtStart||!stage.classList.contains('on'))return;Forkade.board.seed=run?.seed;}
       const inline = id === "rumble" ? window.__RUMBLE_HTML__ : id === "rampage" ? window.__RAMPAGE_HTML__ : window.__ECHO3D_HTML__;
       if (inline) { gframe.removeAttribute("src"); gframe.srcdoc = inline; }
       else { gframe.removeAttribute("srcdoc"); gframe.src = "games3d/" + (["rumble","rampage"].includes(id) ? id : "echo3d") + ".html"; }
@@ -941,7 +942,7 @@
     document.getElementById("back").addEventListener("click", () => Forkade.stop());
     // the 3D game lives in an iframe and asks to close via postMessage
     window.addEventListener("message", e => {
-      if (e.source === gframe.contentWindow && e.data?.t === "forkade-run-start") Forkade.board.begin(e.data.id);
+      if (e.source === gframe.contentWindow && e.data?.t === "forkade-run-start" && ["echo3d","rampage"].includes(e.data.id)) run3D(e.data.id);
       if (e.data === "neon-3d-back") closeStage();
       if (e.data && e.data.t === "forkade-score" && ["echo3d", "rampage"].includes(e.data.id) && e.source === gframe.contentWindow) {
         const got = R.roundEnd(e.data.id, e.data.score | 0, !!e.data.best);

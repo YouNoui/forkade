@@ -1,4 +1,5 @@
 'use strict';
+const Security=require('../lib/security'),Daily=require('../web/daily');
 const crypto=require('node:crypto'),LB=require('./leaderboard'),Catalog=require('../web/promo-catalog');
 const ALPHABET='ABCDEFGHJKLMNPQRSTUVWXYZ23456789', validCode=c=>typeof c==='string'&&/^[A-Z0-9]{6,16}$/.test(c);
 const generate=()=>Array.from({length:8},()=>ALPHABET[crypto.randomInt(ALPHABET.length)]).join('');
@@ -22,41 +23,43 @@ if c.expires>0 and tonumber(ARGV[4])>=c.expires then return cjson.encode({status
 local receipt={id=c.id,reward=c.reward}
 if redis.call('SISMEMBER',KEYS[2],ARGV[3])==1 then return cjson.encode({status=409,error='Already redeemed on this device.',receipt=receipt}) end
 if c.maxUses>0 and c.used>=c.maxUses then return cjson.encode({status=409,error='That code is used up.'}) end
+if tonumber(redis.call('GET',KEYS[3]) or '0')>=5 then return cjson.encode({status=429,error='This network has claimed this code five times today. Try tomorrow.'}) end
+redis.call('INCR',KEYS[3]); redis.call('EXPIRE',KEYS[3],86400)
 c.used=c.used+1; redis.call('SADD',KEYS[2],ARGV[3]); redis.call('HSET',KEYS[1],code,cjson.encode(c))
 return cjson.encode({ok=true,receipt=receipt})`;
 const RATE=`-- forkade-promo-rate-v1
 local n=redis.call('INCR',KEYS[1]); if n==1 then redis.call('EXPIRE',KEYS[1],60) end; return n`;
 function send(res,status,body){res.statusCode=status;res.setHeader('Content-Type','application/json');res.setHeader('Cache-Control','no-store');res.setHeader('Access-Control-Allow-Origin','*');res.setHeader('Access-Control-Allow-Headers','Content-Type,X-Stats-Key');res.setHeader('Access-Control-Allow-Methods','POST,OPTIONS');res.end(JSON.stringify(body));}
-async function body(req){if(req.body){const b=typeof req.body==='string'?JSON.parse(req.body):req.body;if(JSON.stringify(b).length>8192)throw Error('Request too large.');return b;}let raw='';for await(const c of req){raw+=c;if(raw.length>8192)throw Error('Request too large.');}return JSON.parse(raw||'{}');}
+const body=req=>Security.body(req,8192);
 module.exports=async(req,res)=>{
   if(req.method==='OPTIONS')return send(res,204,{});if(req.method!=='POST')return send(res,405,{error:'Use POST.'});
-  let b;try{b=await body(req);if(!b||typeof b!=='object'||Array.isArray(b))throw Error();}catch{return send(res,400,{error:'Invalid request.'});}
+  let b;try{b=await body(req);if(!b||typeof b!=='object'||Array.isArray(b))throw Error();}catch(e){return send(res,e.status||400,{error:'Invalid request.'});}
   const owner=['create','list','enable','delete','generate'].includes(b.action);
-  if(owner&&!LB.ownerOk(req.headers['x-stats-key']))return send(res,401,{error:'Wrong key.'});
+  const R=LB.redis();if(owner){try{const auth=await Security.owner(req,R);if(auth!==200)return send(res,auth,{error:auth===429?'Too many wrong keys. Try again in ten minutes.':'Wrong key.'});}catch{return send(res,503,{error:'Owner access is unavailable.'});}}
   if(!owner&&b.action!=='redeem')return send(res,400,{error:'Unknown action.'});
   if(b.action==='generate')return send(res,200,{code:generate()});
-  const R=LB.redis();if(!R)return send(res,503,{error:'Codes are unavailable. Try again later.'});
+  if(!R)return send(res,503,{error:'Codes are unavailable. Try again later.'});
   try{
     if(b.action==='list'){const[flat]=await R([['HGETALL','promo:codes']]);const items=[];for(let i=1;i<flat.length;i+=2){const item=JSON.parse(flat[i]);item.reward=normalizeReward(item.reward);items.push(item);}return send(res,200,{items:items.sort((a,b)=>b.created-a.created)});}
     const code=typeof b.code==='string'?b.code.trim().toUpperCase():'';
-    let arg;
+    let arg,network="unused";
     if(!owner){
       const salt=process.env.PROMO_SALT;if(!salt)return send(res,503,{error:'Codes are unavailable. Try again later.'});
-      const ip=String(req.headers['x-forwarded-for']||'unknown').split(',')[0].trim();
+      const ip=Security.ip(req);
       const hash=(type,value)=>crypto.createHmac('sha256',salt).update(type+'\0'+value).digest('hex');
       const[n]=await R([['EVAL',RATE,'1','promo:rate:'+hash('rate',ip)]]);if(n>10)return send(res,429,{error:'Too many tries. Try again in one minute.'});
       if(!/^[a-f0-9]{32}$/.test(b.device||''))return send(res,400,{error:'Device storage is unavailable. Enable local storage to redeem.'});
-      arg=hash('device:'+code,b.device);
+      arg=hash('device:'+code,b.device);network=hash('redeem:'+Daily.date()+':'+code,ip);
     }
     if(!validCode(code))return send(res,400,{error:owner?'Use 6–16 letters or numbers.':"That code doesn't work"});
     if(b.action==='create'){
       let reward;try{reward=Catalog.reward(b.reward);}catch(e){return send(res,400,{error:e.message});}
       if(![0,1,10,100].includes(b.maxUses))return send(res,400,{error:'Choose 1, 10, 100 or unlimited uses.'});
-      const expires=b.expires??0;if(!Number.isSafeInteger(expires)||expires<0||(expires&&expires<=Date.now()))return send(res,400,{error:'Choose a future expiry in Singapore time.'});
+      const expires=b.expires===undefined?0:b.expires;if(!Number.isSafeInteger(expires)||expires<0||(expires&&(expires<=Date.now()||expires>Date.now()+366*86400000)))return send(res,400,{error:'Choose a future expiry in Singapore time.'});
       if(typeof b.note!=='string'||b.note.length>240)return send(res,400,{error:'Keep your private note within 240 characters.'});
       arg=JSON.stringify({id:crypto.randomUUID(),code,reward,maxUses:b.maxUses,used:0,expires,note:b.note.trim(),enabled:true,created:Date.now()});
     }else if(b.action==='enable'){if(typeof b.enabled!=='boolean')return send(res,400,{error:'Choose enabled or disabled.'});arg=String(b.enabled);}
-    const[raw]=await R([['EVAL',SCRIPT,'2','promo:codes','promo:redeemed:'+code,b.action,code,arg||'',String(Date.now())]]);
+    const[raw]=await R([['EVAL',SCRIPT,'3','promo:codes','promo:redeemed:'+code,'promo:daily:'+network,b.action,code,arg||'',String(Date.now())]]);
     const result=JSON.parse(raw);if(result.receipt)result.receipt.reward=normalizeReward(result.receipt.reward);return send(res,result.status||200,result);
   }catch{return send(res,502,{error:'Codes are unavailable. Try again shortly.'});}
 };

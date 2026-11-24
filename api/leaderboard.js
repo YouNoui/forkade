@@ -5,14 +5,16 @@
 //   DELETE /api/leaderboard { pid }                                 -> removes that player completely
 //
 // Players are anonymous: a random id made on their device plus a nickname they pick.
-// Only nickname, game and score are stored. IPs are used for rate limiting only:
-// hashed, never stored with the score, and forgotten after 60 seconds.
+// Explicit posts store nickname, game, score and a private device ID (plus validated Rumble replay).
+// Rate limits keep only salted network hashes: 60 seconds for rounds, ten minutes for owner failures.
 // Needs env vars from the Vercel Upstash integration: KV_REST_API_URL + KV_REST_API_TOKEN
 // (or UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN).
 
 const crypto = require("crypto");
 const Policy = require("../web/policy");
 const Runs = require("../lib/runs");
+const Security = require("../lib/security");
+const validGame = g => typeof g === "string" && Object.hasOwn(CAPS,g);
 
 // highest believable score per game - anything above is rejected
 // Striker: cap expanded for carrier +300, ten ships +100 and one-time graze +5; rate bound stays 500/s.
@@ -52,11 +54,11 @@ function redis() {
   };
 }
 
-const cleanName = n => String(n || "").trim().replace(/\s+/g, " ").slice(0, 14);
+const cleanName = n => typeof n === "string" ? n.trim() : "";
 // catch number swaps too (sh1t, b1tch, n4zi) before checking the block list
 const deLeet = n => n.toLowerCase().replace(/[1!|]/g, "i").replace(/3/g, "e").replace(/[0]/g, "o")
   .replace(/[4@]/g, "a").replace(/[5$]/g, "s").replace(/7/g, "t").replace(/[\s_.\-0-9]/g, "");
-const validName = n => /^[A-Za-z0-9 _.\-]{2,14}$/.test(n) && !BLOCK.test(deLeet(n)) && !BLOCK.test(n);
+const validName = n => /^[A-Za-z0-9 _\-]{2,14}$/.test(n) && !BLOCK.test(deLeet(n)) && !BLOCK.test(n);
 const validPid = p => typeof p === "string" && /^[a-f0-9-]{16,40}$/.test(p);
 
 function send(res, code, body) {
@@ -64,25 +66,20 @@ function send(res, code, body) {
   res.setHeader("Content-Type", "application/json");
   res.setHeader("Access-Control-Allow-Origin", "*");          // public data; lets the one-file build use it
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Stats-Key");
   res.setHeader("Cache-Control", "no-store");   // always fresh: deletes and new posts show at once
   res.end(JSON.stringify(body));
 }
 
-async function readBody(req) {
-  if (req.body && typeof req.body === "object") return req.body;
-  if (typeof req.body === "string") { try { return JSON.parse(req.body); } catch (_) { return {}; } }
-  let raw = ""; for await (const c of req) { raw += c; if (raw.length > 270000) break; }
-  try { return JSON.parse(raw || "{}"); } catch (_) { return {}; }
-}
+const readBody = req => Security.body(req,270000);
 
 // ---------------------------------------------------------------- reports --
 // Reports point at "rank N on this board, showing this nickname"; the server finds the player,
 // so ids are never published. 3 different reporters -> nickname auto-hidden until the owner reviews.
 const HIDE_AFTER = 3;
 async function report(R, b, req, res, week) {
-  const game = b.game, period = ["all", "daily"].includes(b.period) ? b.period : "week", rank = Math.floor(Number(b.rank)), by = b.pid;
-  if (!CAPS[game] || !(rank >= 1 && rank <= TOP) || !validPid(by)) return send(res, 400, { error: "Can't report that." });
+  const game = b.game, period = ["all", "daily"].includes(b.period) ? b.period : "week", rank = b.rank, by = b.pid;
+  if (!validGame(game) || !Security.integer(rank,1,TOP) || !validPid(by)) return send(res, 400, { error: "Can't report that." });
   const key = period === "daily" ? `lb:${game}:d:${Runs.Daily.date()}` : period === "all" ? `lb:${game}:all` : `lb:${game}:w:${week}`;
   const [[target]] = await R([["ZRANGE", key, String(rank - 1), String(rank - 1), "REV"]]).then(r => [r[0] || []]);
   if (!target || target === by) return send(res, 400, { error: "Can't report that." });
@@ -95,18 +92,13 @@ async function report(R, b, req, res, week) {
   if (n >= HIDE_AFTER) await R([["SADD", "lb:hidden", target]]);
   return send(res, 200, { ok: true, counted: added === 1 });
 }
-function ownerOk(k) {
-  const key = process.env.STATS_KEY; if (!key || typeof k !== "string") return false;
-  const a = Buffer.from(k), w = Buffer.from(key);
-  return a.length === w.length && crypto.timingSafeEqual(a, w);
-}
+const ownerOk = Security.ownerOk;
 async function auditModeration(R,b){
   await R([['HSET','lb:moderation-history',crypto.randomUUID(),JSON.stringify({action:b.do,target:b.target,source:b.source,reason:b.reason,at:Date.now()})],['EXPIRE','lb:moderation-history','7776000'],['SET','lb:notice:'+b.target,JSON.stringify({action:b.do,reason:b.reason,at:Date.now()}),'EX','5184000']]);
   const [flat]=await R([['HGETALL','lb:moderation-history']]);const rows=[];for(let i=0;i<flat.length;i+=2)rows.push([flat[i],JSON.parse(flat[i+1])]);rows.sort((a,b)=>b[1].at-a[1].at);
   const expired=rows.filter((r,i)=>i>=100||r[1].at<Date.now()-7776000000);if(expired.length)await R(expired.map(r=>['HDEL','lb:moderation-history',r[0]]));
 }
 async function moderate(R, b, res, week) {
-  if (!ownerOk(b.key)) return send(res, 401, { error: "Wrong key." });
   if (b.do === "list") {
     const [flat,historyFlat] = await R([["HGETALL", "lb:reported"],["HGETALL","lb:moderation-history"]]);
     const history=[];for(let i=1;i<(historyFlat||[]).length;i+=2)history.push(JSON.parse(historyFlat[i]));history.sort((a,b)=>b.at-a.at);
@@ -119,7 +111,7 @@ async function moderate(R, b, res, week) {
   }
   if(typeof b.reason!=='string'||b.reason.trim().length<3||b.reason.length>240||!['User asked','Admin decision'].includes(b.source))return send(res,400,{error:'A reason and decision source are required.'});
   if (b.do === 'approve-score'  || b.do === 'reject-score') {
-    if (!validPid(b.target) || !CAPS[b.game]) return send(res,400,{error:'Invalid review.'});
+    if (!validPid(b.target) || !validGame(b.game)) return send(res,400,{error:'Invalid review.'});
     const key = `lb:pending:${b.target}:${b.game}`;
     const [raw] = await R([['GET', key]]);
     if (!raw) return send(res,404,{error:'Review expired.'});
@@ -171,7 +163,7 @@ module.exports = async function handler(req, res) {
   try {
     if (req.method === "GET") {
       const game = q.get("game"), period = ["all", "daily"].includes(q.get("period")) ? q.get("period") : "week", pid = q.get("pid");
-      if (!CAPS[game]) return send(res, 400, { error: "Unknown game." });
+      if (!validGame(game)) return send(res, 400, { error: "Unknown game." });
       const date = q.get('date') || Runs.Daily.date();
       if (period === 'daily' && ![0,1,2].map(n => Runs.Daily.date(Date.now()-n*86400000)).includes(date)) return send(res, 400, { error: 'Daily board expired.' });
       const key = period === 'daily' ? `lb:${game}:d:${date}` : period === "all" ? `lb:${game}:all` : `lb:${game}:w:${week}`;
@@ -194,23 +186,23 @@ module.exports = async function handler(req, res) {
     if (req.method === "POST") {
       const b = await readBody(req);
       if (b.action === "report") return report(R, b, req, res, week);
-      if (b.action === "moderate") return moderate(R, {...b,key:req.headers['x-stats-key']||b.key}, res, week);
+      if (b.action === "moderate") { const auth=await Security.owner(req,R); if(auth!==200)return send(res,auth,{error:auth===429?"Too many wrong keys. Try again in ten minutes.":"Wrong key."}); return moderate(R,b,res,week); }
       // round start: anonymous on purpose (no player id), so it runs before the id check
       if (b.action === 'start') {
-        if (!CAPS[b.game]) return send(res, 400, { error: "Unknown game." });
-        const ip = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "na";
-        const ipHash = crypto.createHash("sha256").update(ip + week).digest("hex").slice(0, 24);   // spam check only, gone in 1s
+        if (!validGame(b.game)) return send(res, 400, { error: "Unknown game." });
+        const ip = Security.ip(req);
+        const ipHash = Security.hash(req,"rankings:"+week);   // spam check only, expires after 60 seconds
         const started = await Runs.start(R, b, ipHash); return send(res, started.status || 200, started);
       }
-      const game = b.game, score = Math.floor(Number(b.score)), name = cleanName(b.name), pid = b.pid;
-      if (!CAPS[game]) return send(res, 400, { error: "Unknown game." });
+      const game = b.game, score = b.score, name = cleanName(b.name), pid = b.pid;
+      if (!validGame(game)) return send(res, 400, { error: "Unknown game." });
       if (!validPid(pid)) return send(res, 400, { error: "Bad player id." });
       if (game.startsWith('rumble') && !require('../web/rumble-rules').first.some((_,a)=>require('../web/rumble-rules').last.some((_,z)=>require('../web/rumble-rules').nickname(a,z)===name)))return send(res,400,{error:'Pick a preset Rumble name.'});
       if (!validName(name)) return send(res, 400, { error: "Pick a nickname: 2-14 letters or numbers, nothing rude." });
-      if (!(score > 0 && score <= CAPS[game])) return send(res, 400, { error: "That score doesn't look right." });
+      if (!Security.integer(score,1,CAPS[game])) return send(res, 400, { error: "That score doesn't look right." });
 
-      const ip = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "na";
-      const ipKey = "rl:ip:" + crypto.createHash("sha256").update(ip + week).digest("hex").slice(0, 24);
+      const ip = Security.ip(req);
+      const ipKey = "rl:ip:" + Security.hash(req,"rankings:"+week);
       const [slot, ipCount] = await R([["SET", `rl:pid:${pid}`, "1", "NX", "EX", "8"], ["INCR", ipKey], ["EXPIRE", ipKey, "60"]]);
       if (slot !== "OK" || ipCount > 30) return send(res, 429, { error: "Slow down a little and try again in a few seconds." });
 
@@ -243,7 +235,7 @@ module.exports = async function handler(req, res) {
     }
     return send(res, 405, { error: "Method not allowed." });
   } catch (e) {
-    return send(res, 502, { error: "Rankings are having a moment. Try again soon." });
+    return send(res, e.status || 502, { error: e.status ? e.message : "Rankings are having a moment. Try again soon." });
   }
 };
 module.exports.isoWeek = isoWeek;

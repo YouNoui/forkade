@@ -2,7 +2,7 @@
 const { spawn } = require('node:child_process');
 const serve = require('./server.cjs');
 const scripts = [
-  'style', 'growth', 'promo-browser', 'assist', 'bonus', 'experiment', 'fair', 'ux',
+  'style', 'security', 'growth', 'promo-browser', 'assist', 'bonus', 'experiment', 'fair', 'ux',
   'update-browser', 'social-browser', 'game-upgrades', 'prism-upgrade',
   'drift-upgrade', 'trail-upgrade', 'glass-upgrade', 'wrecker-upgrade',
   'demo-upgrade', 'match-upgrade', 'rampage-upgrade', 'rampage-browser',
@@ -22,7 +22,7 @@ function run(name, extra = {}) {
 (async () => {
   await run('browser', { WEBKIT: '' });
   await run('browser', { WEBKIT: '1' });
-  for (const name of scripts) await run(name, { RUMBLE_CI: process.env.CI ? '1' : '' });
+  for (const name of scripts) await run(name, { RUMBLE_CI: process.env.CI ? '1' : '', SECURITY_BROWSER: name==='security'?'1':'' });
   await run('game-live');
   const fixture = serve();
   await new Promise(resolve => fixture.app.listen(0, '127.0.0.1', resolve));

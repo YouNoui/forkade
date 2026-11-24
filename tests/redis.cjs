@@ -33,16 +33,17 @@ class Redis {
       case 'ZRANGE':{let rows=[...(v||[])].sort((x,y)=>a.includes('REV')?y[1]-x[1]:x[1]-y[1]);rows=rows.slice(Number(a[0]),Number(a[1])<0?undefined:Number(a[1])+1);return a.includes('WITHSCORES')?rows.flatMap(([id,n])=>[id,String(n)]):rows.map(x=>x[0]);}
       case 'ZREMRANGEBYSCORE':if(v)for(const [id,n]of v)if(n<=Number(a[1]))v.delete(id);return 1;
       case 'EVAL':{
+        if(k.startsWith('-- forkade-security-rate-v1')){const key=a[1],n=this.run(['INCR',key]);if(n===1)this.run(['EXPIRE',key,a[2]]);return n;}
         if(k.startsWith('-- forkade-promo-rate-v1')){const key=a[1],n=this.run(['INCR',key]);if(n===1)this.run(['EXPIRE',key,'60']);return n;}
         if(k.startsWith('-- forkade-promo-v1')){
-          const [count,table,redemptions,action,code,arg,now]=a,raw=this.run(['HGET',table,code]),reply=x=>JSON.stringify(x);
+          const [count,table,redemptions,network,action,code,arg,now]=a,raw=this.run(['HGET',table,code]),reply=x=>JSON.stringify(x);
           if(action==='create'){if(raw)return reply({status:409,error:'That code already exists.'});if(this.run(['HLEN',table])>=1000)return reply({status:409,error:'Limit of 1000 codes. Delete an old code first.'});this.run(['HSET',table,code,arg]);return reply({ok:true});}
           if(!raw)return reply({status:404,error:"That code doesn't work"});const c=JSON.parse(raw);
           if(action==='delete'){this.run(['HDEL',table,code]);this.run(['DEL',redemptions]);return reply({ok:true});}
           if(action==='enable'){c.enabled=arg==='true';this.run(['HSET',table,code,JSON.stringify(c)]);return reply({ok:true});}
           if(!c.enabled)return reply({status:404,error:"That code doesn't work"});if(c.expires&&Number(now)>=c.expires)return reply({status:410,error:'That code has expired.'});
           const receipt={id:c.id,reward:c.reward};if(this.run(['SISMEMBER',redemptions,arg]))return reply({status:409,error:'Already redeemed on this device.',receipt});
-          if(c.maxUses&&c.used>=c.maxUses)return reply({status:409,error:'That code is used up.'});c.used++;this.run(['SADD',redemptions,arg]);this.run(['HSET',table,code,JSON.stringify(c)]);return reply({ok:true,receipt});
+          if(c.maxUses&&c.used>=c.maxUses)return reply({status:409,error:'That code is used up.'});if(Number(this.run(['GET',network])||0)>=5)return reply({status:429,error:'This network has claimed this code five times today. Try tomorrow.'});this.run(['INCR',network]);this.run(['EXPIRE',network,'86400']);c.used++;this.run(['SADD',redemptions,arg]);this.run(['HSET',table,code,JSON.stringify(c)]);return reply({ok:true,receipt});
         }
         const key=a[1],raw=this.get(key);if(!raw)return null;const r=JSON.parse(raw);if(r.game!==a[3])return null;this.data.delete(key);return raw;}
       default:throw Error('Unsupported Redis command '+op);
