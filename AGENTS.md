@@ -47,22 +47,22 @@
 - Version 3 simulation/replays are separate from the retained legacy v2 verifier. Run tokens bind canonical hero/difficulty/gadget/weekly options; difficulty boards never share a key. Assist and friend races are unranked.
 - Keep all XP/mastery/unlock requirements in rumble-v2-rules.js; fair play and promo catalog consume those constants. Forge practice earns no Road XP or cores. Four starters are free; Nova and other Road rewards have fixed visible requirements.
 - CC0 source credits and complete licences live in THIRD_PARTY_NOTICES and licenses/. Rebuild GLBs with tools/build_rumble_assets.mjs; selected-hero first load including runtime/portraits must remain <=3MB. Runtime fetches are same-origin; dist embeds assets. Preserve original avatar cosmetics in the optional classic look.
-- Private live co-op is not enabled. Only genuine explicitly posted replays may produce a friend link; it expires with the replay and must stop resolving after removal/moderation. Never create production sample ghosts.
+- Live co-op uses the dedicated forkade-coop Worker; preserve hibernation, strict presets, daily caps and opt-in controls. Only genuine explicitly posted replays may produce a friend link; it expires with the replay and must stop resolving after removal/moderation. Never create production sample ghosts.
 - Run rumble-v2.test.cjs, rumble-v2-online.test.cjs and rumble-v2-browser.cjs plus all existing checks; verify Android/iPhone emulation and desktop. Do not describe headless render timings as a physical-phone 60 FPS measurement.
 
 ## Cleanup and evidence
 - Do not commit test screenshots, gameplay recordings or coverage. Use tests/artifacts.cjs and FORKADE_ARTIFACTS; keep production icons, OG images, models and homepage media.
 - Preserve the existing compact runtime JavaScript style; use the .editorconfig conventions for new helpers. Do not reformat served bundles just for style.
 - npm run test:suite covers the local browser assertions; npm run test:coverage records JS/CSS usage outside the checkout. Coverage gaps alone never justify deleting code.
-- Private co-op stays disabled; no Forkade Cloudflare runtime resources were found in the designated account on 24 Nov 2026. Billing/Free-plan status remains unverified.
+- Deploy only workers/coop/wrangler.jsonc to forkade-coop. Never change unrelated Workers or billing. Co-op is unranked and rooms expire after 30 minutes idle.
 
 ## Shared UI kit
 - Follow docs/STYLE.md. Author spacing/type/radius and button rules in web/index.html only; build_ui.py publishes ui.css and the 3D builders inline it. Rebuild the shared kit before every other generator.
 - Run tests/style.cjs at 390/1280 for UI changes; preserve the six type sizes, 4px spacing, 44px targets and one visible primary action. Keep before/after proof outside git.
 
 ## Security regression gate
-- Run node tests/security.cjs and SECURITY_BROWSER=1 for isolated browser attacks; CI also runs the real Redis Lua concurrency check on loopback only. Never attack production or create test data there. Live verification is limited to GETs, headers and one wrong-key 401.
+- Run node tests/security.cjs and SECURITY_BROWSER=1 for isolated browser attacks; CI also runs the real Redis Lua concurrency check on loopback only. Never attack production or create ranking/promo/Forge test data there. The owner explicitly authorizes temporary co-op smoke rooms; all attack tests remain isolated.
 - Owner authentication is X-Stats-Key only; use lib/security.js for body limits, trusted edge IPs and the shared five-failures/ten-minute lockout. Never use X-Forwarded-For for limits.
 - Ranked posts require the server-issued seed and single-use token. Player IDs are private bearer secrets: never include pid/owner in public rankings, Forge or ghost output.
 - After every generator (including build_dist), run node tools/build_csp.cjs. No unsafe-inline in script-src or HTML event attributes. Keep the local Playground evaluation exception scoped to its page. Run tools/scan_client.cjs; never print matches.
-- Private co-op remains absent/disabled; SECURITY.md lists the mandatory gates before adding any Worker.
+- Run npm run test:coop and tests/coop-browser.cjs for co-op changes, including 2/4 clients, schema/rate/budget/expiry/kill-switch checks.

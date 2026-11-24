@@ -58,13 +58,20 @@ parts stay free. Requirements and limits are described by the same shared catalo
 
 ## Co-op status and Cloudflare
 
-Private live co-op is **disabled**. Friend ghosts are the available asynchronous option.
-As of 24 November 2026, no Forkade Worker, Durable Object, KV namespace, R2 bucket,
-D1 database, Pages project or Worker route was found in the owner-designated account.
-Forkade currently uses **no Cloudflare runtime resources**; hosting is Vercel and
-online data is Upstash. Unrelated account resources were left untouched.
-Billing API access is denied, so Workers Free/no-payment/no-paid-add-ons status
-cannot be certified. No plan change, relay deployment or paid resource was made.
+Live ECHO RUMBLE co-op is opt-in for 2–4 friends at `https://forkade-coop.breek.workers.dev`.
+Choose **Play with a friend**, then **Share room**; links use `/r/coop/<CODE>`.
+The server runs a shared, unranked Volt/Normal game. Fork/rewind, upgrades, Road XP,
+cores and ranked posting remain solo features; shared stages pick the first seeded upgrade.
+Only bounded controls and fixed emotes are sent; names use the ranking presets.
+Six-character invitation codes are not passwords: share only with friends.
+Rooms expire after 30 minutes idle. No chat, cookies, trackers or device IDs.
+SQLite Durable Objects use WebSocket hibernation and input-driven ticks, no idle loop.
+Caps: 4 players, 20 incoming messages/sec/player, at most 30 state broadcasts/sec,
+500 rooms and 5M reserved messages/Singapore day. Message reservations are conservative
+256-message blocks counting inputs and fan-out. Admin can disable co-op; solo stays available.
+The dedicated Worker uses the owner's existing paid account; no billing/plan changes.
+`workers/coop/wrangler.jsonc` is the only deployment target. Never deploy other Workers.
+Run `npm run test:coop` for isolated workerd tests; `node tests/coop-browser.cjs` for clients.
 
 ## Run and rebuild
 

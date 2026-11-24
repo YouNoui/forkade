@@ -1,0 +1,17 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "forkade-coop",
+  "main": "worker.js",
+  "account_id": "f294bccbb4356f8d259b9c7be5e5344f",
+  "compatibility_date": "2026-11-24",
+  "workers_dev": true,
+  "preview_urls": false,
+  "vars": {"COOP_ENABLED": "true"},
+  "durable_objects": {"bindings": [
+    {"name": "ROOMS", "class_name": "CoopRoom"},
+    {"name": "BUDGET", "class_name": "CoopBudget"}
+  ]},
+  "migrations": [{"tag": "v1", "new_sqlite_classes": ["CoopRoom", "CoopBudget"]}],
+  "observability": {"enabled": false},
+  "limits": {"cpu_ms": 50}
+}
