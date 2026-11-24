@@ -1,4 +1,4 @@
-/* RAMPAGE 3D: original neon destruction arena. THREE r128 is bundled in the HTML. */
+/* Rampage 3D: original neon destruction arena. THREE r128 is bundled in the HTML. */
 (() => {
   'use strict';
   const F = (()=>{try{return parent.Forkade;}catch{return null;}})();
@@ -81,7 +81,7 @@
   }
   function finish(){
     if(state.done)return;state.done=true;banner.hidden=false;
-    document.getElementById('result').textContent='CITY SCORE '+state.score;document.getElementById('summary').textContent=state.destroyed+' buildings · best chain '+state.bestCombo+(state.reactorWon?' · reactor cracked':'');
+    document.getElementById('result').textContent='City score '+state.score;document.getElementById('summary').textContent=state.destroyed+' buildings · best chain '+state.bestCombo+(state.reactorWon?' · reactor cracked':'');
     const best=F?.scores.submit('rampage',state.score)||false;
     parent.postMessage({t:'forkade-score',id:'rampage',score:state.score,best},'*');sound('win');
   }
@@ -109,7 +109,7 @@
     chunkMeshes.forEach((m,i)=>{const c=state.chunks[i];m.visible=!!c&&!F?.settings.reduceMotion;if(c){m.position.set(c.x,c.y,c.z);m.rotation.set(c.rot,c.rot,0);m.scale.set(.45,.45,.45);m.material=mats[c.mat];}});
     camera.position.set(state.x+13,26,state.z+23);camera.lookAt(state.x,0,state.z);
     hud.textContent=`${state.score} PTS · ${Math.ceil(state.time)}s${paused?' · PAUSED':''}`;
-    document.getElementById('goal').textContent=state.power>0?'POWER STOMP '+state.power.toFixed(1)+'s':state.reactorHp>0?'REACTOR '+state.reactorHp+'/6 · CROSSROADS':state.goal?'5 BUILDINGS ✓ +600':'GOAL '+Math.min(5,state.destroyed)+'/5 BUILDINGS · +600';
+    document.getElementById('goal').textContent=state.power>0?'Power stomp '+state.power.toFixed(1)+'s':state.reactorHp>0?'Reactor '+state.reactorHp+'/6 · CROSSROADS':state.goal?'5 BUILDINGS ✓ +600':'Goal '+Math.min(5,state.destroyed)+'/5 BUILDINGS · +600';
     document.getElementById('energy').style.width=energy*100+'%';renderer.render(scene,camera);
   }
   let last=performance.now(),acc=0;

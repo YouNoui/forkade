@@ -10,7 +10,7 @@ const {chromium}=require('playwright');
  try{
   await page.goto(raw);await page.waitForFunction(()=>window.Forkade);
   await page.goto(base+'/glass');await page.waitForFunction(()=>Forkade.current()?.id==='glass');
-  assert.match(await page.title(),/GLASS CITY/);assert.equal(await page.locator('meta[property="og:title"]').count(),1);
+  assert.match(await page.title(),/Glass City/);assert.equal(await page.locator('meta[property="og:title"]').count(),1);
   assert.equal((await context.request.get(base+'/og/glass.png')).status(),200);
   const call=body=>context.request.post(base+'/api/leaderboard',{data:{pid,...body}});
   let r=await call({action:'start',game:'skyhop'});assert.equal(r.status(),200);const {token}=await r.json();assert.ok(token);
@@ -19,7 +19,7 @@ const {chromium}=require('playwright');
   const removed=await context.request.delete(base+'/api/leaderboard',{data:{pid}});assert.equal(removed.status(),200);posted=false;
   // Token replay must fail (a rate-limit rejection also prevents a duplicate score).
   r=await call({game:'skyhop',score:10,name:'PreviewQA',token});assert.ok([400,429].includes(r.status()));
-  if(process.env.RAMPAGE){await page.goto(base+'/rampage');await page.frameLocator('#gframe').locator('canvas').waitFor({state:'visible'});assert.match(await page.title(),/RAMPAGE/);}
+  if(process.env.RAMPAGE){await page.goto(base+'/rampage');await page.frameLocator('#gframe').locator('canvas').waitFor({state:'visible'});assert.match(await page.title(),/Rampage/);}
   assert.deepEqual(errors,[]);console.log('Preview passed: deep link, OG PNG, real Redis token/post/read/delete/replay'+(process.env.RAMPAGE?', RAMPAGE 3D':'')+'. No page errors.');
  }finally{if(posted)await context.request.delete(base+'/api/leaderboard',{data:{pid}});await browser.close();}
 })().catch(e=>{console.error(e.message.replace(/_vercel_share=[^\s&]+/g,'_vercel_share=[redacted]'));process.exitCode=1;});

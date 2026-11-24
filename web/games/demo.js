@@ -1,4 +1,4 @@
-/* GAME 12 - DEMOLITION CHAIN : plan-the-blast puzzle.
+/* GAME 12 - Demolition Chain : plan-the-blast puzzle.
    Tap/click blocks to place charges (limited per level), then DETONATE.
    A charge blows a 3x3 hole; GAS cans blow 5x5 and set off anything nearby, so chains matter.
    STEEL survives one blast. The building collapses after the blast.
@@ -194,27 +194,27 @@
       // side panel
       const hx = this.W - 230;
       NE.text(ctx, String(this.score), hx, 20, { size: 36 });
-      NE.text(ctx, `SITE ${this.level}`, hx, 64, { size: 15, color: P.dim });
-      NE.text(ctx, "CHARGES", hx, 104, { size: 14, color: P.dim });
+      NE.text(ctx, `Site ${this.level}`, hx, 64, { size: 15, color: P.dim });
+      NE.text(ctx, "Charges", hx, 104, { size: 14, color: P.dim });
       for (let k = 0; k < this.left; k++) NE.glowCircle(ctx, P.red, hx + 12 + k * 26, 140, 8);
       NE.text(ctx, "tap blocks to place / remove", hx, 176, { size: 12, color: P.dim, glow: false });
       NE.text(ctx, "△ = gas: big chain blast", hx, 196, { size: 12, color: P.amber, glow: false });
       NE.text(ctx, "grey = steel: needs 2 hits", hx, 216, { size: 12, color: "#b8bcd8", glow: false });
-      NE.text(ctx,this.chainGoal?'12 BLOCKS ✓':`BLOCK GOAL ${this.destroyed}/12`,hx,246,{size:14,color:P.lime});NE.drawEcho(ctx, hx + 60, 290, 18, NE.palette.cyan, -1, this.t);
+      NE.text(ctx,this.chainGoal?'12 blocks ✓':`Block goal ${this.destroyed}/12`,hx,246,{size:14,color:P.lime});NE.drawEcho(ctx, hx + 60, 290, 18, NE.palette.cyan, -1, this.t);
       const b = this.btn, ready = this.phase === "plan" && this.charges.length > 0;
       NE.glowRect(ctx, ready ? P.red : P.dim, b.x, b.y, b.w, b.h, 12, ready ? 0 : 2);
-      NE.text(ctx, "DETONATE", b.x + b.w / 2, b.y + 15, { size: 20, color: ready ? P.bg : P.dim, align: "center", glow: false });
+      NE.text(ctx, "Detonate", b.x + b.w / 2, b.y + 15, { size: 20, color: ready ? P.bg : P.dim, align: "center", glow: false });
       if (this.phase === "clear")
-        NE.banner(ctx, this.W, this.H, `SITE ${this.level} CLEARED!`, `+${this.bonus} bonus   -   click / SPACE for the next site`);
+        NE.banner(ctx, this.W, this.H, `Site ${this.level} cleared!`, `+${this.bonus} bonus   -   click / SPACE for the next site`);
       if (this.phase === "fail")
-        NE.banner(ctx, this.W, this.H, "STILL STANDING", "hold R to rewind and try another plan   ·   tap to give up");
+        NE.banner(ctx, this.W, this.H, "Still standing", "hold R to rewind and try another plan   ·   tap to give up");
       if (this.state === "over")
-        NE.banner(ctx, this.W, this.H, "DEMOLITION CALLED OFF", `score ${this.score} · site ${this.level} · best wave ${this.bestWave} · tap to retry`);
+        NE.banner(ctx, this.W, this.H, "Demolition called off", `score ${this.score} · site ${this.level} · best wave ${this.bestWave} · tap to retry`);
     }
   }
   Demo.prototype.rewindSeconds = 6;   // long enough to rewind a whole blast + collapse
   NE.register("demo",
-    { polished:true,world:["#171528","#30243e","#e8a55c"],scene:"forge",music:{root:146.83,tempo:96,wave:"triangle"},hint:"TAP CHARGES · THEN DETONATE",touch: "tap", title: "DEMOLITION CHAIN", genre: "Blast puzzle", color: P.amber,
+    { polished:true,world:["#171528","#30243e","#e8a55c"],scene:"forge",music:{root:146.83,tempo:96,wave:"triangle"},hint:"Tap charges · then detonate",touch: "tap", title: "Demolition Chain", genre: "Blast puzzle", color: P.amber,
       desc: "Place a few charges, hit DETONATE and chain gas cans to bring the building below the line. Bad plan? Rewind it." },
     Demo);
 })();

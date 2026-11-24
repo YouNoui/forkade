@@ -3,83 +3,83 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ECHO 3D</title>
+<title>Echo 3D</title>
 <style>
-  :root{--cyan:#22e1ff;--mag:#22e1ff;--violet:#9a9fc4;--amber:#22e1ff;--ink:#f1f3ff;--dim:#9a9fc4;}
+  :root{--cyan:#22e1ff;--mag:#22e1ff;--violet:#9a9fc4;--amber:#22e1ff;--ink:var(--text);--dim:#9a9fc4;}
   html,body{margin:0;height:100%;background:#0b0a10;overflow:hidden;
     font-family:Consolas,"SF Mono",ui-monospace,monospace;color:var(--ink);}
   #c{display:block;width:100%;height:100%;touch-action:none;}
   .hud{position:fixed;inset:0;pointer-events:none;}
-  .top{position:absolute;top:14px;left:16px;font-size:26px;font-weight:800;
+  .top{position:absolute;top:14px;left:16px;font-size:var(--t-xl);font-weight:900;
     text-shadow:0 0 12px var(--cyan);}
-  .top small{font-size:13px;color:var(--dim);font-weight:700;}
-  .right{position:absolute;top:14px;right:16px;text-align:right;font-size:14px;color:var(--dim);}
+  .top small{font-size:var(--t-xs);color:var(--dim);font-weight:700;}
+  .right{position:absolute;top:14px;right:16px;text-align:right;font-size:var(--t-sm);color:var(--dim);}
   .mid{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-    flex-direction:column;gap:10px;text-align:center;}
-  .big{font-size:44px;font-weight:800;color:var(--cyan);text-shadow:0 0 18px var(--cyan);}
-  .sub{font-size:16px;color:var(--ink);}
+    flex-direction:column;gap:var(--s2);text-align:center;}
+  .big{font-size:var(--t-2xl);font-weight:900;color:var(--cyan);text-shadow:0 0 18px var(--cyan);}
+  .sub{font-size:var(--t-md);color:var(--ink);}
   .rwbar{position:absolute;left:16px;bottom:16px;width:160px;}
-  .rwbar div{height:10px;background:#15172c;border:1px solid #2d3252;border-radius:5px;overflow:hidden;}
+  .rwbar div{height:10px;background:#15172c;border:1px solid #2d3252;border-radius:var(--r-sm);overflow:hidden;}
   .rwbar i{display:block;height:100%;width:100%;background:var(--violet);box-shadow:0 0 10px var(--violet);}
-  .rwbar span{font-size:11px;color:var(--dim);}
+  .rwbar span{font-size:var(--t-xs);color:var(--dim);}
   .back{position:absolute;top:12px;left:50%;transform:translateX(-50%);pointer-events:auto;
-    cursor:pointer;color:var(--cyan);border:1px solid var(--cyan);border-radius:10px;
-    padding:6px 14px;font-weight:700;background:rgba(34,225,255,.07);font-family:inherit;font-size:12px;}
+    cursor:pointer;color:var(--cyan);border:1px solid var(--cyan);border-radius:var(--r-sm);
+    padding:var(--s1) var(--s3);font-weight:700;background:rgba(34,225,255,.07);font-family:inherit;font-size:var(--t-xs);}
   .touch{position:absolute;inset:0;pointer-events:none;display:none;}
   body.touchon .touch{display:block;}
   .pad{position:absolute;bottom:22px;left:18px;display:grid;
-    grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,52px);gap:6px;}
+    grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,52px);gap:var(--s1);}
   .jump{position:absolute;bottom:40px;right:22px;}
   .rw{position:absolute;bottom:120px;right:22px;}
   .tb{pointer-events:auto;user-select:none;touch-action:none;display:flex;align-items:center;
-    justify-content:center;border-radius:14px;background:rgba(20,24,46,.72);
-    border:1px solid rgba(120,130,170,.5);color:var(--ink);font-size:20px;font-weight:800;}
+    justify-content:center;border-radius:var(--r-md);background:rgba(20,24,46,.72);
+    border:1px solid rgba(120,130,170,.5);color:var(--ink);font-size:var(--t-lg);font-weight:900;}
   .tb:active{background:rgba(34,225,255,.25);border-color:var(--cyan);}
   /* phones: drag the left half to move, tap the right half to jump */
   body.touchon .pad, body.touchon .jump{display:none !important;}
-  body.touchon .rw{position:fixed;right:14px;top:58px;width:58px;height:44px;opacity:.85;}
-  .stick{position:fixed;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;pointer-events:none;
+  body.touchon .rw{position:fixed;right:14px;top:58px;width:80px;height:44px;opacity:.85;}
+  .stick{position:fixed;width:110px;height:110px;margin:calc(var(--s1) * 14 * -1) 0 0 calc(var(--s1) * 14 * -1);border-radius:50%;pointer-events:none;
     border:2px solid rgba(34,225,255,.45);background:rgba(34,225,255,.06);display:none;z-index:5;}
-  .stick i{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;
+  .stick i{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:calc(var(--s5) * -1) 0 0 calc(var(--s5) * -1);border-radius:50%;
     background:rgba(34,225,255,.55);box-shadow:0 0 16px #22e1ff;}
-  .thint{position:fixed;left:0;right:0;bottom:14px;text-align:center;font:12px Consolas,monospace;color:rgba(241,243,255,.55);
+  .thint{position:fixed;left:0;right:0;bottom:14px;text-align:center;font:var(--t-xs) Consolas,monospace;color:rgba(241,243,255,.55);
     pointer-events:none;display:none;} body.touchon .thint{display:block;}
   .pad .tb{width:52px;height:52px;} .u{grid-column:2;grid-row:1;}.l{grid-column:1;grid-row:2;}
   .r{grid-column:3;grid-row:2;}.dn{grid-column:2;grid-row:3;}
-  .jb{width:84px;height:84px;font-size:14px;border-color:var(--cyan);color:var(--cyan);}
-  .rb{width:66px;height:66px;font-size:13px;border-color:var(--violet);color:var(--violet);}
+  .jb{width:84px;height:84px;font-size:var(--t-sm);border-color:var(--cyan);color:var(--cyan);}
+  .rb{width:66px;height:66px;font-size:var(--t-xs);border-color:var(--violet);color:var(--violet);}
 button{min-height:44px;min-width:44px}
 
-.top{font-size:18px;top:58px;left:12px;background:#15131de6;padding:8px;border-radius:12px}.right{top:58px;right:80px;font-size:12px;background:#15131de6;padding:8px;border-radius:12px}.back{left:12px;transform:none;top:8px;min-height:44px;background:#15131d}.mid{background:#0b0a10dd;pointer-events:auto;padding:20px}.big{font-size:30px}.sub{line-height:1.6}button{min-height:44px}#banner button:active{transform:scale(.97)}@media(prefers-reduced-motion:reduce){#banner button:active{transform:none}}
-.thint{bottom:48px;color:var(--ink);background:#15131de6;padding:8px;border-radius:12px;left:12px;right:12px}.rwbar{width:100px}.top small{font-size:11px}.back{min-height:44px;box-sizing:border-box}
+.top{font-size:var(--t-md);top:58px;left:12px;background:#15131de6;padding:var(--s2);border-radius:var(--r-md)}.right{top:58px;right:80px;font-size:var(--t-xs);background:#15131de6;padding:var(--s2);border-radius:var(--r-md)}.back{left:12px;transform:none;top:8px;min-height:44px;background:#15131d}.mid{background:#0b0a10dd;pointer-events:auto;padding:var(--s4)}.big{font-size:var(--t-2xl)}.sub{line-height:1.45}button{min-height:44px}#banner button:active{transform:scale(.97)}@media(prefers-reduced-motion:reduce){#banner button:active{transform:none}}
+.thint{bottom:48px;color:var(--ink);background:#15131de6;padding:var(--s2);border-radius:var(--r-md);left:12px;right:12px}.rwbar{width:100px}.top small{font-size:var(--t-xs)}.back{min-height:44px;box-sizing:border-box}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div class="hud">
   <div class="top"><span id="coins">0</span> <small>/ <span id="total">0</span> cores</small><br>
-    <small id="who">ECHO</small></div>
-  <div class="right">BEST <b id="best">0</b><br><small>hold R / ⇧ to rewind</small></div>
-  <div class="rwbar"><div><i id="rwfill"></i></div><span>REWIND</span></div>
-  <div class="back" id="back">← Back</div>
+    <small id="who">Echo</small></div>
+  <div class="right">Best <b id="best">0</b><br><small>hold R / ⇧ to rewind</small></div>
+  <div class="rwbar"><div><i id="rwfill"></i></div><span>Rewind</span></div>
+  <button class="back btn btn-sm" id="back">Back</button>
   <div class="mid" id="banner" style="display:none"><div class="big" id="bt"></div><div class="sub" id="bs"></div></div>
 </div>
 <div class="stick" id="stick"><i></i></div>
 <div class="thint" id="thint">drag left side to move &middot; tap right side to jump</div>
 <div class="touch">
   <div class="pad">
-    <div class="tb u"  data-k="f">▲</div><div class="tb l" data-k="l">◀</div>
-    <div class="tb r" data-k="r">▶</div><div class="tb dn" data-k="b">▼</div>
+    <button class="tb u btn btn-sm" data-k="f" aria-label="Move forward">↑</button><button class="tb l btn btn-sm" data-k="l" aria-label="Move left">←</button>
+    <button class="tb r btn btn-sm" data-k="r" aria-label="Move right">→</button><button class="tb dn btn btn-sm" data-k="b" aria-label="Move back">↓</button>
   </div>
-  <div class="tb jb jump" data-k="j">JUMP</div>
-  <div class="tb rb rw" data-k="rw">REW</div>
+  <button class="tb jb jump btn btn-sm" data-k="j" aria-label="Jump">Jump</button>
+  <button class="tb rb rw btn btn-sm" data-k="rw" aria-label="Hold to rewind">Rewind</button>
 </div>
 
 <script>__THREE__</script>
 <script>__ECHO_GAME__</script>
 <script>
-  const gear=document.createElement('button');gear.textContent='⚙';gear.setAttribute('aria-label','Settings');
-  Object.assign(gear.style,{position:'fixed',right:'max(62px,env(safe-area-inset-right))',top:'max(8px,env(safe-area-inset-top))',zIndex:100,padding:'8px',color:'#22e1ff',background:'#0b0a10',border:'1px solid #22e1ff',borderRadius:'8px'});
+  const gear=document.createElement('button');gear.textContent='Settings';gear.setAttribute('aria-label','Settings');
+  Object.assign(gear.style,{position:'fixed',right:'max(62px,env(safe-area-inset-right))',top:'max(8px,env(safe-area-inset-top))',zIndex:100,padding:'var(--s2)',color:'#22e1ff',background:'#0b0a10',border:'var(--s1) solid #22e1ff',borderRadius:'var(--s2)'});
   gear.onclick=()=>parent.postMessage({t:'forkade-settings-open'},'*');document.body.appendChild(gear);
   addEventListener('pointerdown',()=>{try{parent.Forkade?.sfx.ensure();}catch(_){}},{passive:true});
   addEventListener('touchmove',e=>e.preventDefault(),{passive:false});

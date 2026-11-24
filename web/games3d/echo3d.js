@@ -284,7 +284,7 @@
       document.getElementById("best").textContent = best; }
     try { parent !== window && parent.postMessage({ t: "forkade-score", id: "echo3d", score: scoreVal, best: nb }, "*"); } catch (_) {}
     bannerEl.style.display = "flex";
-    document.getElementById("bt").textContent = win ? "COURSE CLEAR!" : "YOU FELL";
+    document.getElementById("bt").textContent = win ? "Course clear!" : "You fell";
     document.getElementById("bs").innerHTML =
       `cores ${state.score}/${total} · island ${state.landed}/${platforms.length-1} · score ${scoreVal}` +
       (nb ? " · ★ NEW BEST" : " · "+(best-scoreVal)+" from your best") + "<br>ENTER / tap to retry · Esc back";

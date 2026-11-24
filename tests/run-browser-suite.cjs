@@ -2,7 +2,7 @@
 const { spawn } = require('node:child_process');
 const serve = require('./server.cjs');
 const scripts = [
-  'growth', 'promo-browser', 'assist', 'bonus', 'experiment', 'fair', 'ux',
+  'style', 'growth', 'promo-browser', 'assist', 'bonus', 'experiment', 'fair', 'ux',
   'update-browser', 'social-browser', 'game-upgrades', 'prism-upgrade',
   'drift-upgrade', 'trail-upgrade', 'glass-upgrade', 'wrecker-upgrade',
   'demo-upgrade', 'match-upgrade', 'rampage-upgrade', 'rampage-browser',

@@ -1,4 +1,4 @@
-/* GAME 7 - PRISM STACKS : colour-burst stacker (Forkade original)
+/* GAME 7 - Prism Stacks : colour-burst stacker (Forkade original)
    Small 2-5 cell shards fall into a 12x16 well. Clear a row by filling it,
    OR burst any group of 4+ touching cells of the same colour. After a burst,
    loose cells fall on their own and can chain into more bursts. */
@@ -57,7 +57,7 @@
         const x = this.pxi + cx, y = this.pyi + cy;
         if (y >= 0) this.grid[y][x] = c;
       }
-      this.pieces++;if(this.pieces%5===0){let count=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const x=this.pxi+dx,y=this.pyi+dy;if(x>=0&&x<COLS&&y>=0&&y<ROWS&&this.grid[y][x]){this.particles.emit(this.ox+(x+.5)*this.cell,this.oy+(y+.5)*this.cell,COLORS[this.grid[y][x]-1],{n:6,speed:4});this.grid[y][x]=0;count++;}}this.score+=count*15;this.addClear(count);this.juice?.hit(this.ox+(this.pxi+.5)*this.cell,this.oy+(this.pyi+.5)*this.cell,'PULSE +'+count*15,true);NE.sfx.explode();}
+      this.pieces++;if(this.pieces%5===0){let count=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const x=this.pxi+dx,y=this.pyi+dy;if(x>=0&&x<COLS&&y>=0&&y<ROWS&&this.grid[y][x]){this.particles.emit(this.ox+(x+.5)*this.cell,this.oy+(y+.5)*this.cell,COLORS[this.grid[y][x]-1],{n:6,speed:4});this.grid[y][x]=0;count++;}}this.score+=count*15;this.addClear(count);this.juice?.hit(this.ox+(this.pxi+.5)*this.cell,this.oy+(this.pyi+.5)*this.cell,'Pulse +'+count*15,true);NE.sfx.explode();}
       NE.sfx.bounce(); this.chain = 0;
       this.settling = true; this.settleT = 0;   // resolve gravity / bursts step by step
     }
@@ -160,14 +160,14 @@
           this.orb(ctx, gx + (this.pxi + cx) * this.cell + this.cell / 2, gy + (this.pyi + cy) * this.cell + this.cell / 2, COLORS[c - 1]);
       }
       const portrait=this.H>this.W,hx=gx+COLS*this.cell+36;
-      if(portrait){NE.text(ctx,String(this.score)+' PTS',20,18,{size:30});NE.text(ctx,'LEVEL '+this.level,this.W-20,22,{size:20,align:'right',color:P.dim});NE.text(ctx,'BURST '+this.cleared,20,64,{size:18,color:P.cyan});NE.text(ctx,(this.pieces+1)%5===0?'PULSE READY':'PULSE '+this.pieces%5+'/5',this.W-20,64,{size:18,align:'right',color:P.amber});NE.text(ctx,'NEXT',40,770,{size:16,color:P.dim});for(const[cx,cy,c]of this.next)this.orb(ctx,150+cx*24,785+cy*24,COLORS[c-1],10);NE.text(ctx,this.clearGoal?'24 ORBS ✓':`GOAL ${this.cleared}/24`,this.W-30,775,{size:17,color:P.lime,align:'right'});NE.text(ctx,'Move · turn · drop',this.W/2,850,{size:16,color:P.dim,align:'center'});}
-      else{NE.text(ctx,'SCORE',hx,gy+4,{size:14,color:P.dim});NE.text(ctx,String(this.score),hx,gy+22,{size:30});NE.text(ctx,'BURST '+this.cleared,hx,gy+85,{size:20,color:P.cyan});NE.text(ctx,'LEVEL '+this.level,hx,gy+130,{size:20,color:P.dim});NE.text(ctx,'BEST CHAIN '+this.bestChain,hx,gy+175,{size:17,color:P.amber});NE.text(ctx,'NEXT',hx,gy+220,{size:14,color:P.dim});for(const[cx,cy,c]of this.next)this.orb(ctx,hx+20+cx*24,gy+260+cy*24,COLORS[c-1],10);NE.text(ctx,(this.pieces+1)%5===0?'PULSE READY':'PULSE '+this.pieces%5+'/5',hx,gy+320,{size:17,color:P.amber});NE.text(ctx,this.clearGoal?'24 ORBS ✓':`GOAL ${this.cleared}/24`,hx,gy+350,{size:17,color:P.lime});NE.drawEcho(ctx,hx+50,gy+405,16,P.cyan,1,this.t);NE.text(ctx,'←→ move · ↑ turn · ↓ soft · SPACE drop',this.W/2,this.H-22,{size:13,color:P.dim,align:'center'});}
+      if(portrait){NE.text(ctx,String(this.score)+' score',20,18,{size:30});NE.text(ctx,'Level '+this.level,this.W-20,22,{size:20,align:'right',color:P.dim});NE.text(ctx,'Burst '+this.cleared,20,64,{size:18,color:P.cyan});NE.text(ctx,(this.pieces+1)%5===0?'Pulse ready':'Pulse '+this.pieces%5+'/5',this.W-20,64,{size:18,align:'right',color:P.amber});NE.text(ctx,'Next',40,770,{size:16,color:P.dim});for(const[cx,cy,c]of this.next)this.orb(ctx,150+cx*24,785+cy*24,COLORS[c-1],10);NE.text(ctx,this.clearGoal?'24 orbs ✓':`Goal ${this.cleared}/24`,this.W-30,775,{size:17,color:P.lime,align:'right'});NE.text(ctx,'Move · turn · drop',this.W/2,850,{size:16,color:P.dim,align:'center'});}
+      else{NE.text(ctx,'Score',hx,gy+4,{size:14,color:P.dim});NE.text(ctx,String(this.score),hx,gy+22,{size:30});NE.text(ctx,'Burst '+this.cleared,hx,gy+85,{size:20,color:P.cyan});NE.text(ctx,'Level '+this.level,hx,gy+130,{size:20,color:P.dim});NE.text(ctx,'Best chain '+this.bestChain,hx,gy+175,{size:17,color:P.amber});NE.text(ctx,'Next',hx,gy+220,{size:14,color:P.dim});for(const[cx,cy,c]of this.next)this.orb(ctx,hx+20+cx*24,gy+260+cy*24,COLORS[c-1],10);NE.text(ctx,(this.pieces+1)%5===0?'Pulse ready':'Pulse '+this.pieces%5+'/5',hx,gy+320,{size:17,color:P.amber});NE.text(ctx,this.clearGoal?'24 orbs ✓':`Goal ${this.cleared}/24`,hx,gy+350,{size:17,color:P.lime});NE.drawEcho(ctx,hx+50,gy+405,16,P.cyan,1,this.t);NE.text(ctx,'←→ move · ↑ turn · ↓ soft · SPACE drop',this.W/2,this.H-22,{size:13,color:P.dim,align:'center'});}
       if (this.state === "over")
-        NE.banner(ctx, this.W, this.H, "WELL OVERFLOWED", `score ${this.score} · ${this.cleared} orbs · best chain ${this.bestChain} · tap to retry`);
+        NE.banner(ctx, this.W, this.H, "Well overflowed", `score ${this.score} · ${this.cleared} orbs · best chain ${this.bestChain} · tap to retry`);
     }
   }
   NE.register("prism",
-    { polished:true,world:["#19152d","#33264b","#b7a6e2"],scene:"reactor",music:{root:233.08,tempo:92,wave:"triangle"},hint:"MOVE · TURN · DROP SHARDS",title: "PRISM STACKS", genre: "Colour-burst stacker", color: P.lime,
+    { polished:true,world:["#19152d","#33264b","#b7a6e2"],scene:"reactor",music:{root:233.08,tempo:92,wave:"triangle"},hint:"Move · turn · drop shards",title: "Prism Stacks", genre: "Colour-burst stacker", color: P.lime,
       desc: "Drop shards, fill a row or touch 4 of a colour to burst. Loose orbs fall and chain. Bad drop? Rewind." },
     Prism);
 })();

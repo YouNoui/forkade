@@ -2,33 +2,34 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Delete my data - FORKADE</title><meta name="theme-color" content="#0b0a10"><link rel="icon" href="icons/icon-192.png">
 <style>
-  body{margin:0; font-family:"Consolas","SF Mono",ui-monospace,monospace; color:#f1f3ff; line-height:1.7;
+  body{margin:0; font-family:"Consolas","SF Mono",ui-monospace,monospace; color:var(--text); line-height:1.45;
     background:radial-gradient(1200px 600px at 50% -10%,#10303a 0%,#0b0a10 60%); min-height:100dvh;}
-  main{max-width:760px; margin:0 auto; padding:40px 22px 60px;}
-  a{color:#22e1ff;} .back{display:inline-block; margin-bottom:26px; text-decoration:none; border:1px solid #22e1ff; border-radius:10px; padding:6px 12px; font-size:13px; font-weight:700;}
-  .eyebrow{color:#9a9fc4; letter-spacing:3px; font-size:12px; font-weight:800;}
-  h1{margin:6px 0 8px; color:#22e1ff; font-size:clamp(24px,5vw,34px); text-shadow:0 0 14px rgba(34,225,255,.45);}
-  .meta{color:#9a9fc4; font-size:12px;} .draft{color:#ffd84d; font-size:12px;}
-  .intro{font-size:15px;} h2{font-size:16px; color:#22e1ff; margin:26px 0 4px;} p{margin:0 0 10px; font-size:14px;}
-  nav.docs{margin-top:34px; padding-top:16px; border-top:1px solid rgba(141,146,189,.3); font-size:13px; color:#9a9fc4;}
-  .box{margin:16px 0; padding:14px 16px; border:1px solid rgba(150,156,190,.32); border-radius:12px; background:#15131d;}
+  main{max-width:760px; margin:0 auto; padding:var(--s6) var(--s5) calc(var(--s1) * 15);}
+  a{color:#22e1ff;} .back{display:inline-block; margin-bottom:var(--s5); text-decoration:none; border:1px solid #22e1ff; border-radius:var(--r-sm); padding:var(--s1) var(--s3); font-size:var(--t-xs); font-weight:700;}
+  .eyebrow{color:#9a9fc4; letter-spacing:3px; font-size:var(--t-xs); font-weight:900;}
+  h1{margin:var(--s1) 0 var(--s2); color:#22e1ff; font-size:var(--t-xl); text-shadow:0 0 14px rgba(34,225,255,.45);}
+  .meta{color:#9a9fc4; font-size:var(--t-xs);} .draft{color:#ffd84d; font-size:var(--t-xs);}
+  .intro{font-size:var(--t-sm);} h2{font-size:var(--t-md); color:#22e1ff; margin:var(--s5) 0 var(--s1);} p{margin:0 0 var(--s2); font-size:var(--t-sm);}
+  nav.docs{margin-top:var(--s6); padding-top:var(--s4); border-top:1px solid rgba(141,146,189,.3); font-size:var(--t-xs); color:#9a9fc4;}
+  .box{margin:var(--s4) 0; padding:var(--s3) var(--s4); border:1px solid rgba(150,156,190,.32); border-radius:var(--r-md); background:#15131d;}
   .box code{color:#22e1ff; overflow-wrap:anywhere;}
-  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:8px 16px; border-radius:12px; font-family:inherit; font-weight:800; font-size:14px;
-    cursor:pointer; background:#1d1a28; color:#f1f3ff; border:1px solid rgba(150,156,190,.32); transition:transform .16s ease, border-color .16s ease, background-color .16s ease;}
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:var(--s2); min-height:44px; padding:var(--s2) var(--s4); border-radius:var(--r-md); font-family:inherit; font-weight:900; font-size:var(--t-sm);
+    cursor:pointer; background:#1d1a28; color:var(--text); border:1px solid rgba(150,156,190,.32); transition:transform .16s ease, border-color .16s ease, background-color .16s ease;}
   .btn:active:not(:disabled){transform:translateY(1px);} .btn:disabled{opacity:.6; cursor:not-allowed;}
   .btn-danger{background:transparent; color:#ff5a6e; border-color:rgba(255,90,110,.6);} .btn.done{color:#4ade80; border-color:rgba(74,222,128,.5); opacity:1;}
-  nav.docs a, p a{display:inline-block; padding:14px 2px; margin:-14px 0;}
-  a.back{display:inline-flex; align-items:center; min-height:44px; box-sizing:border-box; padding:6px 14px; margin:0 0 22px;}
-  .cf{position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; padding:16px;} .cf[hidden]{display:none;}
-  .cf .sh{width:min(440px,100%); background:#15131d; border:1px solid rgba(150,156,190,.32); border-radius:18px; padding:22px;}
-  .cf h2{margin:0 0 8px; color:#f1f3ff;} .cf .row{display:flex; gap:10px; justify-content:flex-end;}
-  @media (max-width:600px){ .cf{align-items:flex-end; padding:0;} .cf .sh{border-radius:20px 20px 0 0; padding-bottom:calc(22px + env(safe-area-inset-bottom));} .cf .row .btn{flex:1;} }
+  nav.docs a, p a{display:inline-block; padding:var(--s3) var(--s1); margin:calc(var(--s3) * -1) 0;}
+  a.back{display:inline-flex; align-items:center; min-height:44px; box-sizing:border-box; padding:var(--s1) var(--s3); margin:0 0 var(--s5);}
+  .cf{position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; padding:var(--s4);} .cf[hidden]{display:none;}
+  .cf .sh{width:min(440px,100%); background:#15131d; border:1px solid rgba(150,156,190,.32); border-radius:var(--r-lg); padding:var(--s5);}
+  .cf h2{margin:0 0 var(--s2); color:var(--text);} .cf .row{display:flex; gap:var(--s2); justify-content:flex-end;}
+  @media (max-width:600px){ .cf{align-items:flex-end; padding:0;} .cf .sh{border-radius:var(--r-lg) var(--r-lg) 0 0; padding-bottom:calc(var(--s5) + env(safe-area-inset-bottom));} .cf .row .btn{flex:1;} }
   @media (prefers-reduced-motion:reduce){ .btn{transition:none;} }
-</style></head><body><main>
+</style><link rel="stylesheet" href="/ui.css">
+</head><body><main>
 <a class="back" href="index.html">&larr; Back to the arcade</a>
 <div class="eyebrow">YOUR DATA</div>
 <h1>Delete my data</h1>
-<div class="meta">Version 2026-11-24-v10 &middot; Last updated 24 Nov 2026 &middot; English is the official version.</div>
+<div class="meta">Version 2026-11-24-v11 &middot; Last updated 24 Nov 2026 &middot; English is the official version.</div>
 <div class="draft">Plain-language product draft. It has not been reviewed by a lawyer.</div>
 <p class="intro">Forkade has no accounts, so you are in control of your data. Here is how to remove each part.</p>
 <h2>Rankings: instant</h2>
@@ -48,7 +49,7 @@
   <p>This deletes your scores, cores, badges, skins, settings and Playground draft in this browser. Posted rankings stay until you remove them in Rankings. This cannot be undone.</p>
   <div class="row"><button class="btn" id="cf-no">Cancel</button><button class="btn btn-danger" id="cf-yes">Clear</button></div>
 </div></div>
-<p style="margin-top:26px">Questions? <a href="mailto:hello@iamynoui.com">hello@iamynoui.com</a></p>
+<p style="margin-top:var(--s5)">Questions? <a href="mailto:hello@iamynoui.com">hello@iamynoui.com</a></p>
 <nav class="docs"><a href="fair.html">Fair play</a> &middot; <a href="terms.html">Terms</a> &middot; <a href="privacy.html">Privacy</a> &middot; <a href="guidelines.html">Community rules</a> &middot; <a href="delete.html">Delete my data</a> &middot; &copy; 2026 IAMYNOUI (UEN 53535234D)</nav>
 </main><script>
   try { const id = JSON.parse(localStorage.getItem("forkade-pid") || "null"); if (id) document.getElementById("pid").textContent = id; } catch (_) {}

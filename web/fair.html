@@ -8,41 +8,42 @@
 <meta name="description" content="Same rules for everyone. No hidden difficulty or ads. Disclosed gift and prize-machine chances. Every reward number in FORKADE, read straight from the game code.">
 <link rel="icon" href="icons/icon-192.png">
 <style>
-  body{margin:0; font-family:"Consolas","SF Mono",ui-monospace,monospace; color:#f1f3ff; line-height:1.7;
+  body{margin:0; font-family:"Consolas","SF Mono",ui-monospace,monospace; color:var(--text); line-height:1.45;
     background:radial-gradient(1200px 600px at 50% -10%,#10303a 0%,#0b0a10 60%); min-height:100dvh;}
-  main{max-width:760px; margin:0 auto; padding:40px 22px 60px;}
-  a{color:#22e1ff;} .back{display:inline-block; margin-bottom:26px; text-decoration:none; border:1px solid #22e1ff; border-radius:10px; padding:6px 12px; font-size:13px; font-weight:700;}
-  .eyebrow{color:#9a9fc4; letter-spacing:3px; font-size:12px; font-weight:800;}
-  h1{margin:6px 0 8px; color:#22e1ff; font-size:clamp(24px,5vw,34px); text-shadow:0 0 14px rgba(34,225,255,.45);}
-  .meta{color:#9a9fc4; font-size:12px;} .draft{color:#ffd84d; font-size:12px;}
-  .intro{font-size:15px;} h2{font-size:16px; color:#22e1ff; margin:26px 0 4px;} p{margin:0 0 10px; font-size:14px;}
-  nav.docs{margin-top:34px; padding-top:16px; border-top:1px solid rgba(141,146,189,.3); font-size:13px; color:#9a9fc4;}
-  .box{margin:16px 0; padding:14px 16px; border:1px solid rgba(150,156,190,.32); border-radius:12px; background:#15131d;}
+  main{max-width:760px; margin:0 auto; padding:var(--s6) var(--s5) calc(var(--s1) * 15);}
+  a{color:#22e1ff;} .back{display:inline-block; margin-bottom:var(--s5); text-decoration:none; border:1px solid #22e1ff; border-radius:var(--r-sm); padding:var(--s1) var(--s3); font-size:var(--t-xs); font-weight:700;}
+  .eyebrow{color:#9a9fc4; letter-spacing:3px; font-size:var(--t-xs); font-weight:900;}
+  h1{margin:var(--s1) 0 var(--s2); color:#22e1ff; font-size:var(--t-xl); text-shadow:0 0 14px rgba(34,225,255,.45);}
+  .meta{color:#9a9fc4; font-size:var(--t-xs);} .draft{color:#ffd84d; font-size:var(--t-xs);}
+  .intro{font-size:var(--t-sm);} h2{font-size:var(--t-md); color:#22e1ff; margin:var(--s5) 0 var(--s1);} p{margin:0 0 var(--s2); font-size:var(--t-sm);}
+  nav.docs{margin-top:var(--s6); padding-top:var(--s4); border-top:1px solid rgba(141,146,189,.3); font-size:var(--t-xs); color:#9a9fc4;}
+  .box{margin:var(--s4) 0; padding:var(--s3) var(--s4); border:1px solid rgba(150,156,190,.32); border-radius:var(--r-md); background:#15131d;}
   .box code{color:#22e1ff; overflow-wrap:anywhere;}
-  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:8px 16px; border-radius:12px; font-family:inherit; font-weight:800; font-size:14px;
-    cursor:pointer; background:#1d1a28; color:#f1f3ff; border:1px solid rgba(150,156,190,.32); transition:transform .16s ease, border-color .16s ease, background-color .16s ease;}
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:var(--s2); min-height:44px; padding:var(--s2) var(--s4); border-radius:var(--r-md); font-family:inherit; font-weight:900; font-size:var(--t-sm);
+    cursor:pointer; background:#1d1a28; color:var(--text); border:1px solid rgba(150,156,190,.32); transition:transform .16s ease, border-color .16s ease, background-color .16s ease;}
   .btn:active:not(:disabled){transform:translateY(1px);} .btn:disabled{opacity:.6; cursor:not-allowed;}
   .btn-danger{background:transparent; color:#ff5a6e; border-color:rgba(255,90,110,.6);} .btn.done{color:#4ade80; border-color:rgba(74,222,128,.5); opacity:1;}
-  nav.docs a, p a{display:inline-block; padding:14px 2px; margin:-14px 0;}
-  a.back{display:inline-flex; align-items:center; min-height:44px; box-sizing:border-box; padding:6px 14px; margin:0 0 22px;}
-  .cf{position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; padding:16px;} .cf[hidden]{display:none;}
-  .cf .sh{width:min(440px,100%); background:#15131d; border:1px solid rgba(150,156,190,.32); border-radius:18px; padding:22px;}
-  .cf h2{margin:0 0 8px; color:#f1f3ff;} .cf .row{display:flex; gap:10px; justify-content:flex-end;}
-  @media (max-width:600px){ .cf{align-items:flex-end; padding:0;} .cf .sh{border-radius:20px 20px 0 0; padding-bottom:calc(22px + env(safe-area-inset-bottom));} .cf .row .btn{flex:1;} }
+  nav.docs a, p a{display:inline-block; padding:var(--s3) var(--s1); margin:calc(var(--s3) * -1) 0;}
+  a.back{display:inline-flex; align-items:center; min-height:44px; box-sizing:border-box; padding:var(--s1) var(--s3); margin:0 0 var(--s5);}
+  .cf{position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; padding:var(--s4);} .cf[hidden]{display:none;}
+  .cf .sh{width:min(440px,100%); background:#15131d; border:1px solid rgba(150,156,190,.32); border-radius:var(--r-lg); padding:var(--s5);}
+  .cf h2{margin:0 0 var(--s2); color:var(--text);} .cf .row{display:flex; gap:var(--s2); justify-content:flex-end;}
+  @media (max-width:600px){ .cf{align-items:flex-end; padding:0;} .cf .sh{border-radius:var(--r-lg) var(--r-lg) 0 0; padding-bottom:calc(var(--s5) + env(safe-area-inset-bottom));} .cf .row .btn{flex:1;} }
   @media (prefers-reduced-motion:reduce){ .btn{transition:none;} }
-  table{width:100%; border-collapse:collapse; font-size:14px; margin:10px 0 6px;}
-  th,td{text-align:left; padding:9px 8px; border-bottom:1px solid rgba(150,156,190,.2); vertical-align:top;}
-  th{color:#9a9fc4; font-weight:700; font-size:12px; letter-spacing:1px;}
-  td.n{text-align:right; font-variant-numeric:tabular-nums; color:#22e1ff; font-weight:800; white-space:nowrap;}
-  ul.never{list-style:none; padding:0; margin:12px 0;} ul.never li{position:relative; padding:10px 0 10px 34px; border-bottom:1px solid rgba(150,156,190,.15);}
+  table{width:100%; border-collapse:collapse; font-size:var(--t-sm); margin:var(--s2) 0 var(--s1);}
+  th,td{text-align:left; padding:var(--s2) var(--s2); border-bottom:1px solid rgba(150,156,190,.2); vertical-align:top;}
+  th{color:#9a9fc4; font-weight:700; font-size:var(--t-xs); letter-spacing:1px;}
+  td.n{text-align:right; font-variant-numeric:tabular-nums; color:#22e1ff; font-weight:900; white-space:nowrap;}
+  ul.never{list-style:none; padding:0; margin:var(--s3) 0;} ul.never li{position:relative; padding:var(--s2) 0 var(--s2) var(--s6); border-bottom:1px solid rgba(150,156,190,.15);}
   ul.never li::before{content:"\2715"; position:absolute; left:4px; top:9px; width:22px; height:22px; border-radius:50%; text-align:center; line-height:22px;
-    font-size:12px; font-weight:900; color:#14121a; background:#22e1ff;}
-  ul.never b{color:#f1f3ff;}
-  .formula{display:inline-block; font-weight:800; color:#f1f3ff; background:#15131d; border:1px solid rgba(150,156,190,.32); border-radius:8px; padding:2px 8px;}
-  .cta{display:inline-flex; align-items:center; min-height:44px; padding:8px 16px; border-radius:12px; font-weight:900; text-decoration:none;
+    font-size:var(--t-xs); font-weight:900; color:#14121a; background:#22e1ff;}
+  ul.never b{color:var(--text);}
+  .formula{display:inline-block; font-weight:900; color:var(--text); background:#15131d; border:1px solid rgba(150,156,190,.32); border-radius:var(--r-sm); padding:var(--s1) var(--s2);}
+  .cta{display:inline-flex; align-items:center; min-height:44px; padding:var(--s2) var(--s4); border-radius:var(--r-md); font-weight:900; text-decoration:none;
     background:#ffd84d; color:#14121a; border:2px solid #14121a; box-shadow:3px 3px 0 #22e1ff;}
-  .scroll{overflow-x:auto;mask-image:linear-gradient(to right,transparent,#000 8px,#000 calc(100% - 8px),transparent);padding-inline:8px;}
+  .scroll{overflow-x:auto;mask-image:linear-gradient(to right,transparent,#000 8px,#000 calc(100% - 8px),transparent);padding-inline:var(--s2);}
 </style>
+<link rel="stylesheet" href="/ui.css">
 </head>
 <body>
 <main>
@@ -53,7 +54,7 @@
 
 <h2>What FORKADE never does</h2>
 <ul class="never">
-  <li>RAMPAGE 3D: five demolished buildings give +600 once; every third building grants six seconds of Power Stomp. The reactor opens after 30 seconds: six hits at +100, then +1,200 and eight seconds of power.</li>
+  <li>Rampage 3D: five demolished buildings give +600 once; every third building grants six seconds of Power Stomp. The reactor opens after 30 seconds: six hits at +100, then +1,200 and eight seconds of power.</li>
   <li>Tower Wrecker: every third shot is a Core Ball that pierces steel. Destroying 20 blocks in a level gives +200 once.</li>
   <li>Glass City: every five smashed walls grant one non-stacking shield; eight walls award +300 once per run. A vault wall is scheduled every 120 seconds and gives +500 when smashed.</li>
   <li>ECHO Trail: every fifth orb is a comet worth 30 points and four seconds of slower glide; ten orbs give +100 once per run. Edges wrap.</li>
@@ -87,8 +88,8 @@
 <h2>Rankings</h2>
 <p>Posting scores is optional: only Post sends your nickname and score. Online rounds start an anonymous timing token. Anonymous visit/play counts are on by default; switch them off in Settings. The server checks that each score came from a real round of the right length, holds impossible jumps for review, and hides a nickname as &ldquo;Player&rdquo; after 3 reports. Your local cores, badges and skins never depend on the rankings. <a href="guidelines.html">Community rules</a></p>
 
-<p style="margin-top:28px"><a class="cta" href="index.html">&#9654; Play</a></p>
-<section class="box"><h2>ECHO 3D sky islands</h2><p>Each core is worth 10 points. Collecting five adds 30 points once per run; reaching the final island adds 100. Every fifth island grants a four-second jump boost. Island eight grants one fall rescue. Moving islands begin after island five. Rewind restores cores, bonuses, boosts and the rescue.</p></section><section class="box"><h2>Core Match crystal garden</h2><p>Four successful swaps charge an Echo Pulse: +2 moves and +100 points. A double cascade adds +120 once per level. Both bonuses rewind with the board. Invalid swaps cost no moves. Six distinct core symbols remain available in colour-blind mode.</p></section><section id="rumble-rules" class="box"><h2>ECHO RUMBLE and Forge</h2><p>48 free avatar choices; three local replay allies; up to three real posted ghosts from today's board. Missing ghosts are never invented. Seven stage types and three bosses. Default runs last 90 seconds, with 20-second mutations and 600-tick chaos events. Three same-colour sparks add 150 points. A combo of 10 adds 100 points.</p><p>Ranked score cap: 100,000. Rate screening: 1,200 points/second, plus full input replay validation. Replay cap: 256 KiB and 18,000 operations for Rumble 2 (12,000 for legacy replays), stored for up to three days only after Post. Rumble badge goals: 500 / 1,500 / 3,000. Normal round-core and daily bonus rules apply; daily completion +25 and top-ten +75 remain once per date across the arcade.</p><p>Forge: five publishes per device/day, six-character codes, 90-day expiry. Three stage slots; gravity 0.6–1.4, speed/size 0.7–1.3, 4–16 enemies, four palettes, 15–30 seconds per mutation and a 30-second final boss. Forge practice gives no cores, badges or rankings. Weekly play counts require a start token and ten seconds before counting, once per token; they are not unique people. Up to 20 trending forges; counts expire after 14 days. Three different reports hide a Forge pending review; one report per 20 seconds. Sharing requests are limited to 60/minute per network hash.</p></section><section class="box"><h2>ECHO RUMBLE 2 · Echo Road</h2><p>Four starter heroes are free. Each completed run earns floor((seconds played + 3 × enemies defeated + 60 for a win) × difficulty XP multiplier), at least 1 XP. Forge practice earns none. Every 120 XP grants a level reward; after the named rewards, each level grants 25 cores. Mastery gains one level per 300 hero XP. Progress is local, editable and not proof of ranked honesty.</p><div id="echo-road-rules"></div><p>Each hero has 2 gadget uses per stage, a hit-charged super and a dash. Echoes replay abilities. Choose one of three seeded upgrades after each stage. Insane unlocks locally by winning Hard. Assist is Normal only and cannot Post. Normal, Hard, Insane and weekly Nightmare rankings are separate. Weekly Nightmare changes at Singapore Monday midnight. Friend ghosts require explicit Post and expire after three days. Private live co-op is not enabled; no voice or free-text chat.</p></section><nav class="docs"><a href="fair.html">Fair play</a> &middot; <a href="terms.html">Terms</a> &middot; <a href="privacy.html">Privacy</a> &middot; <a href="guidelines.html">Community rules</a> &middot; <a href="delete.html">Delete my data</a></nav>
+<p style="margin-top:var(--s5)"><a class="cta" href="index.html">&#9654; Play</a></p>
+<section class="box"><h2>Echo 3D sky islands</h2><p>Each core is worth 10 points. Collecting five adds 30 points once per run; reaching the final island adds 100. Every fifth island grants a four-second jump boost. Island eight grants one fall rescue. Moving islands begin after island five. Rewind restores cores, bonuses, boosts and the rescue.</p></section><section class="box"><h2>Core Match crystal garden</h2><p>Four successful swaps charge an Echo Pulse: +2 moves and +100 points. A double cascade adds +120 once per level. Both bonuses rewind with the board. Invalid swaps cost no moves. Six distinct core symbols remain available in colour-blind mode.</p></section><section id="rumble-rules" class="box"><h2>Echo Rumble and Forge</h2><p>48 free avatar choices; three local replay allies; up to three real posted ghosts from today's board. Missing ghosts are never invented. Seven stage types and three bosses. Default runs last 90 seconds, with 20-second mutations and 600-tick chaos events. Three same-colour sparks add 150 points. A combo of 10 adds 100 points.</p><p>Ranked score cap: 100,000. Rate screening: 1,200 points/second, plus full input replay validation. Replay cap: 256 KiB and 18,000 operations for Rumble 2 (12,000 for legacy replays), stored for up to three days only after Post. Rumble badge goals: 500 / 1,500 / 3,000. Normal round-core and daily bonus rules apply; daily completion +25 and top-ten +75 remain once per date across the arcade.</p><p>Forge: five publishes per device/day, six-character codes, 90-day expiry. Three stage slots; gravity 0.6–1.4, speed/size 0.7–1.3, 4–16 enemies, four palettes, 15–30 seconds per mutation and a 30-second final boss. Forge practice gives no cores, badges or rankings. Weekly play counts require a start token and ten seconds before counting, once per token; they are not unique people. Up to 20 trending forges; counts expire after 14 days. Three different reports hide a Forge pending review; one report per 20 seconds. Sharing requests are limited to 60/minute per network hash.</p></section><section class="box"><h2>Echo Rumble 2 · Echo Road</h2><p>Four starter heroes are free. Each completed run earns floor((seconds played + 3 × enemies defeated + 60 for a win) × difficulty XP multiplier), at least 1 XP. Forge practice earns none. Every 120 XP grants a level reward; after the named rewards, each level grants 25 cores. Mastery gains one level per 300 hero XP. Progress is local, editable and not proof of ranked honesty.</p><div id="echo-road-rules"></div><p>Each hero has 2 gadget uses per stage, a hit-charged super and a dash. Echoes replay abilities. Choose one of three seeded upgrades after each stage. Insane unlocks locally by winning Hard. Assist is Normal only and cannot Post. Normal, Hard, Insane and weekly Nightmare rankings are separate. Weekly Nightmare changes at Singapore Monday midnight. Friend ghosts require explicit Post and expire after three days. Private live co-op is not enabled; no voice or free-text chat.</p></section><nav class="docs"><a href="fair.html">Fair play</a> &middot; <a href="terms.html">Terms</a> &middot; <a href="privacy.html">Privacy</a> &middot; <a href="guidelines.html">Community rules</a> &middot; <a href="delete.html">Delete my data</a></nav>
 <p>Promo codes: Younes gives some players codes for cores or cosmetics. They never change rankings or scores.</p></main>
 <script src="rumble-v2-rules.js"></script><script src="daily.js"></script>
 <script src="settings.js"></script>
@@ -112,7 +113,7 @@
   const F = window.Forkade, R = F.rewards, $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const NAMES = Object.fromEntries(F.registry.map(g => [g.id, g.meta.title]));
-  NAMES.echo3d = "ECHO 3D"; NAMES.rampage = "RAMPAGE 3D";
+  NAMES.echo3d = "Echo 3D"; NAMES.rampage = "Rampage 3D";
   const G=F.gifts.rules;
   $('gift-rules').innerHTML='<p>First '+G.welcomeCount+' gifts: '+G.welcome.join(', ')+' cores, each equally likely. Then '+G.regular.map(x=>x.amount+' cores ('+x.weight+'%)').join(', ')+'.</p><p>Wait after each gift: '+G.waits.map(x=>x/60+' minutes').join(', ')+', then '+G.waits.at(-1)/60+' minutes forever. Gifts do not stack; the saved deadline survives reload.</p>';
   const M=F.machine.rules;

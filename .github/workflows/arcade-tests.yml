@@ -43,6 +43,16 @@ jobs:
       - run: npx playwright install --with-deps chromium webkit
       - name: Set external artifact folder
         run: echo "FORKADE_ARTIFACTS=$RUNNER_TEMP/forkade-artifacts" >> "$GITHUB_ENV"
+      - name: Capture before screenshots from PR base
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          baseline=$(mktemp -d)
+          git archive "$BASE_SHA" | tar -x -C "$baseline"
+          ln -s "$GITHUB_WORKSPACE/node_modules" "$baseline/node_modules"
+          cp tests/style.cjs "$baseline/tests/style.cjs"
+          cd "$baseline"
+          STYLE_BASELINE=1 STYLE_PHASE=before node tests/style.cjs
       - run: npm run test:suite
       - uses: actions/upload-artifact@v4
         if: always()

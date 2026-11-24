@@ -1,4 +1,4 @@
-/* GAME 3 - SKY STRIKER : vertical airplane shmup */
+/* GAME 3 - Sky Striker : vertical airplane shmup */
 (function () {
   const NE = Forkade, P = NE.palette;
 
@@ -13,7 +13,7 @@
       const I = this.input;
       if (this.state !== "play") { if (I.pressed.Enter) this.reset(); return; }
       this.elapsed+=dt;this.power=Math.max(0,this.power-dt);this.invuln=Math.max(0,this.invuln-dt);
-      if(this.elapsed>=this.nextBoss){this.nextBoss+=120;this.foes.push({x:this.W/2,y:-60,hp:800,sp:28,sway:1,fire:2,kind:3,hit:0});this.juice?.hit(this.W/2,140,'TEMPEST CARRIER',true);}
+      if(this.elapsed>=this.nextBoss){this.nextBoss+=120;this.foes.push({x:this.W/2,y:-60,hp:800,sp:28,sway:1,fire:2,kind:3,hit:0});this.juice?.hit(this.W/2,140,'Tempest carrier',true);}
       const dx = (I.right() ? 1 : 0) - (I.left() ? 1 : 0);
       const dy = (I.down() ? 1 : 0) - (I.up() ? 1 : 0);
       this.px = Math.max(16, Math.min(this.W - 16, this.px + dx * 360 * dt));
@@ -55,7 +55,7 @@
       let hit = false;
       for (const b of this.ebullets)
         if (Math.abs(b.x - this.px) < 14 && Math.abs(b.y - this.py) < 14) { hit = true; b.y = 9999; break; }
-      for(const b of this.ebullets){const d=Math.hypot(b.x-this.px,b.y-this.py);if(!b.grazed&&d>20&&d<36){b.grazed=true;this.grazes++;this.score+=5;this.juice?.hit(this.px,this.py-35,'GRAZE +5');if(!NE.settings.reduceMotion)this.juice.slow=.12;}}
+      for(const b of this.ebullets){const d=Math.hypot(b.x-this.px,b.y-this.py);if(!b.grazed&&d>20&&d<36){b.grazed=true;this.grazes++;this.score+=5;this.juice?.hit(this.px,this.py-35,'Graze +5');if(!NE.settings.reduceMotion)this.juice.slow=.12;}}
       if (!hit) for (const f of this.foes)
         if (Math.abs(f.x - this.px) < 22 && Math.abs(f.y - this.py) < 22) { hit = true; f.hp = 0; break; }
       if (hit && this.invuln<=0) {
@@ -83,12 +83,12 @@
       for(const d of this.drops){this.world?.glow(ctx,d.x,d.y,35);ctx.fillStyle=P.lime;ctx.beginPath();ctx.moveTo(d.x,d.y-15);ctx.lineTo(d.x+15,d.y);ctx.lineTo(d.x,d.y+15);ctx.lineTo(d.x-15,d.y);ctx.closePath();ctx.fill();NE.text(ctx,'3',d.x,d.y-10,{size:18,align:'center',color:P.bg,glow:false});}
       const x=this.px,y=this.py;this.world?.glow(ctx,x,y,90);ctx.save();ctx.translate(x,y);const lean=NE.settings.reduceMotion?0:((this.input.right()?1:0)-(this.input.left()?1:0))*.12;ctx.rotate(lean);ctx.fillStyle='#95fff1';ctx.beginPath();ctx.moveTo(0,-34);ctx.lineTo(-10,-6);ctx.lineTo(-33,15);ctx.lineTo(-28,24);ctx.lineTo(-8,15);ctx.lineTo(0,22);ctx.lineTo(8,15);ctx.lineTo(28,24);ctx.lineTo(33,15);ctx.lineTo(10,-6);ctx.closePath();ctx.fill();ctx.fillStyle='#157a91';ctx.beginPath();ctx.moveTo(0,-22);ctx.lineTo(-6,12);ctx.lineTo(6,12);ctx.closePath();ctx.fill();NE.drawEcho(ctx,0,2,12,P.cyan,1,this.elapsed);ctx.restore();
       if(this.invuln>0){ctx.strokeStyle='#d2fff3';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,38,0,NE.TAU);ctx.stroke();}
-      NE.text(ctx,this.score+'',20,16,{size:36});NE.text(ctx,'NEXT 10: '+(this.kills%10)+'/10 · +100',20,60,{size:17,color:'#c0e4ef',glow:false});for(let i=0;i<this.hp;i++)NE.text(ctx,'◆',this.W-26-i*26,20,{size:24,color:P.lime,glow:false});if(this.power>0)NE.text(ctx,'SPREAD '+Math.ceil(this.power)+'s',this.W-20,80,{size:18,align:'right',color:P.lime,glow:false});
-      if(this.state==='over'){NE.banner(ctx,this.W,this.H,'FLIGHT COMPLETE',this.kills+' ships · '+this.grazes+' grazes · combo '+(this.juice?.best||0));const best=NE.scores.get(this.id);NE.text(ctx,best>this.score?(best-this.score)+' points to your best':'YOUR BEST FLIGHT',this.W/2,this.H/2+130,{size:18,align:'center',glow:false});}
+      NE.text(ctx,this.score+'',20,16,{size:36});NE.text(ctx,'Next 10: '+(this.kills%10)+'/10 · +100',20,60,{size:17,color:'#c0e4ef',glow:false});for(let i=0;i<this.hp;i++)NE.text(ctx,'◆',this.W-26-i*26,20,{size:24,color:P.lime,glow:false});if(this.power>0)NE.text(ctx,'Spread '+Math.ceil(this.power)+'s',this.W-20,80,{size:18,align:'right',color:P.lime,glow:false});
+      if(this.state==='over'){NE.banner(ctx,this.W,this.H,'Flight complete',this.kills+' ships · '+this.grazes+' grazes · combo '+(this.juice?.best||0));const best=NE.scores.get(this.id);NE.text(ctx,best>this.score?(best-this.score)+' points to your best':'Your best flight',this.W/2,this.H/2+130,{size:18,align:'center',glow:false});}
     }
   }
   NE.register("striker",
-    { polished:true,scene:"clouds",world:["#071624","#163a4b","#9dffcf"],music:{root:196,tempo:148,wave:"sawtooth"},hint:"DRAG TO FLY + FIRE · OR ARROWS + SPACE", title: "SKY STRIKER", genre: "Airplane shmup", color: P.lime,
+    { polished:true,scene:"clouds",world:["#071624","#163a4b","#9dffcf"],music:{root:196,tempo:148,wave:"sawtooth"},hint:"Drag to fly + fire · or arrows + space", title: "Sky Striker", genre: "Airplane shmup", color: P.lime,
       desc: "Surf luminous storm clouds, graze danger and catch spread-shot cells. Bring down the Tempest Carrier — or rewind your last mistake." },
     Striker);
 })();

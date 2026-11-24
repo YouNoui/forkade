@@ -3,13 +3,13 @@
 Same standard as Breekit: plain language, operator + UEN, DPO, PDPA baseline, version line.
 Edit the copy here, bump VERSION/UPDATED, run:  python tools/make_legal.py"""
 import html, pathlib
-VERSION, UPDATED = "2026-11-24-v10", "24 Nov 2026"
+VERSION, UPDATED = "2026-11-24-v11", "24 Nov 2026"
 EMAIL = "hello@iamynoui.com"
 OP = "Forkade (playforkade.com) is operated by IAMYNOUI, a sole proprietorship registered in Singapore (UEN 53535234D)."
 DOCS = {
- "terms": ("TERMS", "Forkade Terms of Use",
+ "terms": ("Terms", "Forkade Terms of Use",
   f"These terms cover your use of Forkade, the free open-source neon arcade. {OP} By playing you agree to them.", [
-  ("What Forkade is", "Forkade is a free collection of browser games. There are no accounts, no purchases and no ads. Cores, badges, ECHO skins, ranks and streaks are game rewards only: they have no money value, cannot be bought, sold or exchanged, and are stored on your own device, so clearing your browser data removes them."),
+  ("What Forkade is", "Forkade is a free collection of browser games. There are no accounts, no purchases and no ads. Cores, badges, Echo skins, ranks and streaks are game rewards only: they have no money value, cannot be bought, sold or exchanged, and are stored on your own device, so clearing your browser data removes them."),
   ("Open source", "Forkade's code is released under the MIT License. When you submit a game (for example through the Playground and GitHub), you confirm you made it or have the right to share it, and you agree it is published under the MIT License. We may accept, change or decline any submission."),
   ("Rankings", "Posting to the global rankings is optional. You choose a nickname and post a score; nothing is posted automatically. Daily challenges use the same seed and layout for everyone, resetting at Singapore midnight. Daily boards expire three days after that date starts. Weekly boards reset every week and there are no cash prizes. Ranked runs require a single-use token; impossibly fast scores are rejected and scores over ten times a previous best are held for owner review. Pending scores expire after three days. Local daily cores are awarded once, with a top-10 bonus claimable after the day ends. We may remove any score or nickname that looks cheated, automated or breaks the Community rules."),
   ("Rumble and Forge", "Rumble daily runs use the Singapore date and can be posted with a preset nickname. Sharing a replay is optional. Forge runs use custom presets and do not award ranked scores, badges or cores. You can publish five Forge configurations a day; published codes expire after 90 days and can be hidden after reports. All 48 original Rumble avatar choices remain free. Echo Road XP, hero mastery, difficulty unlocks and earned cosmetics stay on your device. The fixed unlock requirements are listed on Fair play. Normal Assist is unranked; Hard and Insane have separate boards. Weekly Nightmare uses the same Singapore-week seed for everyone. No purchases."),
@@ -18,11 +18,11 @@ DOCS = {
   ("Copyright complaints", f"If you believe something on Forkade copies your work, email {EMAIL} with the work you own, a link to the game or page, your contact details, and a statement that your complaint is accurate and that you own the rights or may act for the owner. We review complaints promptly and may remove or change the content."),
   ("Changes and law", "We may update these terms; the version and date at the top show the latest. Singapore law governs these terms."),
  ]),
- "privacy": ("PRIVACY", "Forkade Privacy Policy",
+ "privacy": ("Privacy", "Forkade Privacy Policy",
   f"{OP} Contact: {EMAIL}. Short version: no accounts, no ads, no tracking cookies, and your progress stays on your device.", [
   ("Data Protection Officer", f"Younes Noui, Data Protection Officer, IAMYNOUI &mdash; {EMAIL}. We respond to requests for access, correction or deletion within 30 days."),
   ("What stays on your device", "Settings, daily rewards, high scores, cores, badges, skins, your streak, the nickname box, Playground drafts and a random player ID are saved in your browser's local storage. We can't see any of it. Clearing your browser's site data, or the button on the Delete my data page, removes it."),
-  ("ECHO RUMBLE beta", "Your avatar and best score are saved only in this browser. Echo squad input replays exist only in memory during a run and are discarded when you leave the game. Only explicit Post shares a validated input replay, preset nickname and avatar look for three days. Forge sharing uses closed presets. No purchases or free-text names."),
+  ("Echo Rumble beta", "Your avatar and best score are saved only in this browser. Echo squad input replays exist only in memory during a run and are discarded when you leave the game. Only explicit Post shares a validated input replay, preset nickname and avatar look for three days. Forge sharing uses closed presets. No purchases or free-text names."),
   ("Anonymous counts", "An anonymous A/B group letter is sent with visit/play counts to test small layout choices. The letter and first-counted date stay on your device; first-day/next-day return flags let us estimate day-one returns without sending a device ID. Rules, rewards, odds and levels are identical in both groups. Anonymous visit and play counts are on by default. You can switch them off in Settings. To see which games people enjoy, we count visits and plays per game per day. To avoid counting the same visitor twice in a day, a hash of your network address and browser type, salted with a value that changes daily, is added to an approximate counter that cannot be turned back into an address. Raw network addresses are not stored, no cookies are set, and nothing is linked to you. If your browser sends Do Not Track or Global Privacy Control, nothing is counted."),
   ("Rankings (only if you tap Post)", "When a round starts online, we store a random token with only the game and start time (no player ID, name or contact details) for at most two hours, so a posted score can be checked against the time played. Only when you tap Post do we store your nickname, the game, your best score and your random player ID. Your network address is used briefly, as a hash, to stop spam and is deleted after 60 seconds. Rankings are public, so please don't use your real full name as a nickname. If you report a nickname, your random player ID is kept with that report for up to 60 days, only so the same person can't report someone twice."),
   ("Rumble replays and Forge", "Only if you tap Post, Rumble stores your anonymous input replay, preset nickname and avatar look with your score for up to three days; other players can race that posted ghost. Rumble 2 additionally stores the selected hero, difficulty, abilities and upgrade choices needed to validate the replay. Before Post, its anonymous two-hour run token binds the selected hero, difficulty, weekly mode and equipped gadget; it contains no player ID. Local XP, mastery and the cosmetics collection are not sent. Friend links expose only the same explicitly posted ghost and expire with it after three days. Private live co-op is not enabled: there are no rooms, peer-to-peer connections, voice or free-text chat. We replay the inputs to check the score, but cannot guarantee every player is honest. Only Publish shares a Forge preset configuration, a preset name and your random device key for up to 90 days. No typed names, contacts or executable game code are accepted. Weekly Forge play counts increase after a run has started for at least ten seconds, when anonymous counting is enabled; they are play counts, not unique people, and expire after two weeks. Reports retain a random reporter device key for up to 60 days to prevent duplicate reports."),
@@ -54,29 +54,30 @@ TPL = """<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title} - FORKADE</title><meta name="theme-color" content="#0b0a10"><link rel="icon" href="icons/icon-192.png">
 <style>
-  body{{margin:0; font-family:"Consolas","SF Mono",ui-monospace,monospace; color:#f1f3ff; line-height:1.7;
+  body{{margin:0; font-family:"Consolas","SF Mono",ui-monospace,monospace; color:var(--text); line-height:1.45;
     background:radial-gradient(1200px 600px at 50% -10%,#10303a 0%,#0b0a10 60%); min-height:100dvh;}}
-  main{{max-width:760px; margin:0 auto; padding:40px 22px 60px;}}
-  a{{color:#22e1ff;}} .back{{display:inline-block; margin-bottom:26px; text-decoration:none; border:1px solid #22e1ff; border-radius:10px; padding:6px 12px; font-size:13px; font-weight:700;}}
-  .eyebrow{{color:#9a9fc4; letter-spacing:3px; font-size:12px; font-weight:800;}}
-  h1{{margin:6px 0 8px; color:#22e1ff; font-size:clamp(24px,5vw,34px); text-shadow:0 0 14px rgba(34,225,255,.45);}}
-  .meta{{color:#9a9fc4; font-size:12px;}} .draft{{color:#ffd84d; font-size:12px;}}
-  .intro{{font-size:15px;}} h2{{font-size:16px; color:#22e1ff; margin:26px 0 4px;}} p{{margin:0 0 10px; font-size:14px;}}
-  nav.docs{{margin-top:34px; padding-top:16px; border-top:1px solid rgba(141,146,189,.3); font-size:13px; color:#9a9fc4;}}
-  .box{{margin:16px 0; padding:14px 16px; border:1px solid rgba(150,156,190,.32); border-radius:12px; background:#15131d;}}
+  main{{max-width:760px; margin:0 auto; padding:var(--s6) var(--s5) calc(var(--s1) * 15);}}
+  a{{color:#22e1ff;}} .back{{display:inline-block; margin-bottom:var(--s5); text-decoration:none; border:1px solid #22e1ff; border-radius:var(--r-sm); padding:var(--s1) var(--s3); font-size:var(--t-xs); font-weight:700;}}
+  .eyebrow{{color:#9a9fc4; letter-spacing:3px; font-size:var(--t-xs); font-weight:900;}}
+  h1{{margin:var(--s1) 0 var(--s2); color:#22e1ff; font-size:var(--t-xl); text-shadow:0 0 14px rgba(34,225,255,.45);}}
+  .meta{{color:#9a9fc4; font-size:var(--t-xs);}} .draft{{color:#ffd84d; font-size:var(--t-xs);}}
+  .intro{{font-size:var(--t-sm);}} h2{{font-size:var(--t-md); color:#22e1ff; margin:var(--s5) 0 var(--s1);}} p{{margin:0 0 var(--s2); font-size:var(--t-sm);}}
+  nav.docs{{margin-top:var(--s6); padding-top:var(--s4); border-top:1px solid rgba(141,146,189,.3); font-size:var(--t-xs); color:#9a9fc4;}}
+  .box{{margin:var(--s4) 0; padding:var(--s3) var(--s4); border:1px solid rgba(150,156,190,.32); border-radius:var(--r-md); background:#15131d;}}
   .box code{{color:#22e1ff; overflow-wrap:anywhere;}}
-  .btn{{display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:8px 16px; border-radius:12px; font-family:inherit; font-weight:800; font-size:14px;
-    cursor:pointer; background:#1d1a28; color:#f1f3ff; border:1px solid rgba(150,156,190,.32); transition:transform .16s ease, border-color .16s ease, background-color .16s ease;}}
+  .btn{{display:inline-flex; align-items:center; justify-content:center; gap:var(--s2); min-height:44px; padding:var(--s2) var(--s4); border-radius:var(--r-md); font-family:inherit; font-weight:900; font-size:var(--t-sm);
+    cursor:pointer; background:#1d1a28; color:var(--text); border:1px solid rgba(150,156,190,.32); transition:transform .16s ease, border-color .16s ease, background-color .16s ease;}}
   .btn:active:not(:disabled){{transform:translateY(1px);}} .btn:disabled{{opacity:.6; cursor:not-allowed;}}
   .btn-danger{{background:transparent; color:#ff5a6e; border-color:rgba(255,90,110,.6);}} .btn.done{{color:#4ade80; border-color:rgba(74,222,128,.5); opacity:1;}}
-  nav.docs a, p a{{display:inline-block; padding:14px 2px; margin:-14px 0;}}
-  a.back{{display:inline-flex; align-items:center; min-height:44px; box-sizing:border-box; padding:6px 14px; margin:0 0 22px;}}
-  .cf{{position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; padding:16px;}} .cf[hidden]{{display:none;}}
-  .cf .sh{{width:min(440px,100%); background:#15131d; border:1px solid rgba(150,156,190,.32); border-radius:18px; padding:22px;}}
-  .cf h2{{margin:0 0 8px; color:#f1f3ff;}} .cf .row{{display:flex; gap:10px; justify-content:flex-end;}}
-  @media (max-width:600px){{ .cf{{align-items:flex-end; padding:0;}} .cf .sh{{border-radius:20px 20px 0 0; padding-bottom:calc(22px + env(safe-area-inset-bottom));}} .cf .row .btn{{flex:1;}} }}
+  nav.docs a, p a{{display:inline-block; padding:var(--s3) var(--s1); margin:calc(var(--s3) * -1) 0;}}
+  a.back{{display:inline-flex; align-items:center; min-height:44px; box-sizing:border-box; padding:var(--s1) var(--s3); margin:0 0 var(--s5);}}
+  .cf{{position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; padding:var(--s4);}} .cf[hidden]{{display:none;}}
+  .cf .sh{{width:min(440px,100%); background:#15131d; border:1px solid rgba(150,156,190,.32); border-radius:var(--r-lg); padding:var(--s5);}}
+  .cf h2{{margin:0 0 var(--s2); color:var(--text);}} .cf .row{{display:flex; gap:var(--s2); justify-content:flex-end;}}
+  @media (max-width:600px){{ .cf{{align-items:flex-end; padding:0;}} .cf .sh{{border-radius:var(--r-lg) var(--r-lg) 0 0; padding-bottom:calc(var(--s5) + env(safe-area-inset-bottom));}} .cf .row .btn{{flex:1;}} }}
   @media (prefers-reduced-motion:reduce){{ .btn{{transition:none;}} }}
-</style></head><body><main>
+</style><link rel="stylesheet" href="/ui.css">
+</head><body><main>
 <a class="back" href="index.html">&larr; Back to the arcade</a>
 <div class="eyebrow">{eyebrow}</div>
 <h1>{title}</h1>
@@ -85,7 +86,7 @@ TPL = """<!doctype html>
 <p class="intro">{intro}</p>
 {sections}
 {extra}
-<p style="margin-top:26px">Questions? <a href="mailto:{email}">{email}</a></p>
+<p style="margin-top:var(--s5)">Questions? <a href="mailto:{email}">{email}</a></p>
 <nav class="docs"><a href="fair.html">Fair play</a> &middot; <a href="terms.html">Terms</a> &middot; <a href="privacy.html">Privacy</a> &middot; <a href="guidelines.html">Community rules</a> &middot; <a href="delete.html">Delete my data</a> &middot; &copy; 2026 IAMYNOUI (UEN 53535234D)</nav>
 </main>{script}</body></html>
 """

@@ -1,4 +1,4 @@
-/* GAME 10 - TOWER WRECKER : launch a wrecking ball, flatten neon towers.
+/* GAME 10 - Tower Wrecker : launch a wrecking ball, flatten neon towers.
    Aim with the mouse (or ↑↓), hold click / SPACE to charge, release to fire.
    Glass shatters, steel takes two hits, TNT blows a hole and chains.
    Smash it, then hold R and watch the whole thing rebuild itself. */
@@ -76,7 +76,7 @@
       return type === GLASS ? 0.97 : 0.9;           // how much speed the ball keeps
     }
     blast(cx, cy) {
-      NE.sfx.explode();this.juice?.hit(this.gx+cx*CELL,this.gy+cy*CELL,"CHAIN BLAST",true); this.shake.add(12);
+      NE.sfx.explode();this.juice?.hit(this.gx+cx*CELL,this.gy+cy*CELL,"Chain blast",true); this.shake.add(12);
       this.particles.emit(this.gx + cx * CELL + CELL / 2, this.gy + cy * CELL + CELL / 2, P.amber, { n: 30, speed: 7, life: 0.7, size: 4 });
       for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
         if (dx * dx + dy * dy > 6) continue;
@@ -175,7 +175,7 @@
       this.fired++;this.shotBlocks=0;const powered=this.fired%3===0;const sp = 380 + this.power * 820;
       this.ball = { x: this.lx, y: this.ly, vx: Math.cos(this.aimA) * sp, vy: Math.sin(this.aimA) * sp, powered,trail: [] };
       this.shots--; this.charging = false; this.chargeT = 0; this.power = 0;
-      this.phase = "fly";this.juice?.hit(this.lx,this.ly,powered?"CORE BALL · PIERCES STEEL":"LAUNCH",powered); NE.sfx.jump(); this.shake.add(2);
+      this.phase = "fly";this.juice?.hit(this.lx,this.ly,powered?"Core ball · pierces steel":"LAUNCH",powered); NE.sfx.jump(); this.shake.add(2);
     }
 
     snapshot() {
@@ -252,7 +252,7 @@
 
       // HUD
       NE.text(ctx, String(this.score), 20, 16, { size: 40 });
-      NE.text(ctx, `LEVEL ${this.level}`,22,64,{size:15,color:P.dim});NE.text(ctx,(this.fired+1)%3===0?"NEXT: CORE BALL":"CORE BALL IN "+(3-this.fired%3)+" SHOTS",22,92,{size:15,color:P.amber});NE.text(ctx,this.blockGoal?"20 BLOCKS ✓":`BLOCK GOAL ${this.destroyed}/20`,22,118,{size:15,color:P.lime});
+      NE.text(ctx, `Level ${this.level}`,22,64,{size:15,color:P.dim});NE.text(ctx,(this.fired+1)%3===0?"Next: core ball":"Core ball in "+(3-this.fired%3)+" shots",22,92,{size:15,color:P.amber});NE.text(ctx,this.blockGoal?"20 blocks ✓":`Block goal ${this.destroyed}/20`,22,118,{size:15,color:P.lime});
       for (let k = 0; k < this.shots; k++) NE.glowCircle(ctx, P.white, this.W - 28 - k * 26, 30, 8);
       const frac = this.destroyed / this.initial, bx = this.W / 2 - 130, by = 26;
       NE.bar(ctx, bx, by, 260, 12, frac, frac >= this.target ? P.lime : P.magenta, "DEMOLISHED");
@@ -262,13 +262,13 @@
         NE.text(ctx, "aim with mouse / ↑↓  ·  hold click or SPACE, release to fire",
                 this.W / 2, this.H - 30, { size: 13, color: P.dim, align: "center" });
       if (this.phase === "clear")
-        NE.banner(ctx, this.W, this.H, "LEVEL FLATTENED!", `+${this.shots * 150} for spare balls   -   click / SPACE next tower`);
+        NE.banner(ctx, this.W, this.H, "Level flattened!", `+${this.shots * 150} for spare balls   -   click / SPACE next tower`);
       if (this.state === "over")
-        NE.banner(ctx, this.W, this.H, "STILL STANDING", `score ${this.score} · best shot ${this.bestShot} blocks · tap to retry`);
+        NE.banner(ctx, this.W, this.H, "Still standing", `score ${this.score} · best shot ${this.bestShot} blocks · tap to retry`);
     }
   }
   NE.register("wrecker",
-    { polished:true,world:["#0d2030","#213e52","#99d4df"],scene:"clouds",music:{root:174.61,tempo:88,wave:"triangle"},hint:"AIM · HOLD · RELEASE TO WRECK",touch: "tap", title: "TOWER WRECKER", genre: "Destruction physics", color: P.magenta,
+    { polished:true,world:["#0d2030","#213e52","#99d4df"],scene:"clouds",music:{root:174.61,tempo:88,wave:"triangle"},hint:"Aim · hold · release to wreck",touch: "tap", title: "Tower Wrecker", genre: "Destruction physics", color: P.magenta,
       desc: "Fling a wrecking ball at neon towers. Glass shatters, TNT chains. Then rewind and watch it rebuild." },
     Wrecker);
 })();
