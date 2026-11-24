@@ -18,6 +18,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npm test
+      - run: npm run test:coop
       - run: npm audit --audit-level=high
       - name: Isolated attack suite and real Redis Lua
         run: |
@@ -69,6 +70,12 @@ jobs:
           cd "$baseline"
           STYLE_BASELINE=1 STYLE_PHASE=before node tests/style.cjs
       - run: npm run test:suite
+      - name: Four-client co-op browser verification (isolated Worker)
+        run: |
+          npx wrangler dev --config workers/coop/wrangler.jsonc --port 8787 --var LOCAL_TEST:true --var COOP_SECRET:isolated-test-secret > "$RUNNER_TEMP/coop-worker.log" 2>&1 &
+          worker_pid=$!
+          trap 'kill "$worker_pid"' EXIT
+          node tests/coop-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

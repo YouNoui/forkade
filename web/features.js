@@ -165,6 +165,7 @@
   // Delay until the distribution has installed its inline 3D pages.
   setTimeout(() => {
     const query = new URLSearchParams(location.search), path = location.pathname.replace(/^\/+|\/+$/g,'');
+    const coop=path.match(/^r\/coop\/([A-HJ-NP-Z2-9]{6})$/);if(coop){window.ForkadeCoopCode=coop[1];open3D('rumble');return;}
     const id = query.get('game') || query.get('g') || (query.size===1 && ['echo3d','rampage','rumble',...F.registry.map(g=>g.id)].includes([...query.keys()][0]) ? [...query.keys()][0] : '') || path;
     if (query.has('daily')) { dailyCard.click(); return; }
     if (['echo3d','rampage','rumble'].includes(id)) open3D(id); else if (F.registry.some(g=>g.id===id)) openGame(id);

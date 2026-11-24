@@ -1,6 +1,6 @@
 /* FORKADE service worker - caches everything so it runs offline once installed.
    Bump CACHE when you change files to push an update to installed users. */
-const CACHE = "forkade-v57";
+const CACHE = "forkade-v58";
 const ASSETS = [
   "./",
   "./index.html",
@@ -49,6 +49,8 @@ self.addEventListener("fetch", e => {
   const u = new URL(e.request.url);
   // live data and other sites: always straight to the network, never cached
   if (u.origin !== location.origin || u.pathname.startsWith("/api/")) return;
+  // Room invitations are transient. Never retain their codes as cache keys.
+  if (u.pathname.startsWith('/r/coop/')) { e.respondWith(fetch(e.request).catch(()=>caches.match('./index.html').then(r=>r||Response.error()))); return; }
   // pages and code: NETWORK FIRST so players always get the newest games; the saved copy is
   // only used when offline (or the network takes over 3s). Icons/images: cache first.
   const code = e.request.mode === "navigate" || /\.(html|js|webmanifest)$/.test(u.pathname) || u.pathname.endsWith("/");

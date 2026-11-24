@@ -16,11 +16,30 @@ Owner actions accept only `X-Stats-Key`, compare in constant time, and share a f
 
 Promo use and device deduplication are atomic Lua operations. Personal codes default to one use; unlimited is explicit and marked red. Ten attempts/minute/network and five successful claims/code/network/Singapore-day apply even after local storage is cleared. Daily hashes expire within 24 hours. This limits abuse, not unique people: people sharing a network share that allowance. Promo rewards cap at 100,000 cores/code; local wallet/lifetime values cap at 1,000,000,000 and reject non-finite inputs. Expiry is at most 366 days ahead. None of this changes earned rankings or makes local state tamper-proof.
 
-All API bodies are byte-bounded: rankings 270,000 (including replay), Forge 6,000, promo 8,192, stats 2,048. Numeric JSON fields are actual finite numbers with explicit ranges, not coercible strings. Owner stats days are decimal integers 1–90. Redis key inputs use strict patterns/allow-lists; Lua receives user values only through KEYS/ARGV. No SQL is used.
+All API bodies are byte-bounded: rankings 270,000 (including replay), Forge 6,000, promo 8,192, stats 2,048. Numeric JSON fields are actual finite numbers with explicit ranges, not coercible strings. Owner stats days are decimal integers 1–90. Redis key inputs use strict patterns/allow-lists; Lua receives user values only through KEYS/ARGV. Co-op uses only Durable Object storage APIs, with no user-composed SQL.
 
-## Disabled co-op
+## Opt-in live co-op
 
-There is no Cloudflare Worker or room endpoint in this checkout; private live co-op remains disabled. Before introducing one, require unguessable cryptographic room secrets (at least 128 bits), strict bounded numeric/preset message schemas, authentication before joining, per-peer and per-room rate/size limits, short room expiry and no free text, remote URLs or executable input. Keep it disabled until those tests and the hosting/free-plan checks pass. Do not provision or change another app's resources.
+`forkade-coop` is the only Cloudflare runtime. Its SQLite `CoopRoom` and `CoopBudget`
+bindings are scoped to that Worker. Hibernating sockets restore attachments and persisted
+server simulation; no client-authoritative positions/scores or free text are accepted.
+The owner explicitly requested six-character invitation codes (about 30 bits), replacing
+the earlier disabled-feature 128-bit room-secret proposal. Codes are server-generated,
+limited to four peers and 30 idle minutes; they are not accounts or private chat rooms.
+Only the production origin and this Forkade team's preview hosts may connect. Local test
+origins require a non-production binding. There is no reusable player identity in messages.
+The shared trusted-edge IP helper uses only CF-Connecting-IP on Cloudflare and the
+overwritten Vercel headers on Vercel; spoofed X-Forwarded-For is never trusted.
+Join/create attempts are capped at ten/minute/salted network hash; hashes expire in a
+minute, with a bounded 2,000-key map. Incoming frames are 256 bytes and <=20/sec/player.
+State fan-out is input-driven and <=20Hz. Excess floods close the socket. Invalid input
+is dropped, never broadcast. 500 daily rooms/5M messages are enforced by one budget DO;
+256-message reservations conservatively include fan-out and unused credit. All room
+state is wiped by its idle alarm. Aggregate budget counters contain no personal data.
+The Worker kill switch and owner budget flag fail closed; active rooms check the flag
+at their next input, at most once per second. The Vercel admin proxy authenticates with
+the existing header-only owner guard; a separate server-only secret signs that hop.
+No ranking, promo, Forge or stats production records are needed for co-op verification.
 
 ## Verification and credentials
 
@@ -31,6 +50,6 @@ There is no Cloudflare Worker or room endpoint in this checkout; private live co
 - After regenerating every HTML/offline bundle, run `node tools/build_csp.cjs`; CI rejects stale hashes. `tools/scan_client.cjs` reports paths/rules only, never credential values. Public content hashes and media blobs are not secrets.
 - Gitleaks 8.30.1 scans all fetched Git history with redaction, without rewriting history. The 24 November 2026 initial full-history scan found no leaks. If a real credential is found, rotate it at its provider and report its name only; never publish its value. `.env*`, `.vercel`, PEM files and Wrangler local secrets are ignored.
 
-Live verification is restricted to read-only GETs/headers and one wrong-key 401. Browser verification blocks API traffic. Never create test scores, ghosts, codes, reports or forges in production.
+The owner-authorized co-op smoke test may create temporary rooms and play for 30 seconds; all other live checks use read-only GETs/headers and block existing API traffic. Never create test scores, ghosts, codes, reports or forges in production.
 
 Trusted edge header reference: [Vercel request headers](https://vercel.com/docs/headers/request-headers).

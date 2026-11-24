@@ -7,7 +7,7 @@ function server(){const db=new Redis();const restore=db.install();process.env.ST
  const app=http.createServer(async(req,res)=>{
   const url=new URL(req.url,'http://localhost'),p=url.pathname;
   if(p.startsWith('/api/')){let data='';for await(const x of req)data+=x;try{req.body=JSON.parse(data||'{}');}catch{req.body={};}
-    const fn=({'/api/leaderboard':require('../api/leaderboard'),'/api/stats':require('../api/stats'),'/api/rumble':require('../api/rumble'),'/api/forge':require('../api/forge'),'/api/promo':require('../api/promo')})[p];if(!fn){res.statusCode=404;return res.end('{}');}return fn(req,res);}
+    const fn=({'/api/leaderboard':require('../api/leaderboard'),'/api/stats':require('../api/stats'),'/api/rumble':require('../api/rumble'),'/api/forge':require('../api/forge'),'/api/promo':require('../api/promo'),'/api/coop':require('../api/coop')})[p];if(!fn){res.statusCode=404;return res.end('{}');}return fn(req,res);}
   // Honor exact deployed rewrites, so generator regressions cannot be hidden by a test-only route.
   const rewrite=JSON.parse(fs.readFileSync(path.join(root,'vercel.json'),'utf8')).rewrites.find(r=>r.source===p);
   let file=p.startsWith('/dist/')?path.join(root,p):path.join(root,'web',rewrite?.destination||p);

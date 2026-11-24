@@ -1,6 +1,6 @@
 /* Version-aware update recovery. No cookies, no telemetry. */
 (()=>{'use strict';
- const version='v57',updated='23 Nov';window.ForkadeVersion={version,updated};
+ const version='v58',updated='23 Nov';window.ForkadeVersion={version,updated};
  const label=document.createElement('p');label.id='app-version';label.className='hint';label.textContent='Version '+version+' · updated '+updated;document.querySelector('#settings .sheet')?.append(label);
  if(location.protocol==='file:'||!('serviceWorker'in navigator))return;
  let reg,pending=false,reloading=false;const hadController=!!navigator.serviceWorker.controller;
