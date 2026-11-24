@@ -128,3 +128,5 @@ rumble-v2-rules.js, simulation in games3d/rumble-v2-core.js, v3 replay in
 rumble-v2-replay.js. Original avatar choices remain available under More.
 Friend ghosts are opt-in shared replays, not live co-op. Assets load lazily from
 assets/rumble and are embedded in the offline download. See THIRD_PARTY_NOTICES.
+
+Shared UI: edit the tokens and ui-kit block in index.html, then run python tools/build_ui.py from the repository root before the other generators. ui.css is generated, shared by standalone pages and inlined into 3D games. See docs/STYLE.md; node tests/style.cjs checks 390px and1280px.

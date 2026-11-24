@@ -5,7 +5,7 @@
   function paintBonus(){const left=F.bonus.left();bonusLeft.hidden=left>=10;bonusLeft.textContent='Full-bonus rounds left today: '+left;}
   F.rewards.listeners.push(paintBonus);paintBonus();setInterval(paintBonus,1000);
   const gift=document.createElement('section');gift.id='free-gift';gift.className='gift-card';
-  gift.innerHTML='<h2>Free gift</h2><p id="gift-hint"></p><button id="gift-open" class="btn btn-pop">Open gift</button><p id="gift-time" role="status"></p><a href="fair.html#chances">Chances and timers</a>';
+  gift.innerHTML='<h2>Free gift</h2><p id="gift-hint"></p><button id="gift-open" class="btn btn-dark">Open gift</button><p id="gift-time" role="status"></p><a href="fair.html#chances">Chances and timers</a>';
   document.querySelector('.wallet').after(gift);
   const giftButton=gift.querySelector('button');
   function paintGift(){const st=F.gifts.state(),ready=F.gifts.ready(),n=Math.max(0,Math.ceil((st.next-Date.now())/1000));
@@ -38,7 +38,7 @@
   F.rewards.listeners.push(paintMachine);paintMachine();addEventListener('storage',paintMachine);
   const settings = document.createElement('div'); settings.className = 'modal'; settings.id = 'settings'; settings.hidden = true;
   settings.innerHTML = `<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="settings-title">
-    <button class="x" id="close-settings" aria-label="Close settings">×</button><h2 id="settings-title">SETTINGS</h2>
+    <button class="x btn" id="close-settings" aria-label="Close settings">×</button><h2 id="settings-title">Settings</h2>
     <p class="hint">Your progress and settings stay on this device. No cookies, ads or third-party trackers. Only Post shares a nickname and score, plus a Rumble replay; only Publish shares Forge presets.</p>
     <label class="nick">Nickname <input id="playername" maxlength="14" placeholder="ECHO" autocomplete="nickname" spellcheck="false"></label>
     <label><input type="checkbox" data-setting="vibration"> Vibration</label>
@@ -64,7 +64,7 @@
   function paintAssist(){assistToggle.checked=F.assistMode.preference(assistSelect.value);document.getElementById('assist-description').textContent=F.assistMode.rules[assistSelect.value];}
   assistSelect.onchange=paintAssist;assistToggle.onchange=()=>{F.assistMode.set(assistSelect.value,assistToggle.checked);document.getElementById('assist-saved').textContent='Saved ✓ — next round, only on this device';};paintAssist();
   const offer=document.createElement('div');offer.className='modal';offer.id='assist-offer';offer.hidden=true;
-  offer.innerHTML='<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="assist-title"><button class="x" aria-label="Close assist offer">×</button><h2 id="assist-title">Want a hand?</h2><p id="assist-offer-text"></p><button class="btn btn-pop" id="assist-yes">Turn on assist</button> <button class="btn btn-link" id="assist-no">No thanks</button></section>';document.body.appendChild(offer);
+  offer.innerHTML='<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="assist-title"><button class="x btn" aria-label="Close assist offer">×</button><h2 id="assist-title">Want a hand?</h2><p id="assist-offer-text"></p><button class="btn btn-pop" id="assist-yes">Turn on assist</button> <button class="btn btn-link" id="assist-no">No thanks</button></section>';document.body.appendChild(offer);
   let offeredId,offerFocus;
   const closeOffer=()=>{offer.hidden=true;offerFocus?.focus();};offer.querySelector('.x').onclick=closeOffer;offer.querySelector('#assist-no').onclick=closeOffer;
   offer.querySelector('#assist-yes').onclick=()=>{F.assistMode.set(offeredId,true);paintAssist();closeOffer();toast('Assist enabled for your next '+(GAME_NAMES()[offeredId]||offeredId)+' round.');};
@@ -109,7 +109,7 @@
     tick.textContent = '✓ Saved'; tick.classList.add('on'); clearTimeout(tick._t); tick._t = setTimeout(() => tick.classList.remove('on'), 1600);
   });
   for (const parent of [document.querySelector('.wallet .wbtns') || document.querySelector('.wallet'), document.querySelector('.stagebar')]) {
-    const btn = document.createElement('button'); btn.className = 'btn mute settings-button'; btn.textContent = '⚙ Settings'; btn.onclick = showSettings; parent.appendChild(btn);
+    const btn = document.createElement('button'); btn.className = 'btn btn-sm mute settings-button'; btn.innerHTML = '<svg class="ui-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3"/><path d="M10 1v3m0 12v3M1 10h3m12 0h3M4 4l2 2m8 8 2 2M4 16l2-2m8-8 2-2"/></svg>Settings'; btn.onclick = showSettings; parent.appendChild(btn);
   }
   window.addEventListener('message', e => { if (e.source===gframe.contentWindow && e.data?.t==='forkade-settings-open') showSettings(); });
   const share = document.createElement('button'); share.id='pb-share'; share.className='btn'; share.textContent='Share'; document.getElementById('pb-post').after(share);
@@ -123,7 +123,7 @@
       else { await navigator.clipboard.writeText(text); toast('Score link copied!'); }
     } catch (e) { if (e.name !== 'AbortError') toast('Could not share. Copy this link: ' + url); }
   };
-  const dailyCard = document.createElement('button'); dailyCard.className='card daily'; dailyCard.id='daily-challenge'; dailyCard.style.setProperty('--c','var(--brand)');
+  const dailyCard = document.createElement('button'); dailyCard.className='btn card card-btn daily'; dailyCard.id='daily-challenge'; dailyCard.style.setProperty('--c','var(--brand)');
   grid.prepend(dailyCard);
   const claim = document.createElement('button'); claim.className='btn'; claim.id='daily-claim'; claim.textContent="Claim yesterday's top-10 bonus"; dailyCard.after(claim);
   // only players who have posted can be in a top 10: hide the button for everyone else
@@ -133,7 +133,7 @@
   function dailyPaint() {
     const d = D.challenge(), seconds = Math.max(0, Math.floor((d.next-Date.now())/1000));
     const countdown = [Math.floor(seconds/3600), Math.floor(seconds/60)%60, seconds%60].map(x=>String(x).padStart(2,'0')).join(':');
-    dailyCard.innerHTML = `<h3 class="name">DAILY CHALLENGE</h3><div>${GAME_NAMES()[d.game]}</div><p class="desc">Same seed. Same level. +25 local cores for finishing. Resets at midnight Singapore.</p><span class="play dplay">&#9654; Play today's</span> <span class="dnext">Next in ${countdown}</span>`;
+    dailyCard.innerHTML = `<h3 class="name">Daily challenge</h3><div>${GAME_NAMES()[d.game]}</div><p class="desc">Same seed. Same level. +25 local cores for finishing. Resets at midnight Singapore.</p><span class="play dplay">&#9654; Play today's challenge</span> <span class="dnext">Next in ${countdown}</span>`;
   }
   dailyPaint(); setInterval(dailyPaint,1000);
   dailyCard.onclick = () => { const d=D.challenge(); openGame(d.game, { seed:d.seed, daily:d.date }); };
@@ -155,8 +155,8 @@
   const extra=[...grid.querySelectorAll('.card')].filter(c=>!c.classList.contains('daily')).slice(4);
   function paintMore(){extra.forEach(c=>c.hidden=!expanded);more.textContent=expanded?'Fewer games':'More games ('+extra.length+')';more.setAttribute('aria-expanded',String(expanded));}
   more.onclick=()=>{expanded=!expanded;try{localStorage.setItem('forkade-more-games',expanded?'1':'0');}catch(_){}paintMore();};paintMore();
-  const rumble=document.createElement('button');rumble.className='card rumble-hero';rumble.dataset.game='rumble';rumble.style.setProperty('--c','var(--brand)');
-  rumble.innerHTML='<span class="genre">ECHO RUMBLE 2 (beta)</span><h3 class="name">Your squad. Supercharged.</h3><video id="rumble-loop" muted loop playsinline preload="none" poster="media/rumble-poster.jpg" aria-label="Real ECHO RUMBLE gameplay"></video><p class="desc">Four heroes. Huge supers. Earn your next unlock.</p><span class="rumble-look"><b aria-hidden="true">••</b>Four free heroes · local progression</span>';
+  const rumble=document.createElement('button');rumble.className='btn card card-btn rumble-hero';rumble.dataset.game='rumble';rumble.style.setProperty('--c','var(--brand)');
+  rumble.innerHTML='<span class="genre">Echo Rumble 2 (beta)</span><h3 class="name">Your squad. Supercharged.</h3><video id="rumble-loop" muted loop playsinline preload="none" poster="media/rumble-poster.jpg" aria-label="Real Echo Rumble gameplay"></video><p class="desc">Four heroes. Huge supers. Earn your next unlock.</p><span class="rumble-look"><b aria-hidden="true">••</b>Four free heroes · local progression</span>';
   rumble.onclick=()=>open3D('rumble');document.getElementById('hero-sub').after(rumble);
   const loop=rumble.querySelector('video');let visible=true;
   function previewMotion(){if(location.protocol==='file:'||S.reduceMotion||navigator.connection?.saveData||document.hidden||!visible){loop.pause();return;}if(!loop.src)loop.src='media/rumble-loop.mp4';loop.play().catch(()=>{});}

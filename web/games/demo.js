@@ -1,4 +1,4 @@
-/* GAME 12 - DEMOLITION CHAIN : plan-the-blast puzzle.
+/* GAME 12 - Demolition Chain : plan-the-blast puzzle.
    Tap/click blocks to place charges (limited per level), then DETONATE.
    A charge blows a 3x3 hole; GAS cans blow 5x5 and set off anything nearby, so chains matter.
    STEEL survives one blast. The building collapses after the blast.
@@ -207,14 +207,14 @@
       if (this.phase === "clear")
         NE.banner(ctx, this.W, this.H, `SITE ${this.level} CLEARED!`, `+${this.bonus} bonus   -   click / SPACE for the next site`);
       if (this.phase === "fail")
-        NE.banner(ctx, this.W, this.H, "STILL STANDING", "hold R to rewind and try another plan   ·   tap to give up");
+        NE.banner(ctx, this.W, this.H, "Still standing", "hold R to rewind and try another plan   ·   tap to give up");
       if (this.state === "over")
-        NE.banner(ctx, this.W, this.H, "DEMOLITION CALLED OFF", `score ${this.score} · site ${this.level} · best wave ${this.bestWave} · tap to retry`);
+        NE.banner(ctx, this.W, this.H, "Demolition called off", `score ${this.score} · site ${this.level} · best wave ${this.bestWave} · tap to retry`);
     }
   }
   Demo.prototype.rewindSeconds = 6;   // long enough to rewind a whole blast + collapse
   NE.register("demo",
-    { polished:true,world:["#171528","#30243e","#e8a55c"],scene:"forge",music:{root:146.83,tempo:96,wave:"triangle"},hint:"TAP CHARGES · THEN DETONATE",touch: "tap", title: "DEMOLITION CHAIN", genre: "Blast puzzle", color: P.amber,
+    { polished:true,world:["#171528","#30243e","#e8a55c"],scene:"forge",music:{root:146.83,tempo:96,wave:"triangle"},hint:"Tap charges · then detonate",touch: "tap", title: "Demolition Chain", genre: "Blast puzzle", color: P.amber,
       desc: "Place a few charges, hit DETONATE and chain gas cans to bring the building below the line. Bad plan? Rewind it." },
     Demo);
 })();

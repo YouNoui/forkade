@@ -1,4 +1,4 @@
-/* GAME 11 - GLASS CITY : run-and-smash destruction.
+/* GAME 11 - Glass City : run-and-smash destruction.
    ECHO sprints through a neon city on his own. Glass walls: SMASH them (→ / D, or the ▶ button).
    Solid walls: JUMP them (SPACE / ↑, or ACT). Floating panes: jump through for a bonus.
    Chain smashes for a combo. Hit a solid wall, or a glass wall without smashing, and you lose a life.
@@ -20,9 +20,9 @@
     fx(a,b){this.fxSeed=(Math.imul(this.fxSeed,1664525)+1013904223)>>>0;return a+(b-a)*this.fxSeed/4294967296;}
     makePane(){this.pane=document.createElement('canvas');this.pane.width=24;this.pane.height=34;const c=this.pane.getContext('2d'),g=c.createLinearGradient(0,0,24,34);g.addColorStop(0,'#c4ffff');g.addColorStop(.3,'#28bfc955');g.addColorStop(1,'#103b6e');c.fillStyle=g;c.beginPath();c.roundRect(2,2,18,30,3);c.fill();c.strokeStyle=P.cyan;c.lineWidth=2;c.stroke();c.strokeStyle='#e5ffff';c.beginPath();c.moveTo(5,4);c.lineTo(5,23);c.moveTo(9,5);c.lineTo(17,5);c.stroke();}
     smashReward(o){this.smashed++;this.juice?.hit(ECHO_X,this.y,'SMASH ×'+this.combo,true);
-      if(this.smashed%5===0){this.shield=1;this.juice?.hit(ECHO_X,this.y-45,'PRISM SHIELD',true);}
+      if(this.smashed%5===0){this.shield=1;this.juice?.hit(ECHO_X,this.y-45,'Prism shield',true);}
       if(this.smashed>=8&&!this.smashGoal){this.smashGoal=true;this.smashPts+=300;this.juice?.hit(this.W/2,100,'8 WALLS +300',true);}
-      if(o.vault){this.smashPts+=500;this.juice?.hit(ECHO_X,this.y-65,'VAULT +500',true);}
+      if(o.vault){this.smashPts+=500;this.juice?.hit(ECHO_X,this.y-65,'Vault +500',true);}
     }
     // obstacles live in world space (x along the street)
     spawn() {
@@ -46,7 +46,7 @@
       if (this.debris.length > MAX_DEBRIS) this.debris.splice(0, this.debris.length - MAX_DEBRIS);
     }
     crash(o) {
-      if (this.inv > 0) return;if(this.shield){this.shield=0;this.inv=1.4;this.juice?.hit(ECHO_X,this.y,"SHIELD SAVE",true);NE.sfx.pickup();return;}
+      if (this.inv > 0) return;if(this.shield){this.shield=0;this.inv=1.4;this.juice?.hit(ECHO_X,this.y,"Shield save",true);NE.sfx.pickup();return;}
       this.lives--; this.inv = 1.4; this.combo = 0;
       NE.sfx.hit();this.juice?.hit(ECHO_X,this.y,"OUCH",true,true); this.shake.add(12);
       this.particles.emit(ECHO_X, this.y, P.red, { n: 24, speed: 5 });
@@ -161,18 +161,18 @@
       }
       NE.text(ctx, String(this.score), 20, 16, { size: 40 });
       NE.text(ctx, `${Math.floor(this.dist/10)} m · ${this.smashed} walls`, 22, 64, { size: 14, color: P.dim });
-      NE.text(ctx,this.shield?"SHIELD READY":`SHIELD ${this.smashed%5}/5`,22,88,{size:15,color:P.lime});NE.text(ctx,this.smashGoal?"8 WALLS ✓":`GOAL ${this.smashed}/8 WALLS`,22,112,{size:15,color:P.amber});
+      NE.text(ctx,this.shield?"Shield ready":`SHIELD ${this.smashed%5}/5`,22,88,{size:15,color:P.lime});NE.text(ctx,this.smashGoal?"8 WALLS ✓":`GOAL ${this.smashed}/8 WALLS`,22,112,{size:15,color:P.amber});
       if (this.combo > 1) NE.text(ctx, `COMBO x${this.combo}`, this.W / 2, 22, { size: 26, color: P.amber, align: "center" });
       for (let i = 0; i < this.lives; i++) NE.glowCircle(ctx, P.cyan, this.W - 30 - i * 26, 28, 7);
       if (this.dist < 2200)
         NE.text(ctx, "glass = SMASH (→ / ▶ / tap right)   ·   pink wall = JUMP (SPACE / ACT)", this.W / 2, this.H - 30,
                 { size: 13, color: P.dim, align: "center" });
       if (this.state === "over")
-        NE.banner(ctx, this.W, this.H, "WIPED OUT", `score ${this.score} · ${this.smashed} walls · best combo ×${this.best} · tap to retry`);
+        NE.banner(ctx, this.W, this.H, "Wiped out", `score ${this.score} · ${this.smashed} walls · best combo ×${this.best} · tap to retry`);
     }
   }
   NE.register("glass",
-    { polished:true,world:["#081b2c","#123641","#6bded6"],scene:"reactor",music:{root:207.65,tempo:128,wave:"sine"},hint:"JUMP WALLS · TAP RIGHT TO SMASH",touch: "lr", title: "GLASS CITY", genre: "Run & smash", color: P.cyan,
+    { polished:true,world:["#081b2c","#123641","#6bded6"],scene:"reactor",music:{root:207.65,tempo:128,wave:"sine"},hint:"Jump walls · tap right to smash",touch: "lr", title: "Glass City", genre: "Run & smash", color: P.cyan,
       desc: "Sprint through a neon city: smash the glass, jump the walls, chain combos. Crashed? Rewind the jump." },
     Glass);
 })();

@@ -1,4 +1,4 @@
-/* GAME 1 - SKY HOP : bouncy platformer climb */
+/* GAME 1 - Sky Hop : bouncy platformer climb */
 (function () {
   const NE = Forkade, P = NE.palette, C=["#22e4ff","#b0ffcd","#ffb23f","#fff2b0"];
 
@@ -28,9 +28,9 @@
     step(dt) {
       const I = this.input;
       if (this.state !== "play") { if (I.pressed.Enter || I.pressed.NumpadEnter) this.reset(); return; }
-      this.elapsed+=dt;const stage=Math.floor(this.elapsed/35);if(stage!==this.stage){this.stage=stage;for(let i=0;i<this.plats.length;i++){const p=this.plats[i];if(p.h<30&&p.kind!==3){p.home=p.x;p.kind=i%4===0?1:stage>1&&i%4===2?2:0;}}this.juice?.hit(this.W/2,120,stage===1?'DRIFT ISLANDS':stage===2?'CRUMBLE ISLANDS':'HIGH SKY',true);}
+      this.elapsed+=dt;const stage=Math.floor(this.elapsed/35);if(stage!==this.stage){this.stage=stage;for(let i=0;i<this.plats.length;i++){const p=this.plats[i];if(p.h<30&&p.kind!==3){p.home=p.x;p.kind=i%4===0?1:stage>1&&i%4===2?2:0;}}this.juice?.hit(this.W/2,120,stage===1?'Drift islands':stage===2?'Crumble islands':'High sky',true);}
       this.magnet=Math.max(0,this.magnet-dt);this.land=Math.max(0,this.land-dt);
-      if(this.elapsed>=this.nextGate){this.nextGate+=120;const y=180-this.cam;this.plats.push({x:this.W*.12,y,w:this.W*.76,h:18,kind:3,life:1,home:this.W*.12,phase:0});for(let i=0;i<8;i++)this.orbs.push({x:this.W*(.18+i*.09),y:y-28,on:true});this.juice?.hit(this.W/2,150,'SKY GATE · SPARK RUSH',true);}
+      if(this.elapsed>=this.nextGate){this.nextGate+=120;const y=180-this.cam;this.plats.push({x:this.W*.12,y,w:this.W*.76,h:18,kind:3,life:1,home:this.W*.12,phase:0});for(let i=0;i<8;i++)this.orbs.push({x:this.W*(.18+i*.09),y:y-28,on:true});this.juice?.hit(this.W/2,150,'Sky gate · spark rush',true);}
       for(const p of this.plats){if(p.kind===1)p.x=Math.max(10,Math.min(this.W-p.w-10,p.home+Math.sin(this.elapsed*1.3+p.phase)*45));if(p.kind===2&&p.life<1)p.life-=dt;}
       const ax = (I.right() ? 1 : 0) - (I.left() ? 1 : 0);
       this.vx = ax * 320;
@@ -74,16 +74,16 @@
         if(o.on&&this.magnet>0&&Math.hypot(o.x-this.px,o.y+this.cam-this.py)<140){o.x+=(this.px-o.x)*Math.min(1,dt*8);o.y+=(this.py-this.cam-o.y)*Math.min(1,dt*8);}
         if (o.on && Math.abs(o.x - this.px) < 22 && Math.abs(o.y + this.cam - this.py) < 22) {
           o.on = false; this.orbPts += 25; this.sparks++; this.shake.add(2); NE.sfx.pickup();this.juice?.hit(o.x,o.y+this.cam,'+25');
-          if(this.sparks>=this.goal){this.orbPts+=50;this.goal+=5;this.magnet=8;this.juice?.hit(this.W/2,this.H*.35,'SPARK GOAL +50 · MAGNET',true);}
-          if(this.elapsed>=120&&this.sparks%10===0){this.shield=1;this.juice?.hit(this.W/2,this.H*.4,'SKY GATE · SHIELD',true);}
+          if(this.sparks>=this.goal){this.orbPts+=50;this.goal+=5;this.magnet=8;this.juice?.hit(this.W/2,this.H*.35,'Spark goal +50 · magnet',true);}
+          if(this.elapsed>=120&&this.sparks%10===0){this.shield=1;this.juice?.hit(this.W/2,this.H*.4,'Sky gate · shield',true);}
           this.particles.emit(o.x, o.y + this.cam, P.amber, { n: 16, speed: 4 });
         }
       }
       let no=0;for(const o of this.orbs)if(o.y+this.cam<this.H+40)this.orbs[no++]=o;this.orbs.length=no;
       this.score = ((this.best / 10) | 0) + this.orbPts;
 
-      if(this.py>this.H-25&&this.vy>0&&this.shield){this.shield=0;this.rescues++;this.py=this.H-70;this.vy=-780;this.juice?.hit(this.px,this.py,'SHIELD SAVE',true);this.shake.add(4);}
-      if (this.py > this.H + 40) { this.state = "over"; this.shake.add(8);this.juice?.hit(this.px,this.H-50,'REWIND NEXT TIME',true,true); }
+      if(this.py>this.H-25&&this.vy>0&&this.shield){this.shield=0;this.rescues++;this.py=this.H-70;this.vy=-780;this.juice?.hit(this.px,this.py,'Shield save',true);this.shake.add(4);}
+      if (this.py > this.H + 40) { this.state = "over"; this.shake.add(8);this.juice?.hit(this.px,this.H-50,'Rewind next time',true,true); }
     }
     snapshot() {
       if (this.state !== "play") return null;
@@ -112,12 +112,12 @@
       if(this.shield){ctx.strokeStyle='#b0ffcd';ctx.lineWidth=2;ctx.beginPath();ctx.arc(this.px,this.py,29,0,NE.TAU);ctx.stroke();}
       NE.text(ctx,String(this.score),20,16,{size:38});NE.text(ctx,Math.floor(this.best/10)+'m · SKY '+(this.stage+1),20,58,{size:16,color:'#b0ffcd',glow:false});
       NE.text(ctx,'◆ '+this.sparks+'/'+this.goal+' sparks · +50',20,82,{size:16,color:P.amber,glow:false});
-      if(this.magnet>0)NE.text(ctx,'MAGNET '+Math.ceil(this.magnet)+'s',this.W-20,88,{size:16,align:'right',color:P.amber,glow:false});
-      if(this.state==='over'){NE.banner(ctx,this.W,this.H,'SKY RUN COMPLETE',Math.floor(this.best/10)+'m · '+this.sparks+' sparks · combo '+(this.juice?.best||0));const best=NE.scores.get(this.id);NE.text(ctx,best>this.score?(best-this.score)+' points to your best':'YOUR BEST FLIGHT',this.W/2,this.H/2+130,{size:18,align:'center',glow:false});}
+      if(this.magnet>0)NE.text(ctx,'Magnet '+Math.ceil(this.magnet)+'s',this.W-20,88,{size:16,align:'right',color:P.amber,glow:false});
+      if(this.state==='over'){NE.banner(ctx,this.W,this.H,'Sky run complete',Math.floor(this.best/10)+'m · '+this.sparks+' sparks · combo '+(this.juice?.best||0));const best=NE.scores.get(this.id);NE.text(ctx,best>this.score?(best-this.score)+' points to your best':'Your best flight',this.W/2,this.H/2+130,{size:18,align:'center',glow:false});}
     }
   }
   NE.register("skyhop",
-    { polished:true, world:["#020e20","#103a50","#22e4ff"], music:{root:164.81,tempo:112,wave:"triangle"}, hint:"HOLD JUMP · STEER LEFT / RIGHT", touch: "lr", title: "SKY HOP", genre: "Platformer", color: P.cyan,
+    { polished:true, world:["#020e20","#103a50","#22e4ff"], music:{root:164.81,tempo:112,wave:"triangle"}, hint:"Hold jump · steer left / right", touch: "lr", title: "Sky Hop", genre: "Platformer", color: P.cyan,
       desc: "Ride floating sky islands, gather sparks and unlock a magnet. Your shield saves one fall; rewind saves the next." },
     SkyHop);
 })();

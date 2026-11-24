@@ -21,9 +21,9 @@ def build():
     for path in sorted((WEB/'games').glob('*.js')):
         title = re.search(r'title:\s*"([^"]+)"', path.read_text(encoding='utf-8'))
         if title: games[path.stem] = title[1]
-    games['echo3d'] = 'ECHO 3D'
-    games['rumble'] = 'ECHO RUMBLE 2 beta'
-    if (WEB/'games3d/rampage.html').exists(): games['rampage'] = 'RAMPAGE 3D'
+    games['echo3d'] = 'Echo 3D'
+    games['rumble'] = 'Echo Rumble 2 beta'
+    if (WEB/'games3d/rampage.html').exists(): games['rampage'] = 'Rampage 3D'
     (WEB/'og').mkdir(exist_ok=True); (WEB/'entries').mkdir(exist_ok=True)
     for ident, title in games.items():
         im = Image.new('RGB',(1200,630),'#0b0a10'); d=ImageDraw.Draw(im)

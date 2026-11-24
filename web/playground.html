@@ -16,69 +16,70 @@
   *{box-sizing:border-box;}
   body{margin:0; font-family:"Consolas","SF Mono",ui-monospace,monospace; color:var(--ink);
     background:radial-gradient(1200px 600px at 50% -10%,#10303a 0%,var(--bg) 60%); min-height:100dvh;}
-  header{display:flex; flex-wrap:wrap; align-items:center; gap:14px; padding:18px 22px;}
-  header h1{margin:0; font-size:26px; letter-spacing:3px; color:var(--cyan); text-shadow:0 0 14px var(--cyan);}
-  header .sub{color:var(--dim); font-size:13px;}
-  header a.back{margin-left:auto; color:var(--cyan); border:1px solid var(--cyan); border-radius:10px;
-    padding:7px 12px; text-decoration:none; font-size:13px; font-weight:700; min-height:44px; display:inline-flex; align-items:center;}
-  .steps{display:flex; flex-wrap:wrap; gap:10px; padding:0 22px 12px; font-size:13px; color:var(--dim);}
-  .steps span{border:1px solid var(--line); border-radius:999px; padding:6px 12px;}
+  header{display:flex; flex-wrap:wrap; align-items:center; gap:var(--s3); padding:var(--s4) var(--s5);}
+  header h1{margin:0; font-size:var(--t-xl); letter-spacing:3px; color:var(--cyan); text-shadow:0 0 14px var(--cyan);}
+  header .sub{color:var(--dim); font-size:var(--t-xs);}
+  header a.back{margin-left:auto; color:var(--cyan); border:1px solid var(--cyan); border-radius:var(--r-sm);
+    padding:var(--s2) var(--s3); text-decoration:none; font-size:var(--t-xs); font-weight:700; min-height:44px; display:inline-flex; align-items:center;}
+  .steps{display:flex; flex-wrap:wrap; gap:var(--s2); padding:0 var(--s5) var(--s3); font-size:var(--t-xs); color:var(--dim);}
+  .steps span{border:1px solid var(--line); border-radius:var(--r-pill); padding:var(--s1) var(--s3);}
   .steps b{color:var(--violet);}
-  main{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.15fr); gap:16px; padding:0 22px 22px;}
+  main{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.15fr); gap:var(--s4); padding:0 var(--s5) var(--s5);}
   @media (max-width:980px){ main{grid-template-columns:1fr;} }
-  .panel{border:1px solid rgba(141,146,189,.3); border-radius:14px; background:rgba(21,19,29,.8); overflow:hidden;}
-  .bar{display:flex; flex-wrap:wrap; gap:8px; padding:10px; border-bottom:1px solid rgba(141,146,189,.2);}
-  button, .btn{font-family:inherit; font-size:13px; font-weight:800; cursor:pointer; border-radius:10px;
-    padding:8px 12px; min-height:44px; background:transparent; color:var(--text); border:1px solid var(--line); text-decoration:none;
+  .panel{border:1px solid rgba(141,146,189,.3); border-radius:var(--r-md); background:rgba(21,19,29,.8); overflow:hidden;}
+  .bar{display:flex; flex-wrap:wrap; gap:var(--s2); padding:var(--s2); border-bottom:1px solid rgba(141,146,189,.2);}
+  button, .btn{font-family:inherit; font-size:var(--t-xs); font-weight:900; cursor:pointer; border-radius:var(--r-sm);
+    padding:var(--s2) var(--s3); min-height:44px; background:transparent; color:var(--text); border:1px solid var(--line); text-decoration:none;
     display:inline-flex; align-items:center; transition:transform .16s ease, background-color .16s ease, border-color .16s ease;}
   button:active, .btn:active{transform:translateY(1px);}
   button.run{background:var(--pop); color:var(--pop-ink); border:2px solid var(--pop-ink); box-shadow:3px 3px 0 var(--brand);}
   button.ghost, .btn.ghost{color:var(--dim); border-color:rgba(141,146,189,.5); background:transparent;}
   .btn.share{color:var(--brand); border-color:var(--brand);}
-  textarea{width:100%; height:62dvh; min-height:360px; resize:vertical; border:0; outline:0; padding:14px;
+  textarea{width:100%; height:62dvh; min-height:360px; resize:vertical; border:0; outline:0; padding:var(--s3);
     white-space:pre; overflow-wrap:normal; overflow:auto;
-    background:transparent; color:var(--ink); font:13px/1.55 "Consolas","SF Mono",ui-monospace,monospace; tab-size:2;}
-  .stagewrap{padding:12px;}
-  canvas{display:block; width:100%; height:auto; aspect-ratio:900/560; border-radius:10px;
+    background:transparent; color:var(--ink); font:var(--t-xs)/1.55 "Consolas","SF Mono",ui-monospace,monospace; tab-size:2;}
+  .stagewrap{padding:var(--s3);}
+  canvas{display:block; width:100%; height:auto; aspect-ratio:900/560; border-radius:var(--r-sm);
     box-shadow:0 0 40px -12px var(--cyan); background:var(--bg); touch-action:none;}
-  #log{min-height:44px; margin:10px 12px 12px; padding:10px 12px; border-radius:10px; font-size:12px;
+  #log{min-height:44px; margin:var(--s2) var(--s3) var(--s3); padding:var(--s2) var(--s3); border-radius:var(--r-sm); font-size:var(--t-xs);
     background:rgba(0,0,0,.3); color:var(--lime); white-space:pre-wrap;}
   #log.err{color:var(--red);}
-  .help{padding:4px 14px 14px; font-size:12px; color:var(--dim); line-height:1.7;}
+  .help{padding:var(--s1) var(--s3) var(--s3); font-size:var(--t-xs); color:var(--dim); line-height:1.45;}
   .help code{color:var(--amber);}
-  .note{padding:0 22px 26px; font-size:12px; color:var(--dim);}
-  .note a, .hint a, .help a, p a{display:inline-block; padding:15px 2px; margin:-15px 0;}
-dialog{max-width:min(440px,calc(100vw - 28px));background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:16px;padding:20px}dialog::backdrop{background:rgba(0,0,0,.75)}#confirm-reset{color:var(--danger)}#draft-status{padding:0 14px;font-size:12px;color:var(--muted)}
+  .note{padding:0 var(--s5) var(--s5); font-size:var(--t-xs); color:var(--dim);}
+  .note a, .hint a, .help a, p a{display:inline-block; padding:var(--s4) var(--s1); margin:calc(var(--s4) * -1) 0;}
+dialog{max-width:min(440px,calc(100vw - 28px));background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:var(--r-lg);padding:var(--s4)}dialog::backdrop{background:rgba(0,0,0,.75)}#confirm-reset{color:var(--danger)}#draft-status{padding:0 var(--s3);font-size:var(--t-xs);color:var(--muted)}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media(max-width:600px){.bar{position:sticky;top:0;background:var(--panel);z-index:2}.panel{overflow:visible}}
   @view-transition{navigation:auto;}
   header h1{view-transition-name:pg;}
-  .where{font-size:12px; color:var(--muted); font-weight:700;} .where i{font-style:normal; margin:0 4px;}
+  .where{font-size:var(--t-xs); color:var(--muted); font-weight:700;} .where i{font-style:normal; margin:0 var(--s1);}
   ::view-transition-group(pg){animation-duration:.38s; animation-timing-function:cubic-bezier(0.32,0.72,0,1);}
   @media (prefers-reduced-motion:reduce){ ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*){animation:none !important;} }
 </style>
+<link rel="stylesheet" href="/ui.css">
 </head>
 <body>
 <header>
-  <h1>PLAYGROUND</h1>
+  <h1>Playground</h1>
   <div class="sub">Build your own FORKADE game right here. It's open source (MIT) &mdash; your game can join the arcade.</div>
   <a class="back" href="index.html" aria-label="Back to the arcade">&lsaquo; Arcade</a> <span class="where">Arcade <i>&rsaquo;</i> Playground</span>
 </header>
 <div class="steps">
   <span><b>1</b> Edit the code</span>
-  <span><b>2</b> Press &#9654; Run (or Ctrl+Enter)</span>
+  <span><b>2</b> Press &#9654; Play code (or Ctrl+Enter)</span>
   <span><b>3</b> Happy? Download it and submit it on GitHub</span>
 </div>
 <main>
   <section class="panel">
     <div class="bar">
-      <button class="run" id="run">&#9654; Run</button>
-      <button class="ghost" id="reset">&#10227; Start over</button>
-      <button id="download">&#11015; Download .js</button>
+      <button class="run btn btn-pop" id="run">&#9654; Play code</button>
+      <button class="ghost btn" id="reset">Start over</button>
+      <button class="btn" id="download"> Download .js</button>
       <a class="btn share" id="submit" target="_blank" rel="noopener noreferrer"
-         href="https://github.com/YouNoui/forkade/upload/main/web/games">&#8679; Submit to FORKADE</a>
+         href="https://github.com/YouNoui/forkade/upload/main/web/games">Submit game</a>
     </div>
-    <p id="draft-status" role="status">Private draft — only on this device</p><button id="undo-reset" hidden>Undo start over</button>
+    <p id="draft-status" role="status">Private draft — only on this device</p><button class="btn" id="undo-reset" hidden>Undo start over</button>
     <textarea id="code" spellcheck="false" aria-label="Game code"></textarea>
     <div class="help">
       Your game is a class that extends <code>Forkade.GameBase</code> with
@@ -93,12 +94,12 @@ dialog{max-width:min(440px,calc(100vw - 28px));background:var(--panel);color:var
   </section>
   <section class="panel">
     <div class="stagewrap"><canvas id="game" width="900" height="560" tabindex="0"></canvas></div>
-    <div id="log">Press &#9654; Run to play your game. Keys: arrows/WASD, SPACE, hold R to rewind, P pause.</div>
+    <div id="log">Press &#9654; Play code to play your game. Keys: arrows/WASD, SPACE, hold R to rewind, P pause.</div>
   </section>
 </main>
-<div class="note">&#128274; Your code stays in this browser (saved on this device only). Nothing is uploaded unless you submit it yourself on GitHub. &middot; <a href="terms.html" style="color:var(--cyan)">Terms</a> &middot; <a href="privacy.html" style="color:var(--cyan)">Privacy</a></div>
+<div class="note"> Your code stays in this browser (saved on this device only). Nothing is uploaded unless you submit it yourself on GitHub. &middot; <a href="terms.html" style="color:var(--cyan)">Terms</a> &middot; <a href="privacy.html" style="color:var(--cyan)">Privacy</a></div>
 
-<dialog id="reset-confirm"><button id="reset-x" aria-label="Close">×</button><h2>Replace your game code?</h2><p>Your draft will be replaced by the starter game. You can undo this.</p><button id="keep-editing">Keep editing</button><button id="confirm-reset">Start over</button></dialog>
+<dialog id="reset-confirm"><button class="btn" id="reset-x" aria-label="Close">×</button><h2>Replace your game code?</h2><p>Your draft will be replaced by the starter game. You can undo this.</p><button class="btn" id="keep-editing">Keep editing</button><button class="btn btn-danger" id="confirm-reset">Start over</button></dialog>
 <script src="daily.js"></script><script src="settings.js"></script><script src="policy.js"></script>
 <script src="engine.js"></script>
 <script>

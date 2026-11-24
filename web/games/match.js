@@ -1,4 +1,4 @@
-/* GAME 8 - CORE MATCH : swap-and-match-3 with endless levels */
+/* GAME 8 - Core Match : swap-and-match-3 with endless levels */
 (function () {
   const NE = Forkade, P = NE.palette, N = 8, CELL = 52;
   const GC = [P.cyan, P.magenta, P.lime, P.amber, P.violet, P.red];
@@ -67,7 +67,7 @@
           for (let r = N - 1; r >= 0; r--) this.g[r][c] = col.length ? col.shift() : ((NE.rng() * this.colors) | 0);
         }
       }
-      if(score&&chain>=2&&!this.cascadeGoal){this.cascadeGoal=true;total+=120;this.juice?.hit(this.W/2,this.oy-30,'DOUBLE CASCADE +120',true);}
+      if(score&&chain>=2&&!this.cascadeGoal){this.cascadeGoal=true;total+=120;this.juice?.hit(this.W/2,this.oy-30,'Double cascade +120',true);}
       if (score) { this.score += total; this.got += total; }
       return chain > 0;
     }
@@ -98,7 +98,7 @@
     }
     trySwap(a, b) {
       const t = this.g[a.r][a.c]; this.g[a.r][a.c] = this.g[b.r][b.c]; this.g[b.r][b.c] = t;
-      if (this.resolve(true)) { this.moves--;this.swaps++;if(++this.charge===4){this.charge=0;this.moves+=2;this.score+=100;this.got+=100;this.pulse=1;this.juice?.hit(this.W/2,this.oy-30,'ECHO PULSE +2 MOVES · +100',true);} }
+      if (this.resolve(true)) { this.moves--;this.swaps++;if(++this.charge===4){this.charge=0;this.moves+=2;this.score+=100;this.got+=100;this.pulse=1;this.juice?.hit(this.W/2,this.oy-30,'Echo pulse +2 moves · +100',true);} }
       else { // no match: swap back
         const u = this.g[a.r][a.c]; this.g[a.r][a.c] = this.g[b.r][b.c]; this.g[b.r][b.c] = u;
         NE.sfx.bounce();
@@ -131,20 +131,20 @@
         ctx.strokeRect(x + 2, y + 2, this.cell - 4, this.cell - 4); ctx.restore();
       }
       const portrait=this.H>this.W,hx=portrait?24:this.ox+N*this.cell+28;
-      NE.text(ctx,'CRYSTAL GARDEN · LEVEL '+this.level,portrait?this.W/2:hx,portrait?26:45,{size:portrait?22:14,color:P.cyan,align:portrait?'center':'left'});
+      NE.text(ctx,'Crystal garden · level '+this.level,portrait?this.W/2:hx,portrait?26:45,{size:portrait?22:14,color:P.cyan,align:portrait?'center':'left'});
       NE.text(ctx,String(this.score)+' pts',hx,portrait?70:85,{size:26});NE.text(ctx,this.moves+' moves',portrait?this.W-24:hx,portrait?70:140,{size:24,color:this.moves<=5?P.red:P.lime,align:portrait?'right':'left'});
       NE.bar(ctx,hx,portrait?115:190,portrait?this.W-48:130,12,this.got/this.need,P.cyan);
-      NE.text(ctx,'PULSE '+this.charge+'/4',hx,portrait?710:240,{size:20,color:P.amber});NE.text(ctx,this.cascadeGoal?'DOUBLE CASCADE ✓':'GOAL: DOUBLE CASCADE',hx,portrait?745:280,{size:portrait?18:12,color:P.lime});
+      NE.text(ctx,'Pulse '+this.charge+'/4',hx,portrait?710:240,{size:20,color:P.amber});NE.text(ctx,this.cascadeGoal?'DOUBLE CASCADE ✓':'Goal: double cascade',hx,portrait?745:280,{size:portrait?18:12,color:P.lime});
       NE.drawEcho(ctx,portrait?this.W-70:hx+50,portrait?750:350,18,P.cyan,1,this.t);
       NE.text(ctx,'Tap a core, then a neighbour',this.W/2,this.H-45,{size:16,color:P.dim,align:'center'});
       if (this.state === "over")
-        NE.banner(ctx, this.W, this.H, "OUT OF MOVES", `score ${this.score} · ${this.swaps} swaps · best cascade ${this.bestCascade} · tap to retry`);
+        NE.banner(ctx, this.W, this.H, "Out of moves", `score ${this.score} · ${this.swaps} swaps · best cascade ${this.bestCascade} · tap to retry`);
       if (this.phase === "clear" && this.state === "play")
         NE.banner(ctx, this.W, this.H, `LEVEL ${this.level} CLEARED!`, `+${this.bonus} for spare moves   -   click / SPACE for level ${this.level + 1}`);
     }
   }
   NE.register("match",
-    { polished:true,world:["#101a29","#18394a","#62f5cf"],scene:"reactor",music:{root:196,tempo:110,wave:"sine"},hint:"TAP TWO NEIGHBOURING CORES",touch: "tap", title: "CORE MATCH", genre: "Match-3 puzzle", color: P.magenta,
+    { polished:true,world:["#101a29","#18394a","#62f5cf"],scene:"reactor",music:{root:196,tempo:110,wave:"sine"},hint:"Tap two neighbouring cores",touch: "tap", title: "Core Match", genre: "Match-3 puzzle", color: P.magenta,
       desc: "Swap neon cores to line up 3+, chain cascades, climb endless levels. Misfire? Rewind the move." },
     Match);
 })();

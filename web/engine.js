@@ -138,8 +138,11 @@
 
   /* ---------------------------------------------------------------- hud --- */
   function easeOutBack(x) { const c = 1.70158; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); }
-  function text(ctx, s, x, y, { size = 22, color = palette.ink, align = "left",
+  let uiTypeScale;
+  function text(ctx, s, x, y, { size = 20, color = palette.ink, align = "left",
                                glow = true, bold = true } = {}) {
+    const scale = uiTypeScale || (uiTypeScale = ["xs","sm","md","lg","xl","2xl"].map(k => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--t-"+k))));
+    size = scale.reduce((best,n) => Math.abs(n-size)<Math.abs(best-size)?n:best,scale[0]);
     ctx.save();
     ctx.font = `${bold ? "bold " : ""}${size}px Consolas, "SF Mono", ui-monospace, monospace`;
     ctx.textAlign = align; ctx.textBaseline = "top"; ctx.fillStyle = color;
@@ -659,7 +662,7 @@
           else {const x=this.W/2+(settings.reduceMotion?0:Math.sin(this.t*3)*14);text(ctx,this.meta.hint||'TAP / ARROWS TO PLAY',x,this.H-88,{size:20,align:'center',color:palette.white});}}
       }
       this.rewind.overlay(ctx, this.W, this.H);
-      if (this.state === "pause") banner(ctx, this.W, this.H, "PAUSED", "P resume   ESC menu");
+      if (this.state === "pause") banner(ctx, this.W, this.H, "Paused", "P resume   ESC menu");
       // best-score line under any game-over / win banner
       if ((this.state === "over" || this.state === "win") && this.id) {
         const b = scores.get(this.id), still = !!settings.reduceMotion, t = this._overT || 0;

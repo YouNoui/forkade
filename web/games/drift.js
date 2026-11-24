@@ -1,4 +1,4 @@
-/* GAME 6 - DRIFTSTORM : neon asteroids */
+/* GAME 6 - Driftstorm : neon asteroids */
 (function () {
   const NE = Forkade, P = NE.palette, TAU = NE.TAU;
 
@@ -20,7 +20,7 @@
     }
     makeRocks(){this.rockTiles={};for(const size of [1,2,3,5]){const c=document.createElement('canvas'),rad=size*12;c.width=c.height=rad*2+8;const x=c.getContext('2d'),m=rad+4,g=x.createRadialGradient(m-rad*.3,m-rad*.4,1,m,m,rad);g.addColorStop(0,size===5?'#ffe69d':'#a8a0c4');g.addColorStop(.5,size===5?'#a45c39':'#504965');g.addColorStop(1,'#191d30');x.fillStyle=g;x.strokeStyle=size===5?P.amber:P.violet;x.lineWidth=2;x.beginPath();for(let k=0;k<10;k++){const a=k/10*TAU,r=rad*(.8+.17*Math.sin(k*17+size));x.lineTo(m+Math.cos(a)*r,m+Math.sin(a)*r);}x.closePath();x.fill();x.stroke();x.fillStyle='rgba(8,10,25,.45)';for(let k=0;k<4;k++){const a=k*2.1;x.beginPath();x.ellipse(m+Math.cos(a)*rad*.35,m+Math.sin(a)*rad*.35,rad*.15,rad*.1,a,0,TAU);x.fill();}this.rockTiles[size]=c;}}
     step(dt) {
-      this.elapsed+=dt;this.twin=Math.max(0,this.twin-dt);if(this.elapsed>=this.nextGuardian){this.nextGuardian+=120;if(!this.rocks.some(r=>r.guardian)){this.spawnRock(this.W/2,0,5,true);this.juice?.hit(this.W/2,100,"GUARDIAN COMET",true);}}const I = this.input;
+      this.elapsed+=dt;this.twin=Math.max(0,this.twin-dt);if(this.elapsed>=this.nextGuardian){this.nextGuardian+=120;if(!this.rocks.some(r=>r.guardian)){this.spawnRock(this.W/2,0,5,true);this.juice?.hit(this.W/2,100,"Guardian comet",true);}}const I = this.input;
       if (this.state !== "play") { if (I.pressed.Enter) this.reset(); return; }
       const turn = (I.right() ? 1 : 0) - (I.left() ? 1 : 0);
       this.ang += turn * 3.4 * dt;
@@ -51,7 +51,7 @@
           if (b.life>0 && (b.x - r.x) ** 2 + (b.y - r.y) ** 2 < rad * rad) { hit = true; b.life = 0; break; }
         if(hit&&(r.hp=(r.hp||1)-1)>0){this.rocks.push(r);this.juice?.hit(r.x,r.y,r.hp+" HITS LEFT",false);continue;}
         if (hit) {
-          this.kills++;if(this.kills%6===0){this.twin=8;this.juice?.hit(this.px,this.py,"TWIN SHOT 8s",true);}if(this.kills>=12&&!this.killGoal){this.killGoal=true;this.score+=200;this.juice?.hit(this.W/2,100,"12 ROCKS +200",true);}if(r.guardian)this.score+=400;this.juice?.hit(r.x,r.y,r.guardian?"GUARDIAN +400":"+15",true);
+          this.kills++;if(this.kills%6===0){this.twin=8;this.juice?.hit(this.px,this.py,"TWIN SHOT 8s",true);}if(this.kills>=12&&!this.killGoal){this.killGoal=true;this.score+=200;this.juice?.hit(this.W/2,100,"12 ROCKS +200",true);}if(r.guardian)this.score+=400;this.juice?.hit(r.x,r.y,r.guardian?"Guardian +400":"+15",true);
           this.score += 15; this.shake.add(3); NE.sfx.explode(); this.particles.emit(r.x, r.y, P.cyan, { n: 12, speed: 4 });
           if (r.size > 1 && !r.guardian) for (let i = 0; i < 2; i++) this.spawnRock(r.x, r.y, r.size - 1);
         } else this.rocks.push(r);
@@ -61,7 +61,7 @@
         for (const r of this.rocks) {
           const rad = r.size * 12 + 10;
           if ((this.px - r.x) ** 2 + (this.py - r.y) ** 2 < rad * rad) {
-            this.hp -= 1;this.juice?.hit(this.px,this.py,"HULL HIT",true,true); this.inv = 1.5; this.shake.add(12); NE.sfx.hit();
+            this.hp -= 1;this.juice?.hit(this.px,this.py,"Hull hit",true,true); this.inv = 1.5; this.shake.add(12); NE.sfx.hit();
             this.particles.emit(this.px, this.py, P.red, { n: 20, speed: 5 });
             if (this.hp <= 0) this.state = "over";
             break;
@@ -102,11 +102,11 @@
       NE.text(ctx,`WAVE ${this.wave}`,22,60,{size:15,color:P.dim});NE.text(ctx,this.twin>0?`TWIN SHOT ${this.twin.toFixed(1)}s`:`POWER ${this.kills%6}/6`,22,86,{size:15,color:P.amber});NE.text(ctx,this.killGoal?"12 ROCKS ✓":`GOAL ${this.kills}/12`,22,110,{size:15,color:P.lime});
       for (let i = 0; i < this.hp; i++) NE.glowCircle(ctx, P.cyan, this.W - 30 - i * 26, 28, 7);
       if (this.state === "over")
-        NE.banner(ctx, this.W, this.H, "LOST IN THE STORM", `score ${this.score} · wave ${this.wave} · ${this.kills} rocks · tap to retry`);
+        NE.banner(ctx, this.W, this.H, "Lost in the storm", `score ${this.score} · wave ${this.wave} · ${this.kills} rocks · tap to retry`);
     }
   }
   NE.register("drift",
-    { polished:true,world:["#161529","#352a46","#d499c5"],scene:"clouds",music:{root:155.56,tempo:116,wave:"triangle"},hint:"TURN · THRUST · HOLD FIRE",title: "DRIFTSTORM", genre: "Space rocks", color: P.red,
+    { polished:true,world:["#161529","#352a46","#d499c5"],scene:"clouds",music:{root:155.56,tempo:116,wave:"triangle"},hint:"Turn · thrust · hold fire",title: "Driftstorm", genre: "Space rocks", color: P.red,
       desc: "Spin, thrust and blast neon rocks to dust. Clipped one? Rewind the drift." },
     Drift);
 })();

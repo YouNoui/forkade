@@ -1,4 +1,4 @@
-/* GAME 4 - PULSE BREAKER : neon brick-breaker with endless levels */
+/* GAME 4 - Pulse Breaker : neon brick-breaker with endless levels */
 (function () {
   const NE = Forkade, P = NE.palette;
 
@@ -37,7 +37,7 @@
       if (this.state !== "play") { if (I.pressed.Enter) this.reset(); return; }
       this.elapsed+=dt;this.wide=Math.max(0,this.wide-dt);this.fire=Math.max(0,this.fire-dt);this.pw=this.wide>0?170:110;
       if(this.elapsed>=this.nextCell){this.nextCell+=35;if(this.drops.length<6)this.drops.push({x:this.W/2,y:this.H*.35,life:12,kind:Math.floor(this.elapsed/35)%2});}
-      if(this.elapsed>=this.nextCore){this.nextCore+=120;const br=this.bricks[Math.floor(this.bricks.length/2)];if(br){br.special=2;br.hp=5;this.juice?.hit(this.W/2,130,'REACTOR CORE · +500',true);}}
+      if(this.elapsed>=this.nextCore){this.nextCore+=120;const br=this.bricks[Math.floor(this.bricks.length/2)];if(br){br.special=2;br.hp=5;this.juice?.hit(this.W/2,130,'Reactor core · +500',true);}}
       for(const d of this.drops){d.y+=110*dt;d.life-=dt;if(Math.abs(d.y-(this.H-65))<25&&Math.abs(d.x-this.paddle)<this.pw/2+12){d.life=0;if(d.kind===0)this.wide=12;else this.fire=8;this.juice?.hit(this.paddle,this.H-130,d.kind===0?'WIDE · 12s':'BLAZE · 8s',true);NE.sfx.pickup();}}let alive=0;for(const d of this.drops)if(d.life>0&&d.y<this.H+20)this.drops[alive++]=d;this.drops.length=alive;
       const click = I.mouse.down && !this.prevDown; this.prevDown = I.mouse.down;
       if (this.phase === "clear") {
@@ -80,9 +80,9 @@
           break;
         }
       }
-      if(this.shield&&this.by>this.H-28&&this.bvy>0){this.shield=0;this.by=this.H-32;this.bvy=-Math.abs(this.bvy);this.juice?.hit(this.bx,this.by-30,'SAFETY PULSE',true);}
+      if(this.shield&&this.by>this.H-28&&this.bvy>0){this.shield=0;this.by=this.H-32;this.bvy=-Math.abs(this.bvy);this.juice?.hit(this.bx,this.by-30,'Safety pulse',true);}
       if (this.by > this.H + 10) {
-        this.lives -= 1; this.shake.add(7);this.juice?.hit(this.W/2,this.H*.6,"PULSE LOST",true,true);
+        this.lives -= 1; this.shake.add(7);this.juice?.hit(this.W/2,this.H*.6,"Pulse lost",true,true);
         if (this.lives <= 0) this.state = "over"; else this.stuck = true;
       }
       if (!this.bricks.length) {
@@ -116,17 +116,17 @@
       NE.text(ctx, String(this.score), 20, 16, { size: 40 });
       for (let i = 0; i < this.lives; i++) NE.glowCircle(ctx, P.cyan, this.W - 30 - i * 26, 28, 7);
       NE.text(ctx,`FORGE ${this.level} · ${this.breaks%5}/5 BRICKS · +75`,22,60,{size:17,color:"#ffe0b1",glow:false});
-      if(this.wide>0||this.fire>0)NE.text(ctx,this.wide>0?"WIDE "+Math.ceil(this.wide)+"s":"BLAZE "+Math.ceil(this.fire)+"s",this.W-20,90,{size:18,align:"right",color:P.lime,glow:false});
+      if(this.wide>0||this.fire>0)NE.text(ctx,this.wide>0?"Wide "+Math.ceil(this.wide)+"s":"Blaze "+Math.ceil(this.fire)+"s",this.W-20,90,{size:18,align:"right",color:P.lime,glow:false});
       if (this.stuck && this.state === "play")
         NE.text(ctx, "SPACE or click to launch", this.W / 2, this.H - 110, { size: 16, color: P.dim, align: "center" });
       if (this.state === "over")
-        {NE.banner(ctx,this.W,this.H,"FORGE RUN",`${this.breaks} bricks · ${this.level-1} walls · combo ${this.juice?.best||0}`);const gap=NE.scores.get(this.id)-this.score;NE.text(ctx,gap>0?gap+' points to your best':this.assisted?'ASSIST RUN':'YOUR BEST FORGE',this.W/2,this.H/2+130,{size:18,align:'center',glow:false});}
+        {NE.banner(ctx,this.W,this.H,"Forge run",`${this.breaks} bricks · ${this.level-1} walls · combo ${this.juice?.best||0}`);const gap=NE.scores.get(this.id)-this.score;NE.text(ctx,gap>0?gap+' points to your best':this.assisted?'Assist run':'Your best forge',this.W/2,this.H/2+130,{size:18,align:'center',glow:false});}
       if (this.phase === "clear" && this.state === "play")
         NE.banner(ctx, this.W, this.H, `WALL ${this.level} CLEARED!`, `+${this.bonus} and +1 life   -   SPACE / click for wall ${this.level + 1}`);
     }
   }
   NE.register("breaker",
-    { polished:true,scene:"forge",world:["#160e12","#392317","#ffb23f"],music:{root:220,tempo:120,wave:"sine"},hint:"DRAG TO AIM · TAP / SPACE TO LAUNCH", touch: "lr", title: "PULSE BREAKER", genre: "Brick-breaker", color: P.amber,
+    { polished:true,scene:"forge",world:["#160e12","#392317","#ffb23f"],music:{root:220,tempo:120,wave:"sine"},hint:"Drag to aim · tap / space to launch", touch: "lr", title: "Pulse Breaker", genre: "Brick-breaker", color: P.amber,
       desc: "Crack luminous forge crystals, trigger blast cascades and catch wide/blaze cells. A safety pulse catches one miss; rewind catches the next." },
     Breaker);
 })();
