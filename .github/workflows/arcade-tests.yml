@@ -72,10 +72,11 @@ jobs:
       - run: npm run test:suite
       - name: Four-client co-op browser verification (isolated Worker)
         run: |
-          npx wrangler dev --config workers/coop/wrangler.jsonc --port 8787 --var LOCAL_TEST:true --var COOP_SECRET:isolated-test-secret > "$RUNNER_TEMP/coop-worker.log" 2>&1 &
+          mkdir -p "$FORKADE_ARTIFACTS/coop"
+          npx wrangler dev --local --config workers/coop/wrangler.jsonc --port 8787 --var LOCAL_TEST:true --var COOP_SECRET:isolated-test-secret > "$FORKADE_ARTIFACTS/coop/worker.log" 2>&1 &
           worker_pid=$!
           trap 'kill "$worker_pid"' EXIT
-          node tests/coop-browser.cjs
+          COOP_STATUS_DELAY_MS=6000 node tests/coop-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
