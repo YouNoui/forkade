@@ -66,3 +66,15 @@
 - Ranked posts require the server-issued seed and single-use token. Player IDs are private bearer secrets: never include pid/owner in public rankings, Forge or ghost output.
 - After every generator (including build_dist), run node tools/build_csp.cjs. No unsafe-inline in script-src or HTML event attributes. Keep the local Playground evaluation exception scoped to its page. Run tools/scan_client.cjs; never print matches.
 - Run npm run test:coop and tests/coop-browser.cjs for co-op changes, including 2/4 clients, schema/rate/budget/expiry/kill-switch checks.
+
+## How we build (owner decision, 26 Nov 2026)
+
+Read the shared build playbook (`C:\Users\Younes\Desktop\shared process\iamynoui-build-playbook.md`) before any work. Keep it as the single source of truth; do not copy it into this repo.
+
+- Work comes from the queue, issue #50: take the top open item, finish it fully, post one handoff comment (5 lines max, PR link), then take the next. Younes never relays messages between AIs; anything another AI needs goes in the queue.
+- Keep the state in the queue issue's body. When the thread passes about 100 comments, start a fresh queue issue, link the old one and update this number.
+- Fast lane (wording, spacing, bug fixes that keep the approved design, docs, tests): green checks are enough. Full lane (payments, sign-in, database, new screens, design changes): approved mockup first, 390/1280 screenshots, second-AI review.
+- Things that need Younes go in a "Waiting for Younes" list in the queue for his once-a-day approval sitting. Never stop the queue for them.
+- New features need evidence (a user asked, or the numbers show a break) and the owner's yes. Bug fixes are always allowed.
+- After anything goes wrong or wastes time, add one line to the playbook's lessons log (section 10).
+- Where this repo's own rules are stricter, they win.
