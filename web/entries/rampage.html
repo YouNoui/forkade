@@ -516,6 +516,15 @@
   main{padding-left:var(--s4);padding-right:var(--s4)}
   @media(max-width:760px){.wrap{max-width:560px;margin:0 auto;padding:var(--s5) var(--s4) var(--s7)}.head,.grid,.closing-band{max-width:100%;width:100%;margin-left:0;margin-right:0}body>main,body>header,body>.steps{max-width:560px;margin-left:auto;margin-right:auto;padding-left:var(--s4);padding-right:var(--s4)}.grid{grid-template-columns:minmax(0,1fr)}.sheet{max-width:100%}.wallet .wbtns button{flex-direction:column;flex-wrap:nowrap} }
   @media(prefers-reduced-motion:reduce){:is(button,.btn,.card-btn){transition:none}:is(button,.btn,.card-btn):active{transform:none}}
+  /* Time Gaps keeps touch rewind and jump below the canvas in either orientation. */
+  body.touch .stage[data-mode="time-gaps"]:not(.d3){box-sizing:border-box;padding-top:calc(var(--s7) + var(--s4));padding-bottom:calc(var(--s7) + var(--s6))}
+  body.touch .stage[data-mode="time-gaps"]:not(.d3) #game{width:min(100vw,calc((100dvh - 160px) * 900 / 560));max-height:calc(100dvh - 160px)}
+  body.touch .stage[data-mode="time-gaps"].portrait-game #game{width:min(100vw,calc((100dvh - 160px) * 560 / 900))}
+  body.touch .stage[data-mode="time-gaps"] .touchctl .pad{display:flex;gap:var(--s2);left:var(--s4);bottom:max(var(--s2),env(safe-area-inset-bottom))}
+  body.touch .stage[data-mode="time-gaps"] .touchctl .u,body.touch .stage[data-mode="time-gaps"] .touchctl .dn{display:none!important}
+  body.touch .stage[data-mode="time-gaps"] .touchctl .side{flex-direction:row;right:var(--s4);bottom:max(var(--s2),env(safe-area-inset-bottom))}
+  body.touch .stage[data-mode="time-gaps"] .touchctl .tbtn{position:static;width:52px;height:52px;color:var(--text);background:var(--panel2)}
+  body.touch .stage[data-mode="time-gaps"] .touchctl .ps{width:44px}
 </style>
 <link rel="canonical" href="https://playforkade.com/rampage">
 <meta property="og:type" content="website"><meta property="og:title" content="Rampage 3D - FORKADE">
@@ -1148,11 +1157,11 @@
         pb.classList.toggle('polished',!!Forkade.current()?.meta.polished);
         const percentile=document.getElementById('pb-percent');percentile.textContent='';
         if(!L.assisted&&localStorage.getItem('forkade-pid'))B.top(L.id,'week').then(d=>{if(B.last===L&&d.me?.percent!=null)percentile.textContent="Your posted best beat "+d.me.percent+"% of this week's players";}).catch(()=>{});
-        pb.hidden = false; pbMsg.textContent = L.assisted ? "Assisted rounds aren’t ranked" : "";
+        pb.hidden = false; pbMsg.textContent = L.mode ? L.mode+" · local best only; no Post or badges" : L.assisted ? "Assisted rounds aren’t ranked" : "";
         document.getElementById("pb-post").hidden=!!L.assisted;pbName.hidden=!!L.assisted; pbMsg.className = "";
         { const b = document.getElementById("pb-post"); UI.reset(b); b.innerHTML = " Post score"; }
         const name = (rankGames().find(g => g.id === L.id) || {}).t || L.id;
-        document.getElementById("pb-text").textContent = `${name}: ${L.score} points${L.assisted ? " · ASSIST" : ""}`;
+        document.getElementById("pb-text").textContent = `${name}: ${L.score} points${L.mode ? " · "+L.mode : L.assisted ? " · ASSIST" : ""}`;
         document.getElementById("pb-breakdown").textContent=(R.breakdown||[]).map(p=>`${p[0]} +${p[1]}${p[2]?" ("+p[2]+")":""}`).join(" · ");
       } else if (!show) pb.hidden = true;
       if (!on) pb.hidden = true;
