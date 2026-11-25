@@ -63,6 +63,12 @@
   for(const [id,knob] of Object.entries(F.assistMode.rules)){const o=document.createElement('option');o.value=id;o.textContent=GAME_NAMES()[id]||id;assistSelect.appendChild(o);}
   function paintAssist(){assistToggle.checked=F.assistMode.preference(assistSelect.value);document.getElementById('assist-description').textContent=F.assistMode.rules[assistSelect.value];}
   assistSelect.onchange=paintAssist;assistToggle.onchange=()=>{F.assistMode.set(assistSelect.value,assistToggle.checked);document.getElementById('assist-saved').textContent='Saved ✓ — next round, only on this device';};paintAssist();
+  const timeGapsRow=document.createElement('div');
+  timeGapsRow.innerHTML='<h3>Sky Hop — this device</h3><label><input type="checkbox" id="skyhop-time-gaps" aria-describedby="skyhop-time-gaps-help"> Time Gaps (beta)</label><p class="hint" id="skyhop-time-gaps-help">Rewind a high jump to leave an echo you can land on. Changes apply next round. Earn normal cores and a separate local best; no Post or badges. Daily stays classic.</p><span id="skyhop-time-gaps-saved" role="status"></span>';
+  settings.querySelector('.sheet').appendChild(timeGapsRow);
+  const timeGapsToggle=timeGapsRow.querySelector('input');
+  timeGapsToggle.checked=F.skyhopTimeGaps.preference();
+  timeGapsToggle.onchange=()=>{F.skyhopTimeGaps.set(timeGapsToggle.checked);document.getElementById('skyhop-time-gaps-saved').textContent='Next round on this device';};
   const offer=document.createElement('div');offer.className='modal';offer.id='assist-offer';offer.hidden=true;
   offer.innerHTML='<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="assist-title"><button class="x btn" aria-label="Close assist offer">×</button><h2 id="assist-title">Want a hand?</h2><p id="assist-offer-text"></p><button class="btn btn-pop" id="assist-yes">Turn on assist</button> <button class="btn btn-link" id="assist-no">No thanks</button></section>';document.body.appendChild(offer);
   let offeredId,offerFocus;
@@ -77,6 +83,7 @@
     gframe.contentWindow?.postMessage({ t:'forkade-pause', paused:true }, '*');
     try { gframe.contentWindow?.EchoRumble?.setSettingsPaused(true); } catch (_) {}
     settings.querySelectorAll('[data-setting]').forEach(el => el.type === 'range' ? el.value = S[el.dataset.setting] : el.checked = !!S[el.dataset.setting]);
+    timeGapsToggle.checked=F.skyhopTimeGaps.preference();
     settings.hidden = false; document.getElementById('close-settings').focus();
   }
   function closeSettings() {

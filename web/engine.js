@@ -638,13 +638,13 @@
       // round end: sound + save high score, once
       if (this.state !== this._prevState) {
         if (this.state === "over" && this._prevState === "play") {
-          assistMode.record(this.id,true,board.daily,this.assisted);
-          sfx.die(); this.newBest = this.id && !this.assisted ? scores.submit(this.id, this.score) : false;
-          this.earned = rewards.roundEnd(this.id, this.score, this.newBest, this.meta); this.breakdown = (rewards.breakdown || []).slice();
+          assistMode.record(this.id,true,board.daily,this.assisted || !!this.unranked);
+          sfx.die(); this.newBest = this.id && !this.assisted ? scores.submit(this.scoreId || this.id, this.score) : false;
+          this.earned = rewards.roundEnd(this.id, this.score, this.newBest, this.meta); this.breakdown = (rewards.breakdown || []).slice(); if(this.roundLabel&&board.last)board.last.mode=this.roundLabel;
         } else if (this.state === "win" && this._prevState === "play") {
-          assistMode.record(this.id,false,board.daily,this.assisted);
-          sfx.win(); this.newBest = this.id && !this.assisted ? scores.submit(this.id, this.score) : false;
-          this.earned = rewards.roundEnd(this.id, this.score, this.newBest, this.meta); this.breakdown = (rewards.breakdown || []).slice();
+          assistMode.record(this.id,false,board.daily,this.assisted || !!this.unranked);
+          sfx.win(); this.newBest = this.id && !this.assisted ? scores.submit(this.scoreId || this.id, this.score) : false;
+          this.earned = rewards.roundEnd(this.id, this.score, this.newBest, this.meta); this.breakdown = (rewards.breakdown || []).slice(); if(this.roundLabel&&board.last)board.last.mode=this.roundLabel;
         } else if (this.state === "play") {
           this.newBest = false; this.earned = 0; this.breakdown = []; this._keys = new Set();   // restarted
           board.last = null;
@@ -668,7 +668,7 @@
       if (this.state === "pause") banner(ctx, this.W, this.H, "Paused", "P resume   ESC menu");
       // best-score line under any game-over / win banner
       if ((this.state === "over" || this.state === "win") && this.id) {
-        const b = scores.get(this.id), still = !!settings.reduceMotion, t = this._overT || 0;
+        const b = scores.get(this.scoreId || this.id), still = !!settings.reduceMotion, t = this._overT || 0;
         // new best pops in (overshoot, then settles); cores roll up instead of appearing
         const pop = still || !this.newBest ? 1 : easeOutBack(Math.min(1, t / 0.45));
         text(ctx, (this.newBest ? "New best  " : "Best  ") + b,
@@ -694,7 +694,7 @@
         ty += 38;
       }
       rewards.toasts = rewards.toasts.filter(q => q.t < 2.9);
-      if(this.assisted)text(ctx,'Assist',16,this.H-24,{size:14,color:palette.amber,glow:false});
+      if(this.roundLabel||this.assisted)text(ctx,this.roundLabel||'Assist',16,this.H-(this.roundLabel?56:24),{size:14,color:palette.amber,glow:false});
       // HUD corner: equipped skin + wallet
       text(ctx, `${rewards.cores()} cores`, this.W - 16, this.H - 24, { size: 13, color: palette.lime, align: "right", glow: false });
     }
@@ -727,7 +727,9 @@
     current.reset = function () { seed(options.seed || null); this.t = 0; this._prevState = 'play'; this.rewind.frames = []; this.rewind.energy = 1;
       this.assisted=!options.daily && !!ASSIST[id] && assistMode.preference(id);
       if(this.juice){this.juice.reset();this.particles.clear();this.world=new World(this.W,this.H,entry.meta.world,entry.meta.scene);try{this.hint=!localStorage.getItem('forkade-hint-'+id);}catch(_){this.hint=true;}}
-      board.begin(id, options.daily || null, this.assisted); reset();
+      this.configureRound?.(options); // Game-local practice rules must precede the token request.
+      const stage=document.getElementById('stage');if(stage)stage.dataset.mode=this.roundModeClass||'';
+      board.begin(id, options.daily || null, this.assisted || !!this.unranked); reset();
       if(options.seed&&!options.daily){board.run=null;return;} // explicitly seeded local practice
       const pending=board.run;if(pending){this.state='loading';pending.then(run=>{if(current!==this||board.run!==pending||this.state!=='loading')return;seed(run.seed??options.seed??null);this.t=0;this._prevState="play";reset();});} };
     if(entry.meta.polished){current.juice=new Juice();const snap=current.snapshot.bind(current),restore=current.restore.bind(current);current.snapshot=function(){const s=snap();if(s)s.juice=this.juice.snapshot();return s;};current.restore=function(s){restore(s);if(s.juice)this.juice.restore(s.juice);};}
