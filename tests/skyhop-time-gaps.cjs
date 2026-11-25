@@ -10,7 +10,7 @@ function harness(seed=732,on=false,dimensions=[900,560],code=source){
   class GameBase{constructor(){[this.W,this.H]=dimensions;this.id='skyhop';this.input=input;this.rewind=new Rewind();this.particles={emit(){}};this.shake={add(){}};}}
   let Game;const ne={GameBase,palette:{},...random,assist:()=>false,sfx:{jump(){},pickup(){}},register:(id,meta,cls)=>Game=cls};
   new Function('Forkade','localStorage',code)(ne,storage);if(on)ne.skyhopTimeGaps.set(true);
-  const g=new Game();g.configureRound?.({});g.reset();
+  const g=new Game();g.configureRound?.({seed:String(seed)});g.reset();
   const tick=(rewind=false,dt=1/60)=>{const s=g.rewind.step(rewind,dt);if(s){g.restore(s.game);random.set(s.rng);}else{g.step(dt);g.rewind.record({game:g.snapshot(),rng:random.get()});}input.pressed={};};
   return {g,ne,input,tick,storage,rng:random.get};
 }
@@ -65,6 +65,7 @@ function simulation(){
   assert.equal(yes,400);assert.equal(no,0);assert.equal(shieldCrossings,0);assert.ok(maxReach<=160);assert.ok(energy>=.2);
   for(const dt of [1/30,1/20])for(let seed=0;seed<200;seed++)assert.equal(gateRun(seed,true,[900,560],false,dt).cleared,true,'slow-frame gate '+seed+' at '+dt);
   {const {g,tick}=harness(7,true);g.py=g.H-56;g.onGround=true;g.elapsed=15;g.rewind.energy=.49;g.step(0);assert.equal(g.timeGate,null);g.rewind.energy=.5;g.step(0);assert.ok(g.timeGate);}
+  {const {g,tick,rng}=harness(8,true);g.py=g.H-56;g.onGround=true;g.elapsed=15;const before={game:g.snapshot(),rng:rng()};g.rewind.record(before);g.rewind.record(before);tick(false,0);const gate=g.snapshot();tick(true);tick(true);tick(false,0);assert.deepEqual(g.snapshot(),gate,'rewinding across generation reproduces the exact gate');}
   {const {g,tick,input,rng}=harness(4,true);g.py=g.H-56;g.onGround=true;input.keys.Space=true;for(let i=0;i<27;i++)tick();
     const start={x:g.px,y:g.py-g.cam};for(let i=0;i<22;i++)tick(true);const beforeRng=rng();g.rewind.step(false,0);
     assert.equal(rng(),beforeRng,'echo creation consumes no RNG');assert.ok(g.echo);assert.equal(g.echo.x,start.x-32);assert.equal(g.echo.y,start.y+24);assert.equal(g.echo.w,64);assert.equal(g.echo.life,4);
@@ -91,7 +92,7 @@ async function browserChecks(){
     await page.addInitScript(()=>{requestAnimationFrame=()=>0;cancelAnimationFrame=()=>{};});
     // A Sky Hop Daily fixture regardless of today's rotating game; server Daily rules are unchanged.
     await page.route('**/api/leaderboard',r=>{const body=r.request().postDataJSON();return body?.daily?r.fulfill({contentType:'application/json',body:JSON.stringify({token:'isolated-skyhop-daily',seed:'time-gaps-daily-test'})}):r.continue();});
-    await page.goto(base+(bundle==='web'?'/':'/download/forkade.html'));await page.waitForFunction(()=>window.Forkade?.skyhopTimeGaps);
+    await page.goto(base+(bundle==='web'?'/':'/download/forkade.html'));await page.waitForFunction(()=>window.Forkade?.skyhopTimeGaps,null,{polling:50});
     await page.evaluate(()=>{Forkade.settings.mute=true;Forkade.openSettings();});assert.equal(await page.locator('#skyhop-time-gaps').isChecked(),false);
     await page.locator('#skyhop-time-gaps').check();await page.screenshot({path:path.join(out,`${process.env.WEBKIT?'webkit':'chromium'}-${bundle}-${size.width}-toggle.png`)});
     await page.locator('#close-settings').click();await page.waitForTimeout(3200);await page.evaluate(()=>openGame('skyhop'));
@@ -99,7 +100,7 @@ async function browserChecks(){
     const mode=await page.evaluate(()=>{const g=Forkade.current();Forkade.skyhopTimeGaps.set(false);return {enabled:g.timeGaps,run:Forkade.board.run,daily:Forkade.board.daily};});assert.deepEqual(mode,{enabled:true,run:null,daily:null});
     if(size.width!==1280){const r=await page.locator('[data-code=KeyR]').boundingBox();assert.ok(r&&r.width>=44&&r.height>=44,'visible 44px rewind target');const canvas=await page.locator('#game').boundingBox();assert.ok(r.y>=canvas.y+canvas.height,'rewind must stay below the play area');assert.ok(r.x>=0&&r.y>=0&&r.x+r.width<=size.width&&r.y+r.height<=size.height);await page.locator('[data-code=KeyR]').dispatchEvent('pointerdown',{pointerId:1,pointerType:'touch',buttons:1});assert.equal(await page.evaluate(()=>!!Forkade.Input.keys.KeyR),true);await page.locator('[data-code=KeyR]').dispatchEvent('pointerup',{pointerId:1,pointerType:'touch'});}
     await page.evaluate(()=>{const g=Forkade.current();g.py=g.H-56;g.onGround=true;g.elapsed=15;g.hint=false;g.frame(document.getElementById('game').getContext('2d'),0);});
-    assert.ok(await page.evaluate(()=>Forkade.current().timeGate));await page.screenshot({path:path.join(out,`${process.env.WEBKIT?'webkit':'chromium'}-${bundle}-${size.width}-hint.png`)});
+    assert.ok(await page.evaluate(()=>Forkade.current().timeGate));assert.equal(await page.evaluate(()=>typeof Forkade.current().rewind.frames.at(-1).rng),'number','unseeded beta starts a local rewindable RNG');await page.screenshot({path:path.join(out,`${process.env.WEBKIT?'webkit':'chromium'}-${bundle}-${size.width}-hint.png`)});
     const solved=await page.evaluate(()=>{const g=Forkade.current(),I=Forkade.Input,ctx=document.getElementById('game').getContext('2d');const a=g.plats.find(p=>p.timeGate&&p.y===g.timeGate.aY),b=g.plats.find(p=>p.gateExit);let phase=0,echoFrame=false;
       window.skyhopTestTick=()=>{const target=phase>=3?b.x+b.w/2:a.x+a.w/2;I.keys={Space:true,ArrowLeft:g.px>target+3,ArrowRight:g.px<target-3};I.pressed={};if(phase===0&&g.vy<0&&g.vy>=-55&&a.y-(g.py+16-g.cam)>130)phase=1;if(phase===1&&g.echoRewind?.duration>=.35)phase=2;I.keys.KeyR=phase===1;g.frame(ctx,1/60);if(phase===2&&g.onGround&&g.echo&&Math.abs(g.py+16-g.cam-g.echo.y)<.01)phase=3;return {echo:!!g.echo,cleared:g.timeGate.cleared};};
       for(let i=0;i<240;i++){const state=skyhopTestTick();if(state.echo)return state;}throw Error('no echo in real engine');});assert.equal(solved.echo,true);
@@ -110,15 +111,15 @@ async function browserChecks(){
     await page.waitForTimeout(350);assert.equal(await page.locator('#pb-post').isVisible(),false);
     assert.equal(await page.evaluate(async()=>{try{await Forkade.board.post('Tester');return false;}catch(e){return /not ranked/.test(e.message);}}),true);
     await page.evaluate(()=>{Forkade.skyhopTimeGaps.set(true);openGame('skyhop',{seed:'time-gaps-daily-test',daily:'2026-11-26'});});assert.equal(await page.evaluate(()=>Forkade.current().timeGaps),false);assert.equal(await page.evaluate(()=>Forkade.board.assisted),false);
-    await page.waitForFunction(()=>Forkade.current().state==='play');assert.ok(requests.length>0,'classic Daily still starts its normal token');
+    await page.waitForFunction(()=>Forkade.current().state==='play',null,{polling:50});assert.ok(requests.length>0,'classic Daily still starts its normal token');
     assert.deepEqual(errors,[],bundle+' '+size.width);await context.close();console.log('Time Gaps browser',process.env.WEBKIT?'WebKit':'Chromium',bundle,size.width,'passed');
   }
   const playground=await browser.newPage(),errors=[];playground.on('pageerror',e=>errors.push(e.message));
   await playground.route('**/api/**',r=>r.fulfill({contentType:'application/json',body:'{"seed":"playground-test"}'}));
   await playground.goto(base+'/playground.html');await playground.locator('#run').click();
   await playground.waitForFunction(()=>Forkade.current()?.state==='play');
-  const time=await playground.evaluate(()=>Forkade.current().t);await playground.waitForTimeout(150);
-  assert.ok(await playground.evaluate(t=>Forkade.current().t>t,time),'Playground starter continues to run');assert.deepEqual(errors,[]);
+  const time=await playground.evaluate(()=>Forkade.current().t);
+  await playground.waitForFunction(t=>Forkade.current().t>t&&Forkade.current().drops.length>0,time,{timeout:5000});assert.deepEqual(errors,[]);
   await playground.close();
   }finally{await browser.close();f.app.close();f.restore();}
 }

@@ -1538,6 +1538,7 @@ return {heroes,difficulties,upgrades,road,masteryXP,level,rewards,next,options,w
     }
     configureRound(options){
       this.timeGaps=!options.daily&&NE.skyhopTimeGaps.preference();
+      if(this.timeGaps&&!options.seed)NE.seed(Date.now()); // No ranked token: keep local generation rewindable.
       this.unranked=this.timeGaps;this.scoreId=this.timeGaps?'skyhop-time-gaps':this.id;
       this.roundLabel=this.timeGaps?'Time Gaps (beta)':'';
       this.roundModeClass=this.timeGaps?'time-gaps':'';
