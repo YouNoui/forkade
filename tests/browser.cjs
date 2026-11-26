@@ -54,7 +54,7 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
    }
    if(bundle==='web'){
     await page.goto(base+'/glass');await page.waitForFunction(()=>Forkade.current()?.id==='glass');assert.match(await page.title(),/Glass City/);
-    await page.goto(base+'/?game=skyhop');await page.waitForFunction(()=>Forkade.current()?.id==='skyhop');
+    await page.goto(base+'/?game=skyhop');await page.locator('#skyhop-start-play').click();await page.waitForFunction(()=>Forkade.current()?.id==='skyhop');
     await page.goto(base+'/does-not-exist');assert.equal(await page.locator('#stage').evaluate(e=>e.classList.contains('on')),false);
    }
    assert.deepEqual(errors,[],`${bundle} ${size.width} console`);report.push({bundle,...size,result:'passed'});await context.close();

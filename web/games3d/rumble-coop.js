@@ -1,16 +1,33 @@
 /* Explicit live-room opt-in. No identity, cookies, analytics or local replay uploads. */
 window.RumbleCoop=class {
- constructor(game){this.game=game;this.active=false;this.slot=null;this.code=null;this.last=0;this.pending=null;this.ready=false;this.origin='https://forkade-coop.breek.workers.dev';
+ constructor(game){this.game=game;this.active=false;this.slot=null;this.code=null;this.last=0;this.pending=null;this.ready=false;this.checkId=0;this.origin='https://forkade-coop.breek.workers.dev';
   const $=id=>document.getElementById(id);this.$=$;
-  $('coop-create').onclick=()=>this.connect();$('coop-join').onclick=()=>this.connect(parent.ForkadeCoopCode);$('coop-share').onclick=()=>this.share();$('coop-solo').onclick=()=>this.solo();
+  $('coop-create').onclick=()=>this.connect();$('coop-join').onclick=()=>this.connect(parent.ForkadeCoopCode);$('coop-share').onclick=()=>this.share();$('coop-solo').onclick=()=>this.solo();$('coop-retry').onclick=()=>this.check();
   this.check();addEventListener('pagehide',()=>this.close());
  }
- async check(){if(location.protocol==='file:'||parent.location.protocol==='file:')return;if(!parent.location.hostname.endsWith('vercel.app')&&parent.location.hostname!=='playforkade.com'&&!window.ForkadeCoopLocal)return;try{const r=await fetch(this.origin+'/status',{signal:AbortSignal.timeout(5000)}),j=await r.json();this.ready=r.ok&&j.enabled;this.$('coop-create').hidden=!this.ready;
-   if(parent.ForkadeCoopCode){this.$('coop-join').hidden=!this.ready;this.$('coop-create').hidden=true;this.message(this.ready?'A friend invited you. Join shares only preset name and game controls.':'Co-op is resting, play solo.');this.$('coop-solo').hidden=false;}
-  }catch{this.$('coop-create').hidden=true;if(parent.ForkadeCoopCode){this.message('Co-op is offline. Play solo.');this.$('coop-solo').hidden=false;}}
+ check(){if(location.protocol==='file:'||parent.location.protocol==='file:'||this.active)return;if(!parent.location.hostname.endsWith('vercel.app')&&parent.location.hostname!=='playforkade.com'&&!window.ForkadeCoopLocal)return;if(this.checking)return this.checking;
+  const id=++this.checkId;this.ready=false;this.$('coop-create').hidden=this.$('coop-join').hidden=this.$('coop-retry').hidden=true;
+  if(parent.ForkadeCoopCode)this.$('coop-solo').hidden=false;
+  this.message('Checking co-op… up to 22 seconds.');
+  this.checking=this.probe(id).finally(()=>{if(id===this.checkId)this.checking=null;});return this.checking;
  }
+ async probe(id){
+  // One attempt, then at most three retries. Never retry room creation or joining.
+  for(let attempt=0;attempt<=3;attempt++){
+   if(id!==this.checkId)return;
+   const controller=this.statusAbort=new AbortController(),timer=setTimeout(()=>controller.abort(),5000);
+   try{const r=await fetch(this.origin+'/status',{signal:controller.signal}),j=await r.json();if(!r.ok||typeof j.enabled!=='boolean')throw Error('Unavailable');
+    if(id!==this.checkId||this.active)return;this.ready=j.enabled;
+    this.$('coop-create').hidden=!this.ready||!!parent.ForkadeCoopCode;this.$('coop-join').hidden=!this.ready||!parent.ForkadeCoopCode;
+    this.message(!this.ready?'Co-op is resting, play solo.':parent.ForkadeCoopCode?'A friend invited you. Join shares only preset name and game controls.':'Play with a friend. Shared runs are unranked.');return;
+   }catch{if(id!==this.checkId)return;}finally{clearTimeout(timer);}
+   if(attempt<3)await new Promise(r=>setTimeout(r,300*(attempt+1)));
+  }
+  if(id!==this.checkId)return;this.message("Couldn't reach co-op, try again");this.$('coop-retry').hidden=false;
+ }
+ cancelCheck(){++this.checkId;this.statusAbort?.abort();this.checking=null;this.$('coop-retry').hidden=true;}
  message(text){this.$('coop-status').textContent=text;}
- async connect(code){if(this.active)return;this.$('coop-create').disabled=this.$('coop-join').disabled=true;this.message('Connecting…');
+ async connect(code){if(this.active)return;this.cancelCheck();this.$('coop-create').disabled=this.$('coop-join').disabled=true;this.message('Connecting…');
   try{if(!code){const r=await fetch(this.origin+'/rooms',{method:'POST',signal:AbortSignal.timeout(7000)}),j=await r.json();if(!r.ok)throw Error(j.error);code=j.code;}
    if(!/^[A-HJ-NP-Z2-9]{6}$/.test(code))throw Error('Room expired or not found. Play solo.');this.code=code;
    await this.game.prepare();this.active=true;this.$('coop-solo').hidden=false;
@@ -25,6 +42,6 @@ window.RumbleCoop=class {
   if(this.pending){const j=this.pending;this.pending=null;this.game.core.seed=j.seed;this.game.core.s=j.s;this.game.core.s.player=j.players.find(p=>p.slot===this.slot).actor;this.game.core.s.echoes=j.players.filter(p=>p.slot!==this.slot).map(p=>p.actor);this.game.core.s.offer=null;this.game.core.s.events=[];}
  }
  async share(){const url='https://playforkade.com/r/coop/'+this.code;try{if(navigator.share)await navigator.share({title:'Play ECHO RUMBLE with me',url});else{await navigator.clipboard.writeText(url);this.message('Room link copied. Share only with friends.');}}catch(e){if(e.name!=='AbortError')this.message(url);}}
- close(){this.active=false;this.pending=null;const ws=this.ws;this.ws=null;if(ws){ws.onclose=null;if(ws.readyState===1)ws.send(JSON.stringify({t:'leave'}));ws.close();}}
+ close(){this.cancelCheck();this.active=false;this.pending=null;const ws=this.ws;this.ws=null;if(ws){ws.onclose=null;if(ws.readyState===1)ws.send(JSON.stringify({t:'leave'}));ws.close();}}
  solo(){this.close();parent.ForkadeCoopCode=null;this.$('coop-share').hidden=this.$('coop-join').hidden=this.$('coop-solo').hidden=true;this.$('coop-create').hidden=!this.ready;this.message('Solo progress stays on this device.');this.game.solo();this.check();}
 };

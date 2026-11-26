@@ -1,6 +1,6 @@
 # Sky Hop: Time Gaps (beta)
 
-In Settings, enable **Time Gaps (beta)** for the next Sky Hop round. Jump, hold rewind near the top for at least 0.3 seconds, then release it. Your past self stays in the air: land on its dashed platform and jump again to cross the gate. The same rewind still rescues falls.
+Choose **Time Gaps (beta)** on Sky Hop's start screen, or enable it in Settings for the next round. Both controls use the same device preference. Jump, hold rewind near the top for at least 0.3 seconds, then release it. Your past self stays in the air: land on its dashed platform and jump again to cross the gate. The same rewind still rescues falls.
 
 The toggle is off by default and fixed per round. Daily always uses classic Sky Hop. Beta rounds earn the existing normal cores and keep their best under `skyhop-time-gaps` in the existing score store; they cannot request ranked run tokens, Post or earn badges. The only new localStorage keys are `forkade-skyhop-time-gaps` and `forkade-skyhop-echo-hint`.
 
@@ -19,7 +19,7 @@ Run `node tests/skyhop-time-gaps.cjs` and `WEBKIT=1 node tests/skyhop-time-gaps.
 
 The classic 30-second state/RNG trace is frozen from main commit `1b4c448c7921e8c6bfbcdcf80526a546782fdfbb`: SHA-256 `fef97408ed3c07a1a208633e16a2b630afb9b002f17bc37f65ac54c9fc117729`. The harness uses the engine's actual RNG and Rewind class, runs 200 seeds in both canvas orientations, verifies geometry/energy/echo lifetime/rescue/reset/rewind, and checks 100% bot completion with rewind versus 0% without it or with shield alone. It also checks all 200 seeds with 20Hz and 30Hz frame intervals.
 
-Browser coverage uses the real engine, web and offline builds at 1280, 390×844 and 844×390, the settings toggle, token/Post/badge/Daily exclusion, separate local best and normal cores. It asserts that the touch rewind control is at least 44px and below the canvas, and runs the Playground starter after the engine changes. Security and all ranking writes use isolated local fixtures.
+Browser coverage uses the real engine, web and offline builds at 1280, 390×844 and 844×390, synchronized start/Settings toggles, token/Post/badge/Daily exclusion, separate local best and normal cores. Daily bypasses the start choice, and opening it alone never requests a run token. It asserts that the toggle and touch rewind control are at least 44px, keeps rewind below the canvas, and runs the Playground starter. Security and all ranking writes use isolated local fixtures.
 
 Screenshots, logs and the ~20-second `before.webm` / `after.webm` clips are outside git under `C:\Users\Younes\Desktop\shared process\forkade-skyhop-time-gaps\`. The clips show real browser frames with scripted input and a seeded scene positioned just before its first gate. Browser emulation and CPU timings are not physical Android/iPhone FPS proof. Hosted preview results and the full UX §22 checklist belong in the PR.
 

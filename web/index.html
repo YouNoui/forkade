@@ -516,6 +516,10 @@
   main{padding-left:var(--s4);padding-right:var(--s4)}
   @media(max-width:760px){.wrap{max-width:560px;margin:0 auto;padding:var(--s5) var(--s4) var(--s7)}.head,.grid,.closing-band{max-width:100%;width:100%;margin-left:0;margin-right:0}body>main,body>header,body>.steps{max-width:560px;margin-left:auto;margin-right:auto;padding-left:var(--s4);padding-right:var(--s4)}.grid{grid-template-columns:minmax(0,1fr)}.sheet{max-width:100%}.wallet .wbtns button{flex-direction:column;flex-wrap:nowrap} }
   @media(prefers-reduced-motion:reduce){:is(button,.btn,.card-btn){transition:none}:is(button,.btn,.card-btn):active{transform:none}}
+  #skyhop-start .sheet{max-width:560px}
+  #skyhop-start label{display:flex;align-items:center;gap:var(--s3);margin:var(--s2) 0;min-height:44px;font-size:var(--t-sm);cursor:pointer}
+  #skyhop-start-play{position:sticky;bottom:0;width:100%}
+  #skyhop-start-saved{min-height:calc(var(--t-xs) * 1.45)}
   /* Time Gaps keeps touch rewind and jump below the canvas in either orientation. */
   body.touch .stage[data-mode="time-gaps"]:not(.d3){box-sizing:border-box;padding-top:calc(var(--s7) + var(--s4));padding-bottom:calc(var(--s7) + var(--s6))}
   body.touch .stage[data-mode="time-gaps"]:not(.d3) #game{width:min(100vw,calc((100dvh - 160px) * 900 / 560));max-height:calc(100dvh - 160px)}
@@ -824,6 +828,7 @@
         el.requestFullscreen({ navigationUI: "hide" }).then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock("landscape").catch(() => {})).catch(() => {});
     }
     function leaveFullscreen() { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); }
+    function requestGame(id, options = {}) { if(id==='skyhop'&&!options.daily&&Forkade.showSkyHopStart)Forkade.showSkyHopStart(()=>openGame(id,options));else openGame(id,options); }
     function openGame(id, options = {}) { Place.enter(id, () => runGame(id, options)); }
     function runGame(id, options = {}) {
       stage.classList.remove("d3", "t-tap", "t-lr", "rumble-stage");
@@ -978,7 +983,7 @@
         <div class="stars" data-id="${g.id}"></div>`;
       card.dataset.game = g.id;
       if (isNew && g.id === START_ID) { card.classList.add("start"); card.insertAdjacentHTML("afterbegin", '<span class="starttag">START HERE &middot; TRY THIS FIRST</span>'); }
-      card.addEventListener("click", () => openGame(g.id));
+      card.addEventListener("click", () => requestGame(g.id));
       grid.appendChild(card);
     });
 
@@ -1097,7 +1102,7 @@
           `<li class="${r.me ? "me" : ""}"><span class="n">#${r.rank}</span><span class="nm">${esc(r.name)}${r.me ? " (you)" : ""}</span><span class="sc">${r.score}</span>${
             r.me || r.name === "Player" ? `<span class="rep"></span>` : `<button class="rep btn" data-rank="${r.rank}" data-name="${esc(r.name)}" title="Report this nickname" aria-label="Report ${esc(r.name)}">&#9873;</button>`}</li>`).join("")
           : '<li class="msg">No scores yet. <button class="btn" id="empty-play">Play a round</button></li>';
-        const empty=document.getElementById('empty-play');if(empty)empty.onclick=()=>{document.getElementById('ranks').hidden=true;if(rGame.startsWith('rumble')){window.ForkadeRumbleChallenge=rGame;open3D('rumble');}else ['echo3d','rampage'].includes(rGame)?open3D(rGame):openGame(rGame);};
+        const empty=document.getElementById('empty-play');if(empty)empty.onclick=()=>{document.getElementById('ranks').hidden=true;if(rGame.startsWith('rumble')){window.ForkadeRumbleChallenge=rGame;open3D('rumble');}else ['echo3d','rampage'].includes(rGame)?open3D(rGame):requestGame(rGame);};
         me.textContent = d.me ? `You're #${d.me.rank} of ${d.count} with ${d.me.score}.` : `${d.count} players ranked. Post a score after any round to join.`;if(d.notice)me.textContent+=" Owner notice: "+d.notice.reason;
       } catch (err) {
         if (seq !== ranksSeq) return;
@@ -1254,7 +1259,7 @@
         .map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join("");
       const start = () => document.querySelector(".card.start");
       const label = () => start() ? "▶ Play " + start().querySelector(".name").textContent.trim() : "▶ Play today's challenge";
-      const play = () => { const s = start(); if (s) return s.click(); const d = document.getElementById("daily-challenge"); if (d) d.click(); else openGame(Forkade.registry[0].id); };
+      const play = () => { const s = start(); if (s) return s.click(); const d = document.getElementById("daily-challenge"); if (d) d.click(); else requestGame(Forkade.registry[0].id); };
       for (const id of ["hero-play", "closing-play"]) { const b = document.getElementById(id); b.textContent = id==="hero-play"?"▶ Play Echo Rumble":label(); b.addEventListener("click", id==="hero-play"?()=>open3D("rumble"):play); }
       // the cards' Play becomes the (sticky) main action once the hero's Play has scrolled away: one yellow button on screen
       if ("IntersectionObserver" in window) new IntersectionObserver(([e]) => document.body.classList.toggle("hero-out", !e.isIntersecting))
@@ -1286,7 +1291,7 @@
         d.innerHTML = `<div class="chips"><button class="btn" type="button" data-step="1">${ans.kind.t} &#10005;</button><button class="btn" type="button" data-step="2">${ans.len.t} &#10005;</button></div>` +
           `<button class="btn btn-dark" type="button" id="f-play">▶ Play ${names[id]}</button>`;
         d.onclick = e => { const c = e.target.closest("[data-step]"); if (c) return step(+c.dataset.step);
-          if (e.target.closest("#f-play")) (["echo3d", "rampage"].includes(id) ? open3D(id) : openGame(id)); };
+          if (e.target.closest("#f-play")) (["echo3d", "rampage"].includes(id) ? open3D(id) : requestGame(id)); };
       }
       step(1);
     })();
