@@ -7,7 +7,7 @@ const scripts = [
   'drift-upgrade', 'trail-upgrade', 'glass-upgrade', 'wrecker-upgrade',
   'demo-upgrade', 'match-upgrade', 'rampage-upgrade', 'rampage-browser',
   'echo3d-upgrade', 'echo3d-browser', 'rumble-sharing-browser',
-  'rumble-browser', 'rumble-v2-browser', 'offline'
+  'rumble-browser', 'coop-availability', 'rumble-v2-browser', 'offline'
 ];
 function run(name, extra = {}) {
   return new Promise((resolve, reject) => {
@@ -24,6 +24,7 @@ function run(name, extra = {}) {
   await run('browser', { WEBKIT: '1' });
   for (const name of scripts) await run(name, { RUMBLE_CI: process.env.CI ? '1' : '', SECURITY_BROWSER: name==='security'?'1':'' });
   await run('skyhop-time-gaps', { WEBKIT: '1' });
+  await run('coop-availability', { WEBKIT: '1' });
   await run('game-live');
   const fixture = serve();
   await new Promise(resolve => fixture.app.listen(0, '127.0.0.1', resolve));

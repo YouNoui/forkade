@@ -93,9 +93,14 @@ async function browserChecks(){
     // A Sky Hop Daily fixture regardless of today's rotating game; server Daily rules are unchanged.
     await page.route('**/api/leaderboard',r=>{const body=r.request().postDataJSON();return body?.daily?r.fulfill({contentType:'application/json',body:JSON.stringify({token:'isolated-skyhop-daily',seed:'time-gaps-daily-test'})}):r.continue();});
     await page.goto(base+(bundle==='web'?'/':'/download/forkade.html'));await page.waitForFunction(()=>window.Forkade?.skyhopTimeGaps,null,{polling:50});
-    await page.evaluate(()=>{Forkade.settings.mute=true;Forkade.openSettings();});assert.equal(await page.locator('#skyhop-time-gaps').isChecked(),false);
+    const card=page.locator('.card[data-game=skyhop]');if(!await card.isVisible())await page.locator('#more-games').click();await card.click();
+    const start=page.locator('#skyhop-start-time-gaps');assert.equal(await start.isChecked(),false);assert.equal(await page.evaluate(()=>Forkade.current()),null);assert.equal(requests.length,0,'opening start screen does not start a ranked round');
+    const target=await start.boundingBox();assert.ok(target.width>=44&&target.height>=44);await start.check();await page.keyboard.press('Escape');assert.equal(await page.locator('#skyhop-start').isVisible(),false);
+    await page.evaluate(()=>{Forkade.settings.mute=true;Forkade.openSettings();});assert.equal(await page.locator('#skyhop-time-gaps').isChecked(),true);await page.locator('#skyhop-time-gaps').uncheck();await page.locator('#close-settings').click();
+    await card.click();assert.equal(await start.isChecked(),false,'Settings and start share one preference');await page.locator('#skyhop-start .x').click();
+    await page.evaluate(()=>Forkade.openSettings());assert.equal(await page.locator('#skyhop-time-gaps').isChecked(),false);
     await page.locator('#skyhop-time-gaps').check();await page.screenshot({path:path.join(out,`${process.env.WEBKIT?'webkit':'chromium'}-${bundle}-${size.width}-toggle.png`)});
-    await page.locator('#close-settings').click();await page.waitForTimeout(3200);await page.evaluate(()=>openGame('skyhop'));
+    await page.locator('#close-settings').click();await page.waitForTimeout(3200);await card.click();assert.equal(await start.isChecked(),true);await page.screenshot({path:path.join(out,`${process.env.WEBKIT?'webkit':'chromium'}-${bundle}-${size.width}-start.png`)});await page.locator('#skyhop-start-play').click();
     assert.equal(requests.length,0,'Time Gaps never requests a ranked token');
     const mode=await page.evaluate(()=>{const g=Forkade.current();Forkade.skyhopTimeGaps.set(false);return {enabled:g.timeGaps,run:Forkade.board.run,daily:Forkade.board.daily};});assert.deepEqual(mode,{enabled:true,run:null,daily:null});
     if(size.width!==1280){const r=await page.locator('[data-code=KeyR]').boundingBox();assert.ok(r&&r.width>=44&&r.height>=44,'visible 44px rewind target');const canvas=await page.locator('#game').boundingBox();assert.ok(r.y>=canvas.y+canvas.height,'rewind must stay below the play area');assert.ok(r.x>=0&&r.y>=0&&r.x+r.width<=size.width&&r.y+r.height<=size.height);await page.locator('[data-code=KeyR]').dispatchEvent('pointerdown',{pointerId:1,pointerType:'touch',buttons:1});assert.equal(await page.evaluate(()=>!!Forkade.Input.keys.KeyR),true);await page.locator('[data-code=KeyR]').dispatchEvent('pointerup',{pointerId:1,pointerType:'touch'});}
@@ -110,7 +115,7 @@ async function browserChecks(){
     assert.deepEqual({...rewards,earned:0},{classic:0,beta:2000,earned:0,badges:true,last:true});assert.ok(rewards.earned>0);
     await page.waitForTimeout(350);assert.equal(await page.locator('#pb-post').isVisible(),false);
     assert.equal(await page.evaluate(async()=>{try{await Forkade.board.post('Tester');return false;}catch(e){return /not ranked/.test(e.message);}}),true);
-    await page.evaluate(()=>{Forkade.skyhopTimeGaps.set(true);openGame('skyhop',{seed:'time-gaps-daily-test',daily:'2026-11-26'});});assert.equal(await page.evaluate(()=>Forkade.current().timeGaps),false);assert.equal(await page.evaluate(()=>Forkade.board.assisted),false);
+    await page.evaluate(()=>{Forkade.skyhopTimeGaps.set(true);requestGame('skyhop',{seed:'time-gaps-daily-test',daily:'2026-11-26'});});assert.equal(await page.locator('#skyhop-start').isVisible(),false,'Daily bypasses mode selection');assert.equal(await page.evaluate(()=>Forkade.current().timeGaps),false);assert.equal(await page.evaluate(()=>Forkade.board.assisted),false);
     await page.waitForFunction(()=>Forkade.current().state==='play',null,{polling:50});assert.ok(requests.length>0,'classic Daily still starts its normal token');
     assert.deepEqual(errors,[],bundle+' '+size.width);await context.close();console.log('Time Gaps browser',process.env.WEBKIT?'WebKit':'Chromium',bundle,size.width,'passed');
   }

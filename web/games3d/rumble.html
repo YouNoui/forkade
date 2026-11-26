@@ -84,6 +84,10 @@
   main{padding-left:var(--s4);padding-right:var(--s4)}
   @media(max-width:760px){.wrap{max-width:560px;margin:0 auto;padding:var(--s5) var(--s4) var(--s7)}.head,.grid,.closing-band{max-width:100%;width:100%;margin-left:0;margin-right:0}body>main,body>header,body>.steps{max-width:560px;margin-left:auto;margin-right:auto;padding-left:var(--s4);padding-right:var(--s4)}.grid{grid-template-columns:minmax(0,1fr)}.sheet{max-width:100%}.wallet .wbtns button{flex-direction:column;flex-wrap:nowrap} }
   @media(prefers-reduced-motion:reduce){:is(button,.btn,.card-btn){transition:none}:is(button,.btn,.card-btn):active{transform:none}}
+  #skyhop-start .sheet{max-width:560px}
+  #skyhop-start label{display:flex;align-items:center;gap:var(--s3);margin:var(--s2) 0;min-height:44px;font-size:var(--t-sm);cursor:pointer}
+  #skyhop-start-play{position:sticky;bottom:0;width:100%}
+  #skyhop-start-saved{min-height:calc(var(--t-xs) * 1.45)}
   /* Time Gaps keeps touch rewind and jump below the canvas in either orientation. */
   body.touch .stage[data-mode="time-gaps"]:not(.d3){box-sizing:border-box;padding-top:calc(var(--s7) + var(--s4));padding-bottom:calc(var(--s7) + var(--s6))}
   body.touch .stage[data-mode="time-gaps"]:not(.d3) #game{width:min(100vw,calc((100dvh - 160px) * 900 / 560));max-height:calc(100dvh - 160px)}
@@ -107,7 +111,7 @@
 <label>Trail<select id="trail"><option value="0">Stardust</option><option value="1">Squares</option><option value="2">Rubber ducks</option><option value="3">Rainbow sneeze</option><option value="4">Mint bubbles</option><option value="5">Golden confetti</option></select></label>
 <label>Victory / emote<select id="pose"><option value="0">Wobble shuffle</option><option value="1">Chicken flap</option><option value="2">Robot glitch</option><option value="3">Spin-and-fall</option><option value="4">Toast salute</option><option value="5">Jelly bounce</option></select></label>
 <label>Hat<select id="hat"><option value="0">No hat</option><option value="1">Emergency toast</option><option value="2">Traffic cone</option><option value="3">Cloud puff</option><option value="4">Tiny crown</option><option value="5">Double toast</option></select></label><label>Moustache<select id="moustache"><option value="0">Clean face</option><option value="1">Very serious</option><option value="2">Extra curly</option></select></label><label>Cape<select id="cape"><option value="0">No cape</option><option value="1">Snack superhero</option><option value="2">Long cape</option></select></label></div><label class="silly-label"><input type="checkbox" id="silly" checked> Silly sounds · only on this device</label><p id="tip">Your echoes are stretching…</p><p id="local">Progress stays here. Only Post shares your preset name, score, look and anonymous replay. No accounts, cookies or trackers.</p><label class="silly-label"><input type="checkbox" id="ghost-mode"> Ghost Rumble · race real posted runs</label><p id="ghost-status"></p><div id="post-panel" hidden><label>Preset nickname<select id="name-a"></select><select id="name-b"></select></label><button class="btn" id="post-run">Post to rankings</button></div><p id="online-msg" role="status"></p><button class="btn" id="rumble-top10">Claim yesterday's top-10 bonus</button><button id="start" class="btn btn-pop">Start mutation run</button></article></section>
-<aside id="coop-bar" aria-label="Play with friends"><button class="btn" id="coop-create" hidden>Play with a friend</button><button class="btn" id="coop-join" hidden>Join friend</button><button class="btn" id="coop-share" hidden>Share room</button><button class="btn" id="coop-solo" hidden>Play solo</button><p id="coop-status" role="status"></p></aside>
+<aside id="coop-bar" aria-label="Play with friends"><button class="btn" id="coop-create" hidden>Play with a friend</button><button class="btn" id="coop-join" hidden>Join friend</button><button class="btn" id="coop-share" hidden>Share room</button><button class="btn" id="coop-solo" hidden>Play solo</button><button class="btn" id="coop-retry" hidden>Retry</button><p id="coop-status" role="status"></p></aside>
 <script>/* three.js r128 (inlined, offline) */
 /**
  * @license
@@ -443,17 +447,34 @@ window.RumbleOnline=class{
 };
 </script><script>/* Explicit live-room opt-in. No identity, cookies, analytics or local replay uploads. */
 window.RumbleCoop=class {
- constructor(game){this.game=game;this.active=false;this.slot=null;this.code=null;this.last=0;this.pending=null;this.ready=false;this.origin='https://forkade-coop.breek.workers.dev';
+ constructor(game){this.game=game;this.active=false;this.slot=null;this.code=null;this.last=0;this.pending=null;this.ready=false;this.checkId=0;this.origin='https://forkade-coop.breek.workers.dev';
   const $=id=>document.getElementById(id);this.$=$;
-  $('coop-create').onclick=()=>this.connect();$('coop-join').onclick=()=>this.connect(parent.ForkadeCoopCode);$('coop-share').onclick=()=>this.share();$('coop-solo').onclick=()=>this.solo();
+  $('coop-create').onclick=()=>this.connect();$('coop-join').onclick=()=>this.connect(parent.ForkadeCoopCode);$('coop-share').onclick=()=>this.share();$('coop-solo').onclick=()=>this.solo();$('coop-retry').onclick=()=>this.check();
   this.check();addEventListener('pagehide',()=>this.close());
  }
- async check(){if(location.protocol==='file:'||parent.location.protocol==='file:')return;if(!parent.location.hostname.endsWith('vercel.app')&&parent.location.hostname!=='playforkade.com'&&!window.ForkadeCoopLocal)return;try{const r=await fetch(this.origin+'/status',{signal:AbortSignal.timeout(5000)}),j=await r.json();this.ready=r.ok&&j.enabled;this.$('coop-create').hidden=!this.ready;
-   if(parent.ForkadeCoopCode){this.$('coop-join').hidden=!this.ready;this.$('coop-create').hidden=true;this.message(this.ready?'A friend invited you. Join shares only preset name and game controls.':'Co-op is resting, play solo.');this.$('coop-solo').hidden=false;}
-  }catch{this.$('coop-create').hidden=true;if(parent.ForkadeCoopCode){this.message('Co-op is offline. Play solo.');this.$('coop-solo').hidden=false;}}
+ check(){if(location.protocol==='file:'||parent.location.protocol==='file:'||this.active)return;if(!parent.location.hostname.endsWith('vercel.app')&&parent.location.hostname!=='playforkade.com'&&!window.ForkadeCoopLocal)return;if(this.checking)return this.checking;
+  const id=++this.checkId;this.ready=false;this.$('coop-create').hidden=this.$('coop-join').hidden=this.$('coop-retry').hidden=true;
+  if(parent.ForkadeCoopCode)this.$('coop-solo').hidden=false;
+  this.message('Checking co-op… up to 22 seconds.');
+  this.checking=this.probe(id).finally(()=>{if(id===this.checkId)this.checking=null;});return this.checking;
  }
+ async probe(id){
+  // One attempt, then at most three retries. Never retry room creation or joining.
+  for(let attempt=0;attempt<=3;attempt++){
+   if(id!==this.checkId)return;
+   const controller=this.statusAbort=new AbortController(),timer=setTimeout(()=>controller.abort(),5000);
+   try{const r=await fetch(this.origin+'/status',{signal:controller.signal}),j=await r.json();if(!r.ok||typeof j.enabled!=='boolean')throw Error('Unavailable');
+    if(id!==this.checkId||this.active)return;this.ready=j.enabled;
+    this.$('coop-create').hidden=!this.ready||!!parent.ForkadeCoopCode;this.$('coop-join').hidden=!this.ready||!parent.ForkadeCoopCode;
+    this.message(!this.ready?'Co-op is resting, play solo.':parent.ForkadeCoopCode?'A friend invited you. Join shares only preset name and game controls.':'Play with a friend. Shared runs are unranked.');return;
+   }catch{if(id!==this.checkId)return;}finally{clearTimeout(timer);}
+   if(attempt<3)await new Promise(r=>setTimeout(r,300*(attempt+1)));
+  }
+  if(id!==this.checkId)return;this.message("Couldn't reach co-op, try again");this.$('coop-retry').hidden=false;
+ }
+ cancelCheck(){++this.checkId;this.statusAbort?.abort();this.checking=null;this.$('coop-retry').hidden=true;}
  message(text){this.$('coop-status').textContent=text;}
- async connect(code){if(this.active)return;this.$('coop-create').disabled=this.$('coop-join').disabled=true;this.message('Connecting…');
+ async connect(code){if(this.active)return;this.cancelCheck();this.$('coop-create').disabled=this.$('coop-join').disabled=true;this.message('Connecting…');
   try{if(!code){const r=await fetch(this.origin+'/rooms',{method:'POST',signal:AbortSignal.timeout(7000)}),j=await r.json();if(!r.ok)throw Error(j.error);code=j.code;}
    if(!/^[A-HJ-NP-Z2-9]{6}$/.test(code))throw Error('Room expired or not found. Play solo.');this.code=code;
    await this.game.prepare();this.active=true;this.$('coop-solo').hidden=false;
@@ -468,7 +489,7 @@ window.RumbleCoop=class {
   if(this.pending){const j=this.pending;this.pending=null;this.game.core.seed=j.seed;this.game.core.s=j.s;this.game.core.s.player=j.players.find(p=>p.slot===this.slot).actor;this.game.core.s.echoes=j.players.filter(p=>p.slot!==this.slot).map(p=>p.actor);this.game.core.s.offer=null;this.game.core.s.events=[];}
  }
  async share(){const url='https://playforkade.com/r/coop/'+this.code;try{if(navigator.share)await navigator.share({title:'Play ECHO RUMBLE with me',url});else{await navigator.clipboard.writeText(url);this.message('Room link copied. Share only with friends.');}}catch(e){if(e.name!=='AbortError')this.message(url);}}
- close(){this.active=false;this.pending=null;const ws=this.ws;this.ws=null;if(ws){ws.onclose=null;if(ws.readyState===1)ws.send(JSON.stringify({t:'leave'}));ws.close();}}
+ close(){this.cancelCheck();this.active=false;this.pending=null;const ws=this.ws;this.ws=null;if(ws){ws.onclose=null;if(ws.readyState===1)ws.send(JSON.stringify({t:'leave'}));ws.close();}}
  solo(){this.close();parent.ForkadeCoopCode=null;this.$('coop-share').hidden=this.$('coop-join').hidden=this.$('coop-solo').hidden=true;this.$('coop-create').hidden=!this.ready;this.message('Solo progress stays on this device.');this.game.solo();this.check();}
 };
 </script><script>/* Original toy-world renderer + local-only controls. THREE r128, MIT notice retained. */
