@@ -169,7 +169,7 @@ const {chromium,webkit}=require('playwright'),serve=require('./server.cjs');
    await pg.locator('#f-q button[data-k=long]').click();assert.match(await pg.locator('#f-play').innerText(),/Demolition Chain/);
    await pg.locator('#f-done button[data-step="1"]').click();assert.match(await pg.locator('#f-step').innerText(),/Step 1 of 2/,'tap an answer chip to change it');
    await pg.locator('#f-q button[data-k=jump]').click();await pg.locator('#f-q button[data-k=quick]').click();await pg.locator('#f-play').click();
-   await pg.waitForFunction(()=>Forkade.current()&&Forkade.current().id==='skyhop');await pg.evaluate(()=>closeStage());await pg.close(); }
+   await pg.locator('#skyhop-start-play').click();await pg.waitForFunction(()=>Forkade.current()&&Forkade.current().id==='skyhop');await pg.evaluate(()=>closeStage());await pg.close(); }
   console.log('first visit');
   // first visit: one 'Start here' card; settings say Saved
   { const pg=await browser.newPage({viewport:{width:390,height:844}});await pg.goto(base);await pg.waitForFunction(()=>window.Forkade);

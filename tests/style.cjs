@@ -38,7 +38,7 @@ function inspect(){
  const routes={fair:'/fair.html',admin:'/admin',playground:'/playground.html',delete:'/delete.html',privacy:'/privacy.html',terms:'/terms.html',guidelines:'/guidelines.html'};
  await p.goto(base+(routes[scene]||'/'));if(!routes[scene])await p.waitForFunction(()=>window.Forkade);
  if(scene==='game-over'){await p.evaluate(()=>openGame('glass'));await p.waitForFunction(()=>Forkade.current()?.id==='glass' && Forkade.current().state==='play');await p.evaluate(()=>{const g=Forkade.current();g.score=100;g.state='over';});await p.locator('#postbar').waitFor({state:'visible'});}
- if(scene==='skyhop-start')await p.evaluate(()=>requestGame('skyhop'));
+ if(scene==='skyhop-start')await p.evaluate(()=>typeof requestGame==='function'?requestGame('skyhop'):openGame('skyhop'));
  if(scene==='locker')await p.locator('#open-locker').click();
  if(scene==='settings')await p.evaluate(()=>Forkade.openSettings());
  if(scene==='rankings')await p.locator('#open-ranks').click();
