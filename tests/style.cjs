@@ -33,16 +33,17 @@ function inspect(){
 }
 (async()=>{fs.mkdirSync(out,{recursive:true});const f=serve();await new Promise(r=>f.app.listen(0,'127.0.0.1',r));const base=process.env.CHECK_URL||'http://127.0.0.1:'+f.app.address().port;const browser=await chromium.launch({channel:'chromium',args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});const results=[];
  try{for(const width of [390,1280]){const c=await browser.newContext({viewport:{width,height:844},hasTouch:width===390,isMobile:width===390,serviceWorkers:'block',reducedMotion:'reduce',extraHTTPHeaders:{DNT:'1'}});
- try{for(const scene of (process.env.STYLE_SCENES?process.env.STYLE_SCENES.split(','):['home','game-over','locker','settings','rankings','rumble','rumble-play','echo3d','rampage','fair','admin','playground','delete','privacy','terms','guidelines'])){
+ try{for(const scene of (process.env.STYLE_SCENES?process.env.STYLE_SCENES.split(','):['home','skyhop-start','game-over','locker','settings','rankings','rumble','rumble-play','echo3d','rampage','fair','admin','playground','delete','privacy','terms','guidelines'])){
  const p=await c.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error')errors.push(m.text());});await p.route('**/api/**',r=>r.fulfill({contentType:'application/json',body:'{"rows":[],"entries":[]}'}));
  const routes={fair:'/fair.html',admin:'/admin',playground:'/playground.html',delete:'/delete.html',privacy:'/privacy.html',terms:'/terms.html',guidelines:'/guidelines.html'};
  await p.goto(base+(routes[scene]||'/'));if(!routes[scene])await p.waitForFunction(()=>window.Forkade);
  if(scene==='game-over'){await p.evaluate(()=>openGame('glass'));await p.waitForFunction(()=>Forkade.current()?.id==='glass' && Forkade.current().state==='play');await p.evaluate(()=>{const g=Forkade.current();g.score=100;g.state='over';});await p.locator('#postbar').waitFor({state:'visible'});}
+ if(scene==='skyhop-start')await p.evaluate(()=>typeof requestGame==='function'?requestGame('skyhop'):openGame('skyhop'));
  if(scene==='locker')await p.locator('#open-locker').click();
  if(scene==='settings')await p.evaluate(()=>Forkade.openSettings());
  if(scene==='rankings')await p.locator('#open-ranks').click();
  if(['rumble','rumble-play','echo3d','rampage'].includes(scene)){await p.evaluate(id=>open3D(id),scene==='rumble-play'?'rumble':scene);if(scene.startsWith('rumble')){await p.frameLocator('#gframe').locator('#hero-menu').waitFor();if(scene==='rumble-play'){await p.frameLocator('#gframe').locator('#start').click();await p.frameLocator('#gframe').locator('#sheet').waitFor({state:'hidden'});}}else await p.frameLocator('#gframe').locator('#back').waitFor();}
- await p.waitForTimeout(scene==='home'?4000:500);await p.screenshot({path:path.join(out,phase+'-'+width+'-'+scene+'.png'),fullPage:!['game-over','rumble','rumble-play','echo3d','rampage','locker','settings','rankings'].includes(scene)});
+ await p.waitForTimeout(scene==='home'?4000:500);await p.screenshot({path:path.join(out,phase+'-'+width+'-'+scene+'.png'),fullPage:!['skyhop-start','game-over','rumble','rumble-play','echo3d','rampage','locker','settings','rankings'].includes(scene)});
  const surface=['rumble','rumble-play','echo3d','rampage'].includes(scene)?await(await p.locator('#gframe').elementHandle()).contentFrame():p;const metrics=await surface.evaluate(inspect);results.push({width,scene,...metrics,errors});console.log(width,scene,metrics.fail.length+' style violations',errors.length+' errors');await p.close();
  }}finally{await c.close();}}}finally{await browser.close();f.app.close();f.restore();}
  fs.writeFileSync(path.join(out,phase+'-metrics.json'),JSON.stringify(results,null,2));if(!baseline){const bad=results.filter(r=>r.fail.length||r.errors.length);assert.deepEqual(bad.map(r=>({width:r.width,scene:r.scene,fail:r.fail,errors:r.errors})),[]);}

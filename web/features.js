@@ -69,6 +69,14 @@
   const timeGapsToggle=timeGapsRow.querySelector('input');
   timeGapsToggle.checked=F.skyhopTimeGaps.preference();
   timeGapsToggle.onchange=()=>{F.skyhopTimeGaps.set(timeGapsToggle.checked);document.getElementById('skyhop-time-gaps-saved').textContent='Next round on this device';};
+  const skyhopStart=document.createElement('div');skyhopStart.className='modal';skyhopStart.id='skyhop-start';skyhopStart.hidden=true;
+  skyhopStart.innerHTML='<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="skyhop-start-title"><button class="x btn" aria-label="Close Sky Hop start">×</button><h2 id="skyhop-start-title">Sky Hop</h2><label><input type="checkbox" id="skyhop-start-time-gaps" aria-describedby="skyhop-start-help"> Time Gaps (beta)</label><p class="hint" id="skyhop-start-help">Rewind a jump to leave an echo you can land on.</p><p class="hint">This device · fixed for the round. Normal cores, separate local best; no Post or badges. Daily stays classic.</p><p class="hint" id="skyhop-start-saved" role="status"></p><button class="btn btn-pop" id="skyhop-start-play">Play Sky Hop</button></section>';document.body.appendChild(skyhopStart);
+  const startToggle=skyhopStart.querySelector('input'),startPlay=skyhopStart.querySelector('#skyhop-start-play');let startAction,startFocus,startPaused;
+  function closeSkyHopStart(){skyhopStart.hidden=true;startAction=null;if(startPaused?.state==='pause')startPaused.state='play';startPaused=null;startFocus?.focus();}
+  F.showSkyHopStart=play=>{if(!settings.hidden)closeSettings();if(!skyhopStart.hidden){startAction=play;return;}startAction=play;startFocus=document.activeElement;startPaused=F.current()?.state==='play'?F.current():null;if(startPaused)startPaused.state='pause';startToggle.checked=F.skyhopTimeGaps.preference();document.getElementById('skyhop-start-saved').textContent='';skyhopStart.hidden=false;startPlay.focus();};
+  startToggle.onchange=()=>{F.skyhopTimeGaps.set(startToggle.checked);timeGapsToggle.checked=startToggle.checked;document.getElementById('skyhop-start-saved').textContent='Saved on this device';};
+  startPlay.onclick=()=>{const play=startAction;closeSkyHopStart();play?.();};skyhopStart.querySelector('.x').onclick=closeSkyHopStart;skyhopStart.onclick=e=>{if(e.target===skyhopStart)closeSkyHopStart();};
+  skyhopStart.onkeydown=e=>{e.stopPropagation();if(e.key==='Escape')closeSkyHopStart();if(e.key==='Tab'){const all=[...skyhopStart.querySelectorAll('button,input')],first=all[0],last=all.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}};
   const offer=document.createElement('div');offer.className='modal';offer.id='assist-offer';offer.hidden=true;
   offer.innerHTML='<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="assist-title"><button class="x btn" aria-label="Close assist offer">×</button><h2 id="assist-title">Want a hand?</h2><p id="assist-offer-text"></p><button class="btn btn-pop" id="assist-yes">Turn on assist</button> <button class="btn btn-link" id="assist-no">No thanks</button></section>';document.body.appendChild(offer);
   let offeredId,offerFocus;
@@ -121,7 +129,7 @@
   window.addEventListener('message', e => { if (e.source===gframe.contentWindow && e.data?.t==='forkade-settings-open') showSettings(); });
   const share = document.createElement('button'); share.id='pb-share'; share.className='btn'; share.textContent='Share'; document.getElementById('pb-post').after(share);
   const again = document.createElement('button'); again.id='pb-again'; again.className='btn btn-link'; again.textContent='\u21bb Play again';
-  again.onclick = () => { const L = F.board.last; if (L) openGame(L.id); }; share.after(again);
+  again.onclick = () => { const L = F.board.last; if (L) requestGame(L.id); }; share.after(again);
   share.onclick = async () => {
     const L = F.board.last; if (!L) return;
     const name = GAME_NAMES()[L.id] || L.id, url = 'https://playforkade.com/' + L.id;
@@ -175,6 +183,6 @@
     const coop=path.match(/^r\/coop\/([A-HJ-NP-Z2-9]{6})$/);if(coop){window.ForkadeCoopCode=coop[1];open3D('rumble');return;}
     const id = query.get('game') || query.get('g') || (query.size===1 && ['echo3d','rampage','rumble',...F.registry.map(g=>g.id)].includes([...query.keys()][0]) ? [...query.keys()][0] : '') || path;
     if (query.has('daily')) { dailyCard.click(); return; }
-    if (['echo3d','rampage','rumble'].includes(id)) open3D(id); else if (F.registry.some(g=>g.id===id)) openGame(id);
+    if (['echo3d','rampage','rumble'].includes(id)) open3D(id); else if (F.registry.some(g=>g.id===id)) requestGame(id);
   }, 0);
 })();
